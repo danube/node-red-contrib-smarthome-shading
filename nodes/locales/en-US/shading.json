@@ -1,0 +1,18 @@
+{
+    "common": {
+        "name": "Name",
+        "configname": "Name",
+        "lat": "Latitude",
+        "lon": "Longitude",
+        "orientation": "Orientation",
+        "configuration": "Configuration"
+    },
+    "placeholder": {
+        "name": "",
+        "configname": "",
+        "lat": "",
+        "lon": "",
+        "orientation": ""
+    }
+
+}

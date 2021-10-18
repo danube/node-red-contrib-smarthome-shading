@@ -1,0 +1,313 @@
+<!-- TODOS
+
+    * i18n
+    * Passende fa icons
+    * Open / Close setpos konfigurierbar machen
+    * lat/lon Eingabeformat, passt das so?
+ -->
+
+
+
+ <!-- Geographical configuration node (house) -->
+
+<script type="text/javascript">
+    RED.nodes.registerType("shading location", {
+        category: "config",
+        defaults: {
+            name: {value: "Home", required: true},
+            lat: {value: "", required: true, validate:RED.validators.number()},
+            lon: {value: "", required: true, validate:RED.validators.number()},
+        },
+        label: function() {
+            return this.name;
+        }
+    })
+</script>
+
+<script type="text/html" data-template-name="shading location">
+    <div class="form-row">
+        <label for="node-config-input-name"><i class="fa fa-bookmark"></i> Name</span></label>
+        <input type="text" id="node-config-input-name" placeholder="Home, Apartment, Cabin, ...">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-lat"><i class="fa fa-compass"></i> Latitude</label>
+        <input type="text" id="node-config-input-lat" placeholder="47.4791446">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-lon"><i class="fa fa-compass"></i> Longitude</label>
+        <input type="text" id="node-config-input-lon" placeholder="9.6631092">
+    </div>
+    <div class="form-tips">
+        <h2>Name</h2>
+        <p>Give the location a name. You probably may have only one location config in your project, so you may name it 'Home' or so.</p>
+        <h2>Latitude, Longitude (DD)</h2>
+        <p>Coordinates of your installation in decimal degrees (DD). There are plenty of mobile apps displaying you the coordinates in various formats. You may start trying the pre-installed compass app first. There's a <a href="https://support.google.com/maps/answer/18539" target="_blank">domestic article by Google</a> how to use maps to find coordinates of a specific location. On <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a>, simply rightclick the point of your interest and choose 'show adress' to see the information like coordinates in a side panel.</p>
+    </div>
+</script>
+
+
+
+<!-- Orientation configuration node (wall) -->
+
+<script type="text/javascript">
+    RED.nodes.registerType('shading orientation',{
+        category: 'config',
+        defaults: {
+            name: {required: true},
+            config: {type: "shading location"},
+            orientation: {required: true},
+            angleEntry: {value: -75, required: true},
+            angleExit: {value: 75, required: true}
+        },
+        label: function() {
+            return this.name;
+        }
+    })
+</script>
+
+<script type="text/html" data-template-name="shading orientation">
+    <div class="form-row">
+        <label for="node-config-input-name"><i class="fa fa-bookmark"></i> Name</label>
+        <input type="text" id="node-config-input-name" placeholder="East, Streetside, Garden, ...">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-config"><i class="fa fa-compass"></i> Location</label>
+        <input type="text" id="node-config-input-config">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-orientation"><i class="fa fa-location-arrow"></i> Orientation</label>
+        <input type="number" id="node-config-input-orientation" style="width:100px" placeholder="0 - 359" min="0" max="359"> °
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-angleEntry"><i class="fa fa-location-arrow"></i> Entry angle</label>      <!-- TODO Übersetzung aus Loxone holen -->
+        <input type="number" id="node-config-input-angleEntry" style="width:100px" placeholder="-90 - 0" min="-90" max="0"> °
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-angleExit"><i class="fa fa-location-arrow"></i> Exit angle</label>      <!-- TODO Übersetzung aus Loxone holen -->
+        <input type="number" id="node-config-input-angleExit" style="width:100px" placeholder="0 - 90" min="0" max="90"> °
+    </div>
+    <div class="form-tips">
+        <h2>Name</h2>
+        <p>Give the orientation a name. If you have a room with one window, you may want to give it the room's name (like 'livingroom'). If you have more windows in a room, you may use an identifier (like 'left' or 'right').</p>
+        <h2>Orientation</h2>
+        <p>Use a regular compass, the compass app on your mobile or try to determine the orientation on a map like <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> or <a href="https://maps.google.com" target="_blank">Google Maps</a>. The value must be a number in degrees >= 0 and < 360.</p>
+        <h2>Location</h2>
+        <p>We need to know the location of the facility where the shading operates. This is important when it comes sun or weather relevant functions.</p>
+    </div>
+</script>
+
+
+
+
+<!-- Window configuration node (device) -->
+
+<script type="text/html" data-template-name="shading">
+
+    <style>
+        .red-ui-editor .form-row label{
+            width: 130px
+        }
+    </style>
+
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Kitchen, Livingroom, ...">
+    </div>
+    
+    <h3>Configuration</h3>
+    <div class="form-row">
+        <label for="node-input-config"><i class="fa fa-location-arrow"></i> Orientation</label>
+        <input type="text" id="node-input-config">
+    </div>
+    <div class="form-row">
+        <label for="node-input-setposShade"><i class="fa fa-tasks"></i> Shade position</label>
+        <input type="number" id="node-input-setposShade" min="0" max="100" placeholder="80" style="width:100px"> %
+    </div>
+
+
+    <h3>Pushbutton</h3>
+    <div class="form-row">
+        <label for="node-input-buttonTopic"><i class="fa fa-tasks"></i> Topic</label>
+        <input type="text" id="node-input-buttonTopic" placeholder="button">
+    </div>
+    <div class="form-row">
+        <label for="node-input-buttonPayloadOn"><i class="fa fa-tag"></i> Pushed</label>
+        <input type="hidden" id="node-input-buttonPayloadOnType">
+        <input style="width:70%" type="text" id="node-input-buttonPayloadOn">
+    </div>
+    <div class="form-row">
+        <label for="node-input-buttonPayloadOff"><i class="fa fa-tag"></i> Released</label>
+        <input type="hidden" id="node-input-buttonPayloadOffType">
+        <input style="width:70%" type="text" id="node-input-buttonPayloadOff">
+    </div>
+    <div class="form-row">
+        <label for="node-input-buttonLocksUntil"><i class="fa fa-tag"></i> Locks until</label>
+        <input type="text" id="node-input-buttonLocksUntil" style="width: 250px;">
+    </div>
+
+    <h3>Contact switch</h3>
+    <div class="form-row">
+        <label for="node-input-switchTopic"><i class="fa fa-tasks"></i> Topic</label>
+        <input type="text" id="node-input-switchTopic" placeholder="switch">
+    </div>
+    <div class="form-row">
+        <label for="node-input-switchOpened"><i class="fa fa-tag"></i> Opened</label>
+        <input type="hidden" id="node-input-switchPayloadOpenedType">
+        <input style="width:70%" type="text" id="node-input-switchPayloadOpened">
+    </div>
+    <div class="form-row">
+        <label for="node-input-switchTilted"><i class="fa fa-tag"></i> Tilted</label>
+        <input type="hidden" id="node-input-switchPayloadTiltedType">
+        <input style="width:70%" type="text" id="node-input-switchPayloadTilted">
+    </div>
+    <div class="form-row">
+        <label for="node-input-switchClosed"><i class="fa fa-tag"></i> Closed</label>
+        <input type="hidden" id="node-input-switchPayloadClosedType">
+        <input style="width:70%" type="text" id="node-input-switchPayloadClosed">
+    </div>
+
+    <h3>Behavior</h3>
+    <div class="form-row">
+        <label for="node-input-behSunrise"><i class="fa fa-tag"></i> Sunrise</label>
+        <input type="text" id="node-input-behSunrise" style="width: max-content">
+    </div>
+    <div class="form-row">
+        <label for="node-input-behSunset"><i class="fa fa-tag"></i> Sunset</label>
+        <input type="text" id="node-input-behSunset" style="width: max-content">
+    </div>
+
+    <div class="form-tips">
+        <h2>Name</h2>
+            <p>Give the shading a name. If you have a room with one window, you may want to give it the room's name (like 'livingroom'). If you have more windows in a room, you may append 'left' or 'right'.</p>
+        <h2>Orientation</h2>
+            <p>We need to know in which direction the shading is pointing to. This is important when it comes to following the sun.</p>
+        <h2>Pushbutton</h2>
+            <p>Define the message content of your bushbutton, providing "topic", one "payload" for button push and one "payload" for button release action.</p>
+        <h2>Behavior</h2>
+            <p>TODO</p>
+    </div>
+
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('shading',{
+        category: 'Smart Home',
+        color: '#FDF0C2',
+        inputs: 1,
+        outputs: 1,
+        icon: "font-awesome/fa-window-maximize",
+        defaults: {
+            name: {value: ""},
+            config: {type: "shading orientation"},
+            setposShade: {value: 80},
+            buttonTopic: {value: "button"},
+            buttonPayloadOn: {value: "true", validate: RED.validators.typedInput("buttonPayloadOnType")},
+            buttonPayloadOnType: {value: "initval"},
+            buttonPayloadOff: {value: "false", validate: RED.validators.typedInput("buttonPayloadOffType")},
+            buttonPayloadOffType: {value: "initval"},
+            switchTopic: {value: "switch"},
+            switchPayloadOpened: {value: 1},
+            switchPayloadOpenedType: {value: "initval"},
+            switchPayloadTilted: {value: 2},
+            switchPayloadTiltedType: {value: "initval"},
+            switchPayloadClosed: {value: 3},
+            switchPayloadClosedType: {value: "initval"},
+            behSunrise: {value: "initval"},
+            behSunset: {value: "initval"},
+            buttonLocksUntil: {value: "initval"}
+        },
+        label: function() {
+            return this.name || "Shading"
+        },
+        oneditprepare: function() {
+            // initval
+            if (this.buttonPayloadOnType === "initval") {
+                $("#node-input-buttonPayloadOnType").val("bool")
+            }
+            if (this.buttonPayloadOffType === "initval") {
+                $("#node-input-buttonPayloadOffType").val("bool")
+            }
+            if (this.switchPayloadOpenedType === "initval") {
+                $("#node-input-switchPayloadOpenedType").val("num")
+            }
+            if (this.switchPayloadTiltedType === "initval") {
+                $("#node-input-switchPayloadTiltedType").val("num")
+            }
+            if (this.switchPayloadClosedType === "initval") {
+                $("#node-input-switchPayloadClosedType").val("num")
+            }
+            if (this.behSunrise === "initval") {
+                $("#node-input-behSunrise").val("nothing")
+            }
+            if (this.behSunset === "initval") {
+                $("#node-input-behSunset").val("nothing")
+            }
+            if (this.buttonLocksUntil === "initval") {
+                $("#node-input-buttonLocksUntil").val("sunriseset")
+            }
+            // typedinput
+            $("#node-input-buttonPayloadOn").typedInput({
+                default: "bool",
+                typeField: $("#node-input-buttonPayloadOnType"),
+                types: ["bool","num","str"]
+            })
+            $("#node-input-buttonPayloadOff").typedInput({
+                default: "bool",
+                typeField: $("#node-input-buttonPayloadOffType"),
+                types: ["bool","num","str"]
+            })
+            $("#node-input-switchPayloadOpened").typedInput({
+                default: "num",
+                typeField: $("#node-input-switchPayloadOpenedType"),
+                types: ["bool","num","str"]
+            })
+            $("#node-input-switchPayloadTilted").typedInput({
+                default: "num",
+                typeField: $("#node-input-switchPayloadTiltedType"),
+                types: ["bool","num","str"]
+            })
+            $("#node-input-switchPayloadClosed").typedInput({
+                default: "num",
+                typeField: $("#node-input-switchPayloadClosedType"),
+                types: ["bool","num","str"]
+            })
+            $("#node-input-behSunrise").typedInput({
+                types: [
+                    {
+                        value: "behSunrise",
+                        options: [
+                            {value: "nothing", label: "Nothing"},
+                            {value: "open", label: "Open"},
+                            {value: "shade", label: "Shade"},
+                            {value: "close", label: "Close"}
+                        ]
+                    }
+                ]
+            })
+            $("#node-input-behSunset").typedInput({
+                types: [
+                    {
+                        value: "behSunset",
+                        options: [
+                            {value: "nothing", label: "Nothing"},
+                            {value: "open", label: "Open"},
+                            {value: "shade", label: "Shade"},
+                            {value: "close", label: "Close"}
+                        ]
+                    }
+                ]
+            })
+            $("#node-input-buttonLocksUntil").typedInput({
+                types: [
+                    {
+                        value: "buttonLocksUntil",
+                        options: [
+                            {value: "sunriseset", label: "Next sunrise / sunset"},
+                            {value: "forever", label: "Forever"}
+                        ]
+                    }
+                ]
+            })
+        }
+    });
+</script>
