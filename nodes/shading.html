@@ -8,18 +8,17 @@
 
 
 
- <!-- Geographical configuration node (house) -->
 
 <script type="text/javascript">
     RED.nodes.registerType("shading location", {
         category: "config",
         defaults: {
-            name: {value: "Home", required: true},
+            name: {},
             lat: {value: "", required: true, validate:RED.validators.number()},
             lon: {value: "", required: true, validate:RED.validators.number()},
         },
         label: function() {
-            return this.name;
+            return this.name || this.lat + " / " + this.lon
         }
     })
 </script>
@@ -47,20 +46,19 @@
 
 
 
-<!-- Orientation configuration node (wall) -->
+
+
 
 <script type="text/javascript">
     RED.nodes.registerType('shading orientation',{
         category: 'config',
         defaults: {
-            name: {required: true},
+            name: {},
             config: {type: "shading location"},
-            orientation: {required: true},
-            angleEntry: {value: -75, required: true},
-            angleExit: {value: 75, required: true}
+            direction: {required: true},
         },
         label: function() {
-            return this.name;
+            return this.name || this.direction + "°";       // TODO: automatisch zusammenstellen: shading location.name + orientation
         }
     })
 </script>
@@ -75,166 +73,71 @@
         <input type="text" id="node-config-input-config">
     </div>
     <div class="form-row">
-        <label for="node-config-input-orientation"><i class="fa fa-location-arrow"></i> Orientation</label>
-        <input type="number" id="node-config-input-orientation" style="width:100px" placeholder="0 - 359" min="0" max="359"> °
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-angleEntry"><i class="fa fa-location-arrow"></i> Entry angle</label>      <!-- TODO Übersetzung aus Loxone holen -->
-        <input type="number" id="node-config-input-angleEntry" style="width:100px" placeholder="-90 - 0" min="-90" max="0"> °
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-angleExit"><i class="fa fa-location-arrow"></i> Exit angle</label>      <!-- TODO Übersetzung aus Loxone holen -->
-        <input type="number" id="node-config-input-angleExit" style="width:100px" placeholder="0 - 90" min="0" max="90"> °
+        <label for="node-config-input-direction"><i class="fa fa-location-arrow"></i> Direction</label>
+        <input type="number" id="node-config-input-direction" style="width:100px" placeholder="0 - 359" min="0" max="359"> °
     </div>
     <div class="form-tips">
         <h2>Name</h2>
         <p>Give the orientation a name. If you have a room with one window, you may want to give it the room's name (like 'livingroom'). If you have more windows in a room, you may use an identifier (like 'left' or 'right').</p>
-        <h2>Orientation</h2>
-        <p>Use a regular compass, the compass app on your mobile or try to determine the orientation on a map like <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> or <a href="https://maps.google.com" target="_blank">Google Maps</a>. The value must be a number in degrees >= 0 and < 360.</p>
         <h2>Location</h2>
         <p>We need to know the location of the facility where the shading operates. This is important when it comes sun or weather relevant functions.</p>
+        <h2>Direction</h2>
+        <p>Use a regular compass, the compass app on your mobile or try to determine the orientation on a map like <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> or <a href="https://maps.google.com" target="_blank">Google Maps</a>. The value must be a number in degrees >= 0 and < 360.</p>
     </div>
 </script>
 
 
 
 
-<!-- Window configuration node (device) -->
-
-<script type="text/html" data-template-name="shading">
-
-    <style>
-        .red-ui-editor .form-row label{
-            width: 130px
-        }
-    </style>
-
-    <div class="form-row">
-        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-        <input type="text" id="node-input-name" placeholder="Kitchen, Livingroom, ...">
-    </div>
-    
-    <h3>Configuration</h3>
-    <div class="form-row">
-        <label for="node-input-config"><i class="fa fa-location-arrow"></i> Orientation</label>
-        <input type="text" id="node-input-config">
-    </div>
-    <div class="form-row">
-        <label for="node-input-setposShade"><i class="fa fa-tasks"></i> Shade position</label>
-        <input type="number" id="node-input-setposShade" min="0" max="100" placeholder="80" style="width:100px"> %
-    </div>
-
-
-    <h3>Pushbutton</h3>
-    <div class="form-row">
-        <label for="node-input-buttonTopic"><i class="fa fa-tasks"></i> Topic</label>
-        <input type="text" id="node-input-buttonTopic" placeholder="button">
-    </div>
-    <div class="form-row">
-        <label for="node-input-buttonPayloadOn"><i class="fa fa-tag"></i> Pushed</label>
-        <input type="hidden" id="node-input-buttonPayloadOnType">
-        <input style="width:70%" type="text" id="node-input-buttonPayloadOn">
-    </div>
-    <div class="form-row">
-        <label for="node-input-buttonPayloadOff"><i class="fa fa-tag"></i> Released</label>
-        <input type="hidden" id="node-input-buttonPayloadOffType">
-        <input style="width:70%" type="text" id="node-input-buttonPayloadOff">
-    </div>
-    <div class="form-row">
-        <label for="node-input-buttonLocksUntil"><i class="fa fa-tag"></i> Locks until</label>
-        <input type="text" id="node-input-buttonLocksUntil" style="width: 250px;">
-    </div>
-
-    <h3>Contact switch</h3>
-    <div class="form-row">
-        <label for="node-input-switchTopic"><i class="fa fa-tasks"></i> Topic</label>
-        <input type="text" id="node-input-switchTopic" placeholder="switch">
-    </div>
-    <div class="form-row">
-        <label for="node-input-switchOpened"><i class="fa fa-tag"></i> Opened</label>
-        <input type="hidden" id="node-input-switchPayloadOpenedType">
-        <input style="width:70%" type="text" id="node-input-switchPayloadOpened">
-    </div>
-    <div class="form-row">
-        <label for="node-input-switchTilted"><i class="fa fa-tag"></i> Tilted</label>
-        <input type="hidden" id="node-input-switchPayloadTiltedType">
-        <input style="width:70%" type="text" id="node-input-switchPayloadTilted">
-    </div>
-    <div class="form-row">
-        <label for="node-input-switchClosed"><i class="fa fa-tag"></i> Closed</label>
-        <input type="hidden" id="node-input-switchPayloadClosedType">
-        <input style="width:70%" type="text" id="node-input-switchPayloadClosed">
-    </div>
-
-    <h3>Behavior</h3>
-    <div class="form-row">
-        <label for="node-input-behSunrise"><i class="fa fa-tag"></i> Sunrise</label>
-        <input type="text" id="node-input-behSunrise" style="width: max-content">
-    </div>
-    <div class="form-row">
-        <label for="node-input-behSunset"><i class="fa fa-tag"></i> Sunset</label>
-        <input type="text" id="node-input-behSunset" style="width: max-content">
-    </div>
-
-    <div class="form-tips">
-        <h2>Name</h2>
-            <p>Give the shading a name. If you have a room with one window, you may want to give it the room's name (like 'livingroom'). If you have more windows in a room, you may append 'left' or 'right'.</p>
-        <h2>Orientation</h2>
-            <p>We need to know in which direction the shading is pointing to. This is important when it comes to following the sun.</p>
-        <h2>Pushbutton</h2>
-            <p>Define the message content of your bushbutton, providing "topic", one "payload" for button push and one "payload" for button release action.</p>
-        <h2>Behavior</h2>
-            <p>TODO</p>
-    </div>
-
-</script>
 
 <script type="text/javascript">
-    RED.nodes.registerType('shading',{
-        category: 'Smart Home',
-        color: '#FDF0C2',
-        inputs: 1,
-        outputs: 1,
-        icon: "font-awesome/fa-window-maximize",
+    RED.nodes.registerType ('shading configuration', {
+        category: 'config',
         defaults: {
-            name: {value: ""},
-            config: {type: "shading orientation"},
-            setposShade: {value: 80},
-            buttonTopic: {value: "button"},
-            buttonPayloadOn: {value: "true", validate: RED.validators.typedInput("buttonPayloadOnType")},
-            buttonPayloadOnType: {value: "initval"},
-            buttonPayloadOff: {value: "false", validate: RED.validators.typedInput("buttonPayloadOffType")},
-            buttonPayloadOffType: {value: "initval"},
-            switchTopic: {value: "switch"},
-            switchPayloadOpened: {value: 1},
-            switchPayloadOpenedType: {value: "initval"},
-            switchPayloadTilted: {value: 2},
-            switchPayloadTiltedType: {value: "initval"},
-            switchPayloadClosed: {value: 3},
-            switchPayloadClosedType: {value: "initval"},
+            name: {required: true},
+            // window configuration
+            windowSunAngleEntry: {value: -75, required: true},
+            windowSunAngleExit: {value: 75, required: true},
+            // shading configuration
+            shadingSetposShade: {value: 80, required: true},
+            // incoming messages configuration: button
+            inmsgButtonTopic: {value: "button"},
+            inmsgButtonPayloadOn: {value: "true", validate: RED.validators.typedInput("buttonPayloadOnType")},
+            inmsgButtonPayloadOnType: {value: "initval"},
+            inmsgButtonPayloadOff: {value: "false", validate: RED.validators.typedInput("buttonPayloadOffType")},
+            inmsgButtonPayloadOffType: {value: "initval"},
+            // incoming messages configuration: window switch
+            inmsgWinswitchTopic: {value: "switch"},
+            inmsgWinswitchPayloadOpened: {value: 1},
+            inmsgWinswitchPayloadOpenedType: {value: "initval"},
+            inmsgWinswitchPayloadTilted: {value: 2},
+            inmsgWinswitchPayloadTiltedType: {value: "initval"},
+            inmsgWinswitchPayloadClosed: {value: 3},
+            inmsgWinswitchPayloadClosedType: {value: "initval"},
+            // behavior configuration
             behSunrise: {value: "initval"},
             behSunset: {value: "initval"},
-            buttonLocksUntil: {value: "initval"}
+            behButtonLocksUntil: {value: "initval"}
         },
         label: function() {
-            return this.name || "Shading"
+            return this.name
         },
         oneditprepare: function() {
-            // initval
-            if (this.buttonPayloadOnType === "initval") {
-                $("#node-input-buttonPayloadOnType").val("bool")
+            // value & type initialisation
+            if (this.inmsgButtonPayloadOnType === "initval") {
+                $("#node-input-inmsgButtonPayloadOnType").val("bool")
             }
-            if (this.buttonPayloadOffType === "initval") {
-                $("#node-input-buttonPayloadOffType").val("bool")
+            if (this.inmsgButtonPayloadOffType === "initval") {
+                $("#node-input-inmsgButtonPayloadOffType").val("bool")
             }
-            if (this.switchPayloadOpenedType === "initval") {
-                $("#node-input-switchPayloadOpenedType").val("num")
+            if (this.inmsgWinswitchPayloadOpenedType === "initval") {
+                $("#node-input-inmsgWinswitchPayloadOpenedType").val("num")
             }
-            if (this.switchPayloadTiltedType === "initval") {
-                $("#node-input-switchPayloadTiltedType").val("num")
+            if (this.inmsgWinswitchPayloadTiltedType === "initval") {
+                $("#node-input-inmsgWinswitchPayloadTiltedType").val("num")
             }
-            if (this.switchPayloadClosedType === "initval") {
-                $("#node-input-switchPayloadClosedType").val("num")
+            if (this.inmsgWinswitchPayloadClosedType === "initval") {
+                $("#node-input-inmsgWinswitchPayloadClosedType").val("num")
             }
             if (this.behSunrise === "initval") {
                 $("#node-input-behSunrise").val("nothing")
@@ -242,33 +145,33 @@
             if (this.behSunset === "initval") {
                 $("#node-input-behSunset").val("nothing")
             }
-            if (this.buttonLocksUntil === "initval") {
-                $("#node-input-buttonLocksUntil").val("sunriseset")
+            if (this.behButtonLocksUntil === "initval") {
+                $("#node-input-behButtonLocksUntil").val("sunriseset")
             }
-            // typedinput
-            $("#node-input-buttonPayloadOn").typedInput({
+            // defining input types
+            $("#node-input-inmsgButtonPayloadOn").typedInput({
                 default: "bool",
-                typeField: $("#node-input-buttonPayloadOnType"),
+                typeField: $("#node-input-inmsgButtonPayloadOnType"),
                 types: ["bool","num","str"]
             })
-            $("#node-input-buttonPayloadOff").typedInput({
+            $("#node-input-inmsgButtonPayloadOff").typedInput({
                 default: "bool",
-                typeField: $("#node-input-buttonPayloadOffType"),
+                typeField: $("#node-input-inmsgButtonPayloadOffType"),
                 types: ["bool","num","str"]
             })
-            $("#node-input-switchPayloadOpened").typedInput({
+            $("#node-input-inmsgWinswitchPayloadOpened").typedInput({
                 default: "num",
-                typeField: $("#node-input-switchPayloadOpenedType"),
+                typeField: $("#node-input-inmsgWinswitchPayloadOpenedType"),
                 types: ["bool","num","str"]
             })
-            $("#node-input-switchPayloadTilted").typedInput({
+            $("#node-input-inmsgWinswitchPayloadTilted").typedInput({
                 default: "num",
-                typeField: $("#node-input-switchPayloadTiltedType"),
+                typeField: $("#node-input-inmsgWinswitchPayloadTiltedType"),
                 types: ["bool","num","str"]
             })
-            $("#node-input-switchPayloadClosed").typedInput({
+            $("#node-input-inmsgWinswitchPayloadClosed").typedInput({
                 default: "num",
-                typeField: $("#node-input-switchPayloadClosedType"),
+                typeField: $("#node-input-inmsgWinswitchPayloadClosedType"),
                 types: ["bool","num","str"]
             })
             $("#node-input-behSunrise").typedInput({
@@ -297,10 +200,10 @@
                     }
                 ]
             })
-            $("#node-input-buttonLocksUntil").typedInput({
+            $("#node-input-behButtonLocksUntil").typedInput({
                 types: [
                     {
-                        value: "buttonLocksUntil",
+                        value: "behButtonLocksUntil",
                         options: [
                             {value: "sunriseset", label: "Next sunrise / sunset"},
                             {value: "forever", label: "Forever"}
@@ -309,5 +212,143 @@
                 ]
             })
         }
+    })
+</script>
+
+<script type="text/html" data-template-name="shading configuration">
+    <style>
+        .red-ui-editor .form-row label {
+            width: 130px
+        }
+        .red-ui-editor .form-row input {
+            width: 50%
+        }
+        /* .red-ui-editor .form-row #node-config-input-windowSunAngleEntry,
+        .red-ui-editor .form-row #node-config-input-windowSunAngleExit {
+            width: 100px
+        } */
+
+
+        input[id^='node-config-input-windowSunAngle'] {
+            width: 30px;
+        }
+
+
+
+
+    </style>
+    <div class="form-row">
+        <label for="node-config-input-name"><i class="fa fa-bookmark"></i> Name</label>
+        <input type="text" id="node-config-input-name" placeholder="Name of onfiguration set">
+    </div>
+    <h3>Sun configuration</h3>
+    <div class="form-row">
+        <label for="node-config-input-windowSunAngleEntry"><i class="fa fa-location-arrow"></i> Entry angle</label>
+        <input type="number" id="node-config-input-windowSunAngleEntry" placeholder="-90 - 0" min="-90" max="0"> °
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-windowSunAngleExit"><i class="fa fa-location-arrow"></i> Exit angle</label>
+        <input type="number" id="node-config-input-windowSunAngleExit" placeholder="0 - 90" min="0" max="90"> °
+    </div>
+    <h3>Blind configuration</h3>
+    <div class="form-row">
+        <label for="node-input-shadingSetposShade"><i class="fa fa-tasks"></i> Shade position</label>
+        <input type="number" id="node-input-shadingSetposShade" min="0" max="100" placeholder="80"> %
+    </div>
+    <h3>Pushbutton configuration</h3>
+    <div class="form-row">
+        <label for="node-input-inmsgButtonTopic"><i class="fa fa-tasks"></i> Topic</label>
+        <input type="text" id="node-input-inmsgButtonTopic" placeholder="button">
+    </div>
+    <div class="form-row">
+        <label for="node-input-inmsgButtonPayloadOn"><i class="fa fa-tag"></i> Pushed</label>
+        <input type="hidden" id="node-input-inmsgButtonPayloadOnType">
+        <input type="text" id="node-input-inmsgButtonPayloadOn">
+    </div>
+    <div class="form-row">
+        <label for="node-input-inmsgButtonPayloadOff"><i class="fa fa-tag"></i> Released</label>
+        <input type="hidden" id="node-input-inmsgButtonPayloadOffType">
+        <input type="text" id="node-input-inmsgButtonPayloadOff">
+    </div>
+    <h3>Window switch</h3>
+    <div class="form-row">
+        <label for="node-input-inmsgWinswitchTopic"><i class="fa fa-tasks"></i> Topic</label>
+        <input type="text" id="node-input-inmsgWinswitchTopic" placeholder="switch">
+    </div>
+    <div class="form-row">
+        <label for="node-input-inmsgWinswitchPayloadOpened"><i class="fa fa-tag"></i> Opened</label>
+        <input type="hidden" id="node-input-inmsgWinswitchPayloadOpenedType">
+        <input type="text" id="node-input-inmsgWinswitchPayloadOpened">
+    </div>
+    <div class="form-row">
+        <label for="node-input-inmsgWinswitchPayloadTilted"><i class="fa fa-tag"></i> Tilted</label>
+        <input type="hidden" id="node-input-inmsgWinswitchPayloadTiltedType">
+        <input type="text" id="node-input-inmsgWinswitchPayloadTilted">
+    </div>
+    <div class="form-row">
+        <label for="node-input-inmsgWinswitchPayloadClosed"><i class="fa fa-tag"></i> Closed</label>
+        <input type="hidden" id="node-input-inmsgWinswitchPayloadClosedType">
+        <input type="text" id="node-input-inmsgWinswitchPayloadClosed">
+    </div>
+    <h3>Behavior configuration</h3>
+    <div class="form-row">
+        <label for="node-input-behButtonLocksUntil"><i class="fa fa-tag"></i> Locks until</label>
+        <input type="text" id="node-input-behButtonLocksUntil">
+    </div>
+    <div class="form-row">
+        <label for="node-input-behSunrise"><i class="fa fa-tag"></i> Sunrise</label>
+        <input type="text" id="node-input-behSunrise">
+    </div>
+    <div class="form-row">
+        <label for="node-input-behSunset"><i class="fa fa-tag"></i> Sunset</label>
+        <input type="text" id="node-input-behSunset">
+    </div>
+</script>
+
+
+
+
+<script type="text/javascript">
+    RED.nodes.registerType('shading',{
+        category: 'Smart Home',
+        color: '#C0DEED',
+        inputs: 1,
+        outputs: 1,
+        icon: "font-awesome/fa-window-maximize",
+        defaults: {
+            name: {value: ""},
+            configOrientation: {type: "shading orientation"},
+            configSet: {type: "shading configuration"}
+        },
+        label: function() {
+            return this.name || "Shading"
+        }
     });
 </script>
+
+<script type="text/html" data-template-name="shading">
+    <style>
+        .red-ui-editor .form-row label{
+            width: 110px
+        }
+    </style>
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Kitchen, Livingroom, ...">
+    </div>
+    <div class="form-row">
+        <label for="node-input-configOrientation"><i class="fa fa-location-arrow"></i> Orientation</label>
+        <input type="text" id="node-input-configOrientation">
+    </div>
+    <div class="form-row">
+        <label for="node-input-configSet"><i class="fa fa-sliders"></i> Configuration</label>
+        <input type="text" id="node-input-configSet">
+    </div>
+    <div class="form-tips">
+        <h2>Name</h2>
+            <p>Give the shading a name. If you have a room with one window, you may want to give it the room's name (like 'livingroom'). If you have more windows in a room, you may append 'left' or 'right'.</p>
+        <h2>Orientation</h2>
+            <p>We need to know in which direction the shading is pointing to. This is important when it comes to following the sun.</p>
+    </div>
+</script>
+

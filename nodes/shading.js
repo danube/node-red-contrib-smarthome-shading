@@ -10,6 +10,11 @@ module.exports = function(RED) {
     }
     RED.nodes.registerType("shading location",ShadingLocationNode);
 
+    function ShadingConfigNode(n) {
+        RED.nodes.createNode(this,n);
+    }
+    RED.nodes.registerType("shading configuration",ShadingConfigNode);
+
     function ShadingNode(n) {
         RED.nodes.createNode(this,n);
     }
