@@ -38,7 +38,7 @@
     </div>
     <div class="form-tips">
         <h2>Name</h2>
-        <p>Give the location a name. You probably may have only one location config in your project, so you may name it 'Home' or so.</p>
+        <p>Give the location a name. You probably may have only one location config in your project, so you may name it 'Home' or simply leave it blank to use the coordinates as name.</p>
         <h2>Latitude, Longitude (DD)</h2>
         <p>Coordinates of your installation in decimal degrees (DD). There are plenty of mobile apps displaying you the coordinates in various formats. You may start trying the pre-installed compass app first. There's a <a href="https://support.google.com/maps/answer/18539" target="_blank">domestic article by Google</a> how to use maps to find coordinates of a specific location. On <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a>, simply rightclick the point of your interest and choose 'show adress' to see the information like coordinates in a side panel.</p>
     </div>
@@ -78,7 +78,7 @@
     </div>
     <div class="form-tips">
         <h2>Name</h2>
-        <p>Give the orientation a name. If you have a room with one window, you may want to give it the room's name (like 'livingroom'). If you have more windows in a room, you may use an identifier (like 'left' or 'right').</p>
+        <p>Give the orientation a name or simply leave it blank to use the entered number as identifier. If you have a room with one window, you may want to give it the room's name (like 'livingroom'). If you have more windows in a room, you may use an identifier (like 'left' or 'right').</p>
         <h2>Location</h2>
         <p>We need to know the location of the facility where the shading operates. This is important when it comes sun or weather relevant functions.</p>
         <h2>Direction</h2>
@@ -221,21 +221,13 @@
             width: 130px
         }
         .red-ui-editor .form-row input {
-            width: 50%
+            width: 250px
         }
-        /* .red-ui-editor .form-row #node-config-input-windowSunAngleEntry,
-        .red-ui-editor .form-row #node-config-input-windowSunAngleExit {
+        .red-ui-editor .form-row #node-config-input-windowSunAngleEntry,
+        .red-ui-editor .form-row #node-config-input-windowSunAngleExit,
+        .red-ui-editor .form-row #node-input-shadingSetposShade {
             width: 100px
-        } */
-
-
-        input[id^='node-config-input-windowSunAngle'] {
-            width: 30px;
         }
-
-
-
-
     </style>
     <div class="form-row">
         <label for="node-config-input-name"><i class="fa fa-bookmark"></i> Name</label>
@@ -252,7 +244,7 @@
     </div>
     <h3>Blind configuration</h3>
     <div class="form-row">
-        <label for="node-input-shadingSetposShade"><i class="fa fa-tasks"></i> Shade position</label>
+        <label for="node-input-shadingSetposShade"><i class="fa fa-window-maximize"></i> Shade position</label>
         <input type="number" id="node-input-shadingSetposShade" min="0" max="100" placeholder="80"> %
     </div>
     <h3>Pushbutton configuration</h3>
@@ -292,15 +284,15 @@
     </div>
     <h3>Behavior configuration</h3>
     <div class="form-row">
-        <label for="node-input-behButtonLocksUntil"><i class="fa fa-tag"></i> Locks until</label>
+        <label for="node-input-behButtonLocksUntil"><i class="fa fa-sliders"></i> Locks until</label>
         <input type="text" id="node-input-behButtonLocksUntil">
     </div>
     <div class="form-row">
-        <label for="node-input-behSunrise"><i class="fa fa-tag"></i> Sunrise</label>
+        <label for="node-input-behSunrise"><i class="fa fa-sliders"></i> Sunrise</label>
         <input type="text" id="node-input-behSunrise">
     </div>
     <div class="form-row">
-        <label for="node-input-behSunset"><i class="fa fa-tag"></i> Sunset</label>
+        <label for="node-input-behSunset"><i class="fa fa-sliders"></i> Sunset</label>
         <input type="text" id="node-input-behSunset">
     </div>
 </script>
@@ -328,8 +320,8 @@
 
 <script type="text/html" data-template-name="shading">
     <style>
-        .red-ui-editor .form-row label{
-            width: 110px
+        .red-ui-editor .form-row label {
+            width: 130px
         }
     </style>
     <div class="form-row">
@@ -348,7 +340,9 @@
         <h2>Name</h2>
             <p>Give the shading a name. If you have a room with one window, you may want to give it the room's name (like 'livingroom'). If you have more windows in a room, you may append 'left' or 'right'.</p>
         <h2>Orientation</h2>
-            <p>We need to know in which direction the shading is pointing to. This is important when it comes to following the sun.</p>
+            <p>This is a configuration set holding the geographical orientation of the window. Use it for all other windows on the same frontside.</p>
+        <h2>Configuration</h2>
+            <p>This is a set of configuration, which define, how your shading behaves. Use this configuration set for as many blinds as you wish. Create different configuration sets for blinds you want to behave different.</p>
     </div>
 </script>
 
