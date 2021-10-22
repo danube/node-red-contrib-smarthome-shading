@@ -9,7 +9,7 @@
 
 
 
-<script type="text/javascript">
+ <script type="text/javascript">
     RED.nodes.registerType("shading location", {
         category: "config",
         defaults: {
@@ -95,18 +95,14 @@
         category: 'config',
         defaults: {
             name: {required: true},
-            // window configuration
             windowSunAngleEntry: {value: -75, required: true},
             windowSunAngleExit: {value: 75, required: true},
-            // shading configuration
             shadingSetposShade: {value: 80, required: true},
-            // incoming messages configuration: button
             inmsgButtonTopic: {value: "button"},
             inmsgButtonPayloadOn: {value: "true", validate: RED.validators.typedInput("buttonPayloadOnType")},
             inmsgButtonPayloadOnType: {value: "initval"},
             inmsgButtonPayloadOff: {value: "false", validate: RED.validators.typedInput("buttonPayloadOffType")},
             inmsgButtonPayloadOffType: {value: "initval"},
-            // incoming messages configuration: window switch
             inmsgWinswitchTopic: {value: "switch"},
             inmsgWinswitchPayloadOpened: {value: 1},
             inmsgWinswitchPayloadOpenedType: {value: "initval"},
@@ -114,7 +110,6 @@
             inmsgWinswitchPayloadTiltedType: {value: "initval"},
             inmsgWinswitchPayloadClosed: {value: 3},
             inmsgWinswitchPayloadClosedType: {value: "initval"},
-            // behavior configuration
             behSunrise: {value: "initval"},
             behSunset: {value: "initval"},
             behButtonLocksUntil: {value: "initval"}
@@ -125,56 +120,56 @@
         oneditprepare: function() {
             // value & type initialisation
             if (this.inmsgButtonPayloadOnType === "initval") {
-                $("#node-input-inmsgButtonPayloadOnType").val("bool")
+                $("#node-config-input-inmsgButtonPayloadOnType").val("bool")
             }
             if (this.inmsgButtonPayloadOffType === "initval") {
-                $("#node-input-inmsgButtonPayloadOffType").val("bool")
+                $("#node-config-input-inmsgButtonPayloadOffType").val("bool")
             }
             if (this.inmsgWinswitchPayloadOpenedType === "initval") {
-                $("#node-input-inmsgWinswitchPayloadOpenedType").val("num")
+                $("#node-config-input-inmsgWinswitchPayloadOpenedType").val("num")
             }
             if (this.inmsgWinswitchPayloadTiltedType === "initval") {
-                $("#node-input-inmsgWinswitchPayloadTiltedType").val("num")
+                $("#node-config-input-inmsgWinswitchPayloadTiltedType").val("num")
             }
             if (this.inmsgWinswitchPayloadClosedType === "initval") {
-                $("#node-input-inmsgWinswitchPayloadClosedType").val("num")
+                $("#node-config-input-inmsgWinswitchPayloadClosedType").val("num")
             }
             if (this.behSunrise === "initval") {
-                $("#node-input-behSunrise").val("nothing")
+                $("#node-config-input-behSunrise").val("nothing")
             }
             if (this.behSunset === "initval") {
-                $("#node-input-behSunset").val("nothing")
+                $("#node-config-input-behSunset").val("nothing")
             }
             if (this.behButtonLocksUntil === "initval") {
-                $("#node-input-behButtonLocksUntil").val("sunriseset")
+                $("#node-config-input-behButtonLocksUntil").val("sunriseset")
             }
             // defining input types
-            $("#node-input-inmsgButtonPayloadOn").typedInput({
+            $("#node-config-input-inmsgButtonPayloadOn").typedInput({
                 default: "bool",
-                typeField: $("#node-input-inmsgButtonPayloadOnType"),
+                typeField: $("#node-config-input-inmsgButtonPayloadOnType"),
                 types: ["bool","num","str"]
             })
-            $("#node-input-inmsgButtonPayloadOff").typedInput({
+            $("#node-config-input-inmsgButtonPayloadOff").typedInput({
                 default: "bool",
-                typeField: $("#node-input-inmsgButtonPayloadOffType"),
+                typeField: $("#node-config-input-inmsgButtonPayloadOffType"),
                 types: ["bool","num","str"]
             })
-            $("#node-input-inmsgWinswitchPayloadOpened").typedInput({
+            $("#node-config-input-inmsgWinswitchPayloadOpened").typedInput({
                 default: "num",
-                typeField: $("#node-input-inmsgWinswitchPayloadOpenedType"),
+                typeField: $("#node-config-input-inmsgWinswitchPayloadOpenedType"),
                 types: ["bool","num","str"]
             })
-            $("#node-input-inmsgWinswitchPayloadTilted").typedInput({
+            $("#node-config-input-inmsgWinswitchPayloadTilted").typedInput({
                 default: "num",
-                typeField: $("#node-input-inmsgWinswitchPayloadTiltedType"),
+                typeField: $("#node-config-input-inmsgWinswitchPayloadTiltedType"),
                 types: ["bool","num","str"]
             })
-            $("#node-input-inmsgWinswitchPayloadClosed").typedInput({
+            $("#node-config-input-inmsgWinswitchPayloadClosed").typedInput({
                 default: "num",
-                typeField: $("#node-input-inmsgWinswitchPayloadClosedType"),
+                typeField: $("#node-config-input-inmsgWinswitchPayloadClosedType"),
                 types: ["bool","num","str"]
             })
-            $("#node-input-behSunrise").typedInput({
+            $("#node-config-input-behSunrise").typedInput({
                 types: [
                     {
                         value: "behSunrise",
@@ -187,7 +182,7 @@
                     }
                 ]
             })
-            $("#node-input-behSunset").typedInput({
+            $("#node-config-input-behSunset").typedInput({
                 types: [
                     {
                         value: "behSunset",
@@ -200,7 +195,7 @@
                     }
                 ]
             })
-            $("#node-input-behButtonLocksUntil").typedInput({
+            $("#node-config-input-behButtonLocksUntil").typedInput({
                 types: [
                     {
                         value: "behButtonLocksUntil",
@@ -225,7 +220,7 @@
         }
         .red-ui-editor .form-row #node-config-input-windowSunAngleEntry,
         .red-ui-editor .form-row #node-config-input-windowSunAngleExit,
-        .red-ui-editor .form-row #node-input-shadingSetposShade {
+        .red-ui-editor .form-row #node-config-input-shadingSetposShade {
             width: 100px
         }
     </style>
@@ -244,56 +239,56 @@
     </div>
     <h3>Blind configuration</h3>
     <div class="form-row">
-        <label for="node-input-shadingSetposShade"><i class="fa fa-window-maximize"></i> Shade position</label>
-        <input type="number" id="node-input-shadingSetposShade" min="0" max="100" placeholder="80"> %
+        <label for="node-config-input-shadingSetposShade"><i class="fa fa-window-maximize"></i> Shade position</label>
+        <input type="number" id="node-config-input-shadingSetposShade" min="0" max="100"> %
     </div>
     <h3>Pushbutton configuration</h3>
     <div class="form-row">
-        <label for="node-input-inmsgButtonTopic"><i class="fa fa-tasks"></i> Topic</label>
-        <input type="text" id="node-input-inmsgButtonTopic" placeholder="button">
+        <label for="node-config-input-inmsgButtonTopic"><i class="fa fa-tasks"></i> Topic</label>
+        <input type="text" id="node-config-input-inmsgButtonTopic" placeholder="Expecting 'button' if left blank">
     </div>
     <div class="form-row">
-        <label for="node-input-inmsgButtonPayloadOn"><i class="fa fa-tag"></i> Pushed</label>
-        <input type="hidden" id="node-input-inmsgButtonPayloadOnType">
-        <input type="text" id="node-input-inmsgButtonPayloadOn">
+        <label for="node-config-input-inmsgButtonPayloadOn"><i class="fa fa-tag"></i> Pushed</label>
+        <input type="hidden" id="node-config-input-inmsgButtonPayloadOnType">
+        <input type="text" id="node-config-input-inmsgButtonPayloadOn">
     </div>
     <div class="form-row">
-        <label for="node-input-inmsgButtonPayloadOff"><i class="fa fa-tag"></i> Released</label>
-        <input type="hidden" id="node-input-inmsgButtonPayloadOffType">
-        <input type="text" id="node-input-inmsgButtonPayloadOff">
+        <label for="node-config-input-inmsgButtonPayloadOff"><i class="fa fa-tag"></i> Released</label>
+        <input type="hidden" id="node-config-input-inmsgButtonPayloadOffType">
+        <input type="text" id="node-config-input-inmsgButtonPayloadOff">
     </div>
     <h3>Window switch</h3>
     <div class="form-row">
-        <label for="node-input-inmsgWinswitchTopic"><i class="fa fa-tasks"></i> Topic</label>
-        <input type="text" id="node-input-inmsgWinswitchTopic" placeholder="switch">
+        <label for="node-config-input-inmsgWinswitchTopic"><i class="fa fa-tasks"></i> Topic</label>
+        <input type="text" id="node-config-input-inmsgWinswitchTopic" placeholder="Expecting 'switch' if left blank">
     </div>
     <div class="form-row">
-        <label for="node-input-inmsgWinswitchPayloadOpened"><i class="fa fa-tag"></i> Opened</label>
-        <input type="hidden" id="node-input-inmsgWinswitchPayloadOpenedType">
-        <input type="text" id="node-input-inmsgWinswitchPayloadOpened">
+        <label for="node-config-input-inmsgWinswitchPayloadOpened"><i class="fa fa-tag"></i> Opened</label>
+        <input type="hidden" id="node-config-input-inmsgWinswitchPayloadOpenedType">
+        <input type="text" id="node-config-input-inmsgWinswitchPayloadOpened">
     </div>
     <div class="form-row">
-        <label for="node-input-inmsgWinswitchPayloadTilted"><i class="fa fa-tag"></i> Tilted</label>
-        <input type="hidden" id="node-input-inmsgWinswitchPayloadTiltedType">
-        <input type="text" id="node-input-inmsgWinswitchPayloadTilted">
+        <label for="node-config-input-inmsgWinswitchPayloadTilted"><i class="fa fa-tag"></i> Tilted</label>
+        <input type="hidden" id="node-config-input-inmsgWinswitchPayloadTiltedType">
+        <input type="text" id="node-config-input-inmsgWinswitchPayloadTilted">
     </div>
     <div class="form-row">
-        <label for="node-input-inmsgWinswitchPayloadClosed"><i class="fa fa-tag"></i> Closed</label>
-        <input type="hidden" id="node-input-inmsgWinswitchPayloadClosedType">
-        <input type="text" id="node-input-inmsgWinswitchPayloadClosed">
+        <label for="node-config-input-inmsgWinswitchPayloadClosed"><i class="fa fa-tag"></i> Closed</label>
+        <input type="hidden" id="node-config-input-inmsgWinswitchPayloadClosedType">
+        <input type="text" id="node-config-input-inmsgWinswitchPayloadClosed">
     </div>
     <h3>Behavior configuration</h3>
     <div class="form-row">
-        <label for="node-input-behButtonLocksUntil"><i class="fa fa-sliders"></i> Locks until</label>
-        <input type="text" id="node-input-behButtonLocksUntil">
+        <label for="node-config-input-behButtonLocksUntil"><i class="fa fa-sliders"></i> Locks until</label>
+        <input type="text" id="node-config-input-behButtonLocksUntil">
     </div>
     <div class="form-row">
-        <label for="node-input-behSunrise"><i class="fa fa-sliders"></i> Sunrise</label>
-        <input type="text" id="node-input-behSunrise">
+        <label for="node-config-input-behSunrise"><i class="fa fa-sliders"></i> Sunrise</label>
+        <input type="text" id="node-config-input-behSunrise">
     </div>
     <div class="form-row">
-        <label for="node-input-behSunset"><i class="fa fa-sliders"></i> Sunset</label>
-        <input type="text" id="node-input-behSunset">
+        <label for="node-config-input-behSunset"><i class="fa fa-sliders"></i> Sunset</label>
+        <input type="text" id="node-config-input-behSunset">
     </div>
 </script>
 
