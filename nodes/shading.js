@@ -27,17 +27,20 @@ module.exports = function(RED) {
 
 		RED.nodes.createNode(this,config);
 		
-		const loopIntervalTime = 5000;
 		var context = this.context();
 		var that = this;
+		const configOriginal = config;
+		
+		const loopIntervalTime = 5000;		// Node loop interval
+		
 		var err = false;
-		var msgDebug = null;
-		var sunTimes;
+		var msgDebug;
 		var SunCalc = require("suncalc");
+		const now = new Date();
+		
 		config.set = RED.nodes.getNode(config.configSet).config;
 		config.orientation = RED.nodes.getNode(config.configOrientation).config;
 		config.location = RED.nodes.getNode(RED.nodes.getNode(config.configOrientation).config.config).config;
-		const configOriginal = config;
 
 		function sendMsgDebugFunc(msg, reason) {
 			if (msg.debug) {
@@ -54,11 +57,15 @@ module.exports = function(RED) {
 		}
 	
 		function funSunCalc(){
-			sunTimes = SunCalc.getTimes(new Date(), 51.5, -0.1);
-			console.log(sunTimes);
+			return SunCalc.getTimes(new Date(), 51.5, -0.1);
 		}		
 
-		funSunCalc();
+		console.log("DEBUG:");
+
+		// if (!context.oldDate || now.getUTCDay() != context.oldDate.getUTCDay()) {
+		// 	console.log("no old date")
+		// }
+
 		// let loopIntervalHandle = setInterval(funSunCalc, loopIntervalTime);
 
 		// Set replacement values for optional fields
@@ -89,12 +96,6 @@ module.exports = function(RED) {
 
 			if (msg.debug) {sendMsgDebugFunc(msg, "Debug solo")};
 
-
-
-
-
-
-
 			if (err) {
 				if (done) {
 					// Node-RED 1.0 compatible
@@ -105,9 +106,12 @@ module.exports = function(RED) {
 				}
 			}
 
-			this.context = context;
-
+			
 		});
+		
+		context.oldDate = new Date();
+		this.context = context;
+		
 
 	}
 
