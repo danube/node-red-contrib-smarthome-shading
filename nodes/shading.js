@@ -68,16 +68,26 @@ module.exports = function(RED) {
 
 		// let loopIntervalHandle = setInterval(funSunCalc, loopIntervalTime);
 
+
+			
+			
+			
+			
+			
+		this.on('input', function(msg,send,done) {
+				
 		// Set replacement values for optional fields
-			config.set.inmsgButtonTopic = config.set.inmsgButtonTopic || "button";
+			config.set.inmsgButtonTopicOpen = config.set.inmsgButtonTopicOpen || "openbutton";
+			config.set.inmsgButtonTopicClose = config.set.inmsgButtonTopicClose || "closebutton";
 			config.set.inmsgWinswitchTopic = config.set.inmsgWinswitchTopic || "switch";
-
+		
 		// Converting typed inputs
-			if (config.set.inmsgButtonPayloadOnType === 'num') {config.set.inmsgButtonPayloadOn = Number(config.set.inmsgButtonPayloadOn)}
-			else if (config.set.inmsgButtonPayloadOnType === 'bool') {config.set.inmsgButtonPayloadOn = config.set.inmsgButtonPayloadOn === 'true'}
 
-			if (config.set.inmsgButtonPayloadOffType === 'num') {config.set.inmsgButtonPayloadOff = Number(config.set.inmsgButtonPayloadOff)}
-			else if (config.set.inmsgButtonPayloadOffType === 'bool') {config.set.inmsgButtonPayloadOff = config.set.inmsgButtonPayloadOff === 'true'}
+			if (config.set.inmsgButtonPayloadOpenType === 'num') {config.set.inmsgButtonPayloadOpen = Number(config.set.inmsgButtonPayloadOpen)}
+			else if (config.set.inmsgButtonPayloadOpenType === 'bool') {config.set.inmsgButtonPayloadOpen = config.set.inmsgButtonPayloadOpen === 'true'}
+
+			if (config.set.inmsgButtonPayloadCloseType === 'num') {config.set.inmsgButtonPayloadClose = Number(config.set.inmsgButtonPayloadClose)}
+			else if (config.set.inmsgButtonPayloadCloseType === 'bool') {config.set.inmsgButtonPayloadClose = config.set.inmsgButtonPayloadClose === 'true'}
 
 			if (config.set.inmsgWinswitchPayloadOpenedType === 'num') {config.set.inmsgWinswitchPayloadOpened = Number(config.set.inmsgWinswitchPayloadOpened)}
 			else if (config.set.inmsgWinswitchPayloadOpenedType === 'bool') {config.set.inmsgWinswitchPayloadOpened = config.set.inmsgWinswitchPayloadOpened === 'true'}
@@ -88,13 +98,20 @@ module.exports = function(RED) {
 			if (config.set.inmsgWinswitchPayloadClosedType === 'num') {config.set.inmsgWinswitchPayloadClosed = Number(config.set.inmsgWinswitchPayloadClosed)}
 			else if (config.set.inmsgWinswitchPayloadClosedType === 'bool') {config.set.inmsgWinswitchPayloadClosed = config.set.inmsgWinswitchPayloadClosed === 'true'}
 
+		// Button press event
+		
+			if (msg.topic === config.set.inmsgButtonTopicOpen || msg.topic === config.set.inmsgButtonTopicClose) {
+				context.autoLocked = true;		// TODO unlock
+				sendMsgDebugFunc(msg, "Pushbutton");
+				console.log("Pushbutton received");
+				if (msg.topic === config.set.inmsgButtonTopicOpen && msg.payload === config.set.inmsgButtonPayloadOpen) {
+					console.log("Open command received")
+				} else if (msg.topic === config.set.inmsgButtonTopicClose && msg.payload === config.set.inmsgButtonPayloadClose) {
+					console.log("Close command received")
+				}
+			}
 
-
-
-
-		this.on('input', function(msg,send,done) {
-
-			if (msg.debug) {sendMsgDebugFunc(msg, "Debug solo")};
+			// if (msg.debug) {sendMsgDebugFunc(msg, "Debug solo")}; // TODO irgendwie einbauen, damit das nicht immer gesendet wird
 
 			if (err) {
 				if (done) {

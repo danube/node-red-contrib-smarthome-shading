@@ -98,11 +98,12 @@
             windowSunAngleEntry: {value: -75, required: true},
             windowSunAngleExit: {value: 75, required: true},
             shadingSetposShade: {value: 80, required: true},
-            inmsgButtonTopic: {value: "button"},
-            inmsgButtonPayloadOn: {value: "true", validate: RED.validators.typedInput("buttonPayloadOnType")},
-            inmsgButtonPayloadOnType: {value: "initval"},
-            inmsgButtonPayloadOff: {value: "false", validate: RED.validators.typedInput("buttonPayloadOffType")},
-            inmsgButtonPayloadOffType: {value: "initval"},
+            inmsgButtonTopicOpen: {},
+            inmsgButtonPayloadOpen: {value: "true", validate: RED.validators.typedInput("buttonPayloadOpenType")},
+            inmsgButtonPayloadOpenType: {value: "initval"},
+            inmsgButtonTopicClose: {},
+            inmsgButtonPayloadClose: {value: "true", validate: RED.validators.typedInput("buttonPayloadCloseType")},
+            inmsgButtonPayloadCloseType: {value: "initval"},
             behButtonLocksUntil: {value: "initval"},
             inmsgWinswitchTopic: {value: "switch"},
             inmsgWinswitchPayloadOpened: {value: 1},
@@ -119,11 +120,11 @@
         },
         oneditprepare: function() {
             // value & type initialisation
-            if (this.inmsgButtonPayloadOnType === "initval") {
-                $("#node-config-input-inmsgButtonPayloadOnType").val("bool")
+            if (this.inmsgButtonPayloadOpenType === "initval") {
+                $("#node-config-input-inmsgButtonPayloadOpenType").val("bool")
             }
-            if (this.inmsgButtonPayloadOffType === "initval") {
-                $("#node-config-input-inmsgButtonPayloadOffType").val("bool")
+            if (this.inmsgButtonPayloadCloseType === "initval") {
+                $("#node-config-input-inmsgButtonPayloadCloseType").val("bool")
             }
             if (this.inmsgWinswitchPayloadOpenedType === "initval") {
                 $("#node-config-input-inmsgWinswitchPayloadOpenedType").val("num")
@@ -144,14 +145,14 @@
                 $("#node-config-input-behButtonLocksUntil").val("sunriseset")
             }
             // defining input types
-            $("#node-config-input-inmsgButtonPayloadOn").typedInput({
+            $("#node-config-input-inmsgButtonPayloadOpen").typedInput({
                 default: "bool",
-                typeField: $("#node-config-input-inmsgButtonPayloadOnType"),
+                typeField: $("#node-config-input-inmsgButtonPayloadOpenType"),
                 types: ["bool","num","str"]
             })
-            $("#node-config-input-inmsgButtonPayloadOff").typedInput({
+            $("#node-config-input-inmsgButtonPayloadClose").typedInput({
                 default: "bool",
-                typeField: $("#node-config-input-inmsgButtonPayloadOffType"),
+                typeField: $("#node-config-input-inmsgButtonPayloadCloseType"),
                 types: ["bool","num","str"]
             })
             $("#node-config-input-inmsgWinswitchPayloadOpened").typedInput({
@@ -201,7 +202,7 @@
                         value: "behButtonLocksUntil",
                         options: [
                             {value: "sunriseset", label: "Next sunrise / sunset"},
-                            {value: "forever", label: "Forever"}
+                            {value: "manualreset", label: "Manual reset"}       // TODO describe how to manually reset
                         ]
                     }
                 ]
@@ -244,22 +245,28 @@
     </div>
     <h3>Pushbutton configuration</h3>
     <div class="form-row">
-        <label for="node-config-input-inmsgButtonTopic"><i class="fa fa-tasks"></i> Topic</label>
-        <input type="text" id="node-config-input-inmsgButtonTopic" placeholder="Expecting 'button' if left blank">
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-inmsgButtonPayloadOn"><i class="fa fa-tag"></i> Pushed</label>
-        <input type="hidden" id="node-config-input-inmsgButtonPayloadOnType">
-        <input type="text" id="node-config-input-inmsgButtonPayloadOn">
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-inmsgButtonPayloadOff"><i class="fa fa-tag"></i> Released</label>
-        <input type="hidden" id="node-config-input-inmsgButtonPayloadOffType">
-        <input type="text" id="node-config-input-inmsgButtonPayloadOff">
-    </div>
-    <div class="form-row">
         <label for="node-config-input-behButtonLocksUntil"><i class="fa fa-sliders"></i> Locks until</label>
         <input type="text" id="node-config-input-behButtonLocksUntil">
+    </div>
+    <h4>Open command</h4>
+    <div class="form-row">
+        <label for="node-config-input-inmsgButtonTopicOpen"><i class="fa fa-tasks"></i> Topic</label>
+        <input type="text" id="node-config-input-inmsgButtonTopicOpen" placeholder="Expecting 'openbutton' if left blank">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-inmsgButtonPayloadOpen"><i class="fa fa-tag"></i> Payload</label>
+        <input type="hidden" id="node-config-input-inmsgButtonPayloadOpenType">
+        <input type="text" id="node-config-input-inmsgButtonPayloadOpen">
+    </div>
+    <h4>Close command</h4>
+    <div class="form-row">
+        <label for="node-config-input-inmsgButtonTopicClose"><i class="fa fa-tasks"></i> Topic</label>
+        <input type="text" id="node-config-input-inmsgButtonTopicClose" placeholder="Expecting 'closebutton' if left blank">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-inmsgButtonPayloadClose"><i class="fa fa-tag"></i> Payload</label>
+        <input type="hidden" id="node-config-input-inmsgButtonPayloadCloseType">
+        <input type="text" id="node-config-input-inmsgButtonPayloadClose">
     </div>
     <h3>Window switch</h3>
     <div class="form-row">
