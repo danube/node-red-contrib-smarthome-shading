@@ -97,7 +97,12 @@
             name: {required: true},
             windowSunAngleEntry: {value: -75, required: true},
             windowSunAngleExit: {value: 75, required: true},
+            shadingSetposOpen: {value: "initval", required: true},  // WORKAROUND: requires "initval" because if 0, the field is left blank.
+            shadingSetposOpenType: {value: "initval"},
             shadingSetposShade: {value: 80, required: true},
+            shadingSetposShadeType: {value: "initval"},
+            shadingSetposClose: {value: 100, required: true},
+            shadingSetposCloseType: {value: "initval"},
             inmsgButtonTopic: {value: "button"},
             inmsgButtonPayloadOn: {value: "true", validate: RED.validators.typedInput("buttonPayloadOnType")},
             inmsgButtonPayloadOnType: {value: "initval"},
@@ -119,6 +124,18 @@
         },
         oneditprepare: function() {
             // value & type initialisation
+            if (this.shadingSetposOpen === "initval") {
+                $("#node-config-input-shadingSetposOpen").val(0)
+            }
+            if (this.shadingSetposOpenType === "initval") {
+                $("#node-config-input-shadingSetposOpenType").val("num")
+            }
+            if (this.shadingSetposShadeType === "initval") {
+                $("#node-config-input-shadingSetposShadeType").val("num")
+            }
+            if (this.shadingSetposCloseType === "initval") {
+                $("#node-config-input-shadingSetposCloseType").val("num")
+            }
             if (this.inmsgButtonPayloadOnType === "initval") {
                 $("#node-config-input-inmsgButtonPayloadOnType").val("bool")
             }
@@ -144,6 +161,21 @@
                 $("#node-config-input-behButtonLocksUntil").val("sunriseset")
             }
             // defining input types
+            $("#node-config-input-shadingSetposOpen").typedInput({
+                default: "num",
+                typeField: $("#node-config-input-shadingSetposOpenType"),
+                types: ["num"]
+            })
+            $("#node-config-input-shadingSetposShade").typedInput({
+                default: "num",
+                typeField: $("#node-config-input-shadingSetposShadeType"),
+                types: ["num"]
+            })
+            $("#node-config-input-shadingSetposClose").typedInput({
+                default: "num",
+                typeField: $("#node-config-input-shadingSetposCloseType"),
+                types: ["num"]
+            })
             $("#node-config-input-inmsgButtonPayloadOn").typedInput({
                 default: "bool",
                 typeField: $("#node-config-input-inmsgButtonPayloadOnType"),
@@ -220,7 +252,9 @@
         }
         .red-ui-editor .form-row #node-config-input-windowSunAngleEntry,
         .red-ui-editor .form-row #node-config-input-windowSunAngleExit,
-        .red-ui-editor .form-row #node-config-input-shadingSetposShade {
+        .red-ui-editor .form-row #node-config-input-shadingSetposOpen,
+        .red-ui-editor .form-row #node-config-input-shadingSetposShade,
+        .red-ui-editor .form-row #node-config-input-shadingSetposClose {
             width: 100px
         }
     </style>
@@ -239,8 +273,19 @@
     </div>
     <h3>Blind configuration</h3>
     <div class="form-row">
+        <label for="node-config-input-shadingSetposOpen"><i class="fa fa-window-maximize"></i> Open position</label>
+        <input type="hidden" id="node-config-input-shadingSetposOpenType">
+        <input type="text" id="node-config-input-shadingSetposOpen"> %
+    </div>
+    <div class="form-row">
         <label for="node-config-input-shadingSetposShade"><i class="fa fa-window-maximize"></i> Shade position</label>
-        <input type="number" id="node-config-input-shadingSetposShade" min="0" max="100"> %
+        <input type="hidden" id="node-config-input-shadingSetposShadeType">
+        <input type="text" id="node-config-input-shadingSetposShade"> %
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-shadingSetposClose"><i class="fa fa-window-maximize"></i> Close position</label>
+        <input type="hidden" id="node-config-input-shadingSetposCloseType">
+        <input type="text" id="node-config-input-shadingSetposClose"> %
     </div>
     <h3>Pushbutton configuration</h3>
     <div class="form-row">
