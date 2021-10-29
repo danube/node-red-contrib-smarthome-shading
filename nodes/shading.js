@@ -24,19 +24,20 @@ module.exports = function(RED) {
 		
 		var context = this.context();
 		var that = this;
-		const configOriginal = config;
+		let myconfig = config;
 		
 		const loopIntervalTime = 5000;		// Node loop interval
 		var loopIntervalHandle;
-
+		
 		var initDone, err = false;
 		var msgDebug;
 		var SunCalc = require("suncalc");
 		var actDate = new Date();
 		
-		config.set = RED.nodes.getNode(config.configSet).config;
-		config.orientation = RED.nodes.getNode(config.configOrientation).config;
-		config.location = RED.nodes.getNode(RED.nodes.getNode(config.configOrientation).config.config).config;
+
+		myconfig.set = RED.nodes.getNode(config.configSet).config;
+		myconfig.orientation = RED.nodes.getNode(config.configOrientation).config;
+		myconfig.location = RED.nodes.getNode(RED.nodes.getNode(config.configOrientation).config.config).config;
 
 		function sendMsgDebugFunc(msg, reason) {
 			if (msg.debug) {
@@ -44,7 +45,7 @@ module.exports = function(RED) {
 					topic: "debug",
 					inmsg: msg,
 					config: config,
-					configOriginal: configOriginal,
+					myconfig: myconfig,
 					context: context,
 					reason: reason
 				}
@@ -63,7 +64,7 @@ module.exports = function(RED) {
 	
 		function sunCalcFunc(){
 			console.log("DEBUG: new SunCalc call")
-			const sunTimes = SunCalc.getTimes(actDate, config.location.lat, config.location.lon);
+			const sunTimes = SunCalc.getTimes(actDate, myconfig.location.lat, myconfig.location.lon);
 			context.sunrise = sunTimes.sunrise.valueOf();
 			context.sunset = sunTimes.sunset.valueOf();
 		}		
@@ -89,9 +90,9 @@ module.exports = function(RED) {
 			if (actDate.valueOf() >= context.sunrise && !context.blockSunrise) {
 				// Begin of sunrise actions
 					console.log("DEBUG: sunrise");
-					if (config.set.behSunrise === "open") {sendMsgCmd(config.set.shadingSetposOpen)}
-					else if (config.set.behSunrise === "shade") {sendMsgCmd(config.set.shadingSetposShade)}
-					else if (config.set.behSunrise === "close") {sendMsgCmd(config.set.shadingSetposClose)};
+					if (myconfig.set.behSunrise === "open") {sendMsgCmd(myconfig.set.shadingSetposOpen)}
+					else if (myconfig.set.behSunrise === "shade") {sendMsgCmd(myconfig.set.shadingSetposShade)}
+					else if (myconfig.set.behSunrise === "close") {sendMsgCmd(myconfig.set.shadingSetposClose)};
 				// End of sunrise actions
 				context.blockSunrise = true;
 			}
@@ -101,9 +102,9 @@ module.exports = function(RED) {
 			if (actDate.valueOf() >= context.sunset && !context.blockSunset) {
 				// Begin of sunset actions
 					console.log("DEBUG: sunset")
-					if (config.set.behSunset === "open") {sendMsgCmd(config.set.shadingSetposOpen)}
-					else if (config.set.behSunset === "shade") {sendMsgCmd(config.set.shadingSetposShade)}
-					else if (config.set.behSunset === "close") {sendMsgCmd(config.set.shadingSetposClose)};
+					if (myconfig.set.behSunset === "open") {sendMsgCmd(myconfig.set.shadingSetposOpen)}
+					else if (myconfig.set.behSunset === "shade") {sendMsgCmd(myconfig.set.shadingSetposShade)}
+					else if (myconfig.set.behSunset === "close") {sendMsgCmd(myconfig.set.shadingSetposClose)};
 				// End of sunset actions
 				context.blockSunset = true;
 			}
@@ -114,47 +115,64 @@ module.exports = function(RED) {
 			initDone = true;
 		}
 
-		// First run actions
-		mainloopFunc();
 
+		// FIRST RUN ACTIONS -->
+
+		// Set replacement values for optional fields
+		myconfig.set.inmsgButtonTopicOpen = config.set.inmsgButtonTopicOpen || "openbutton";
+		myconfig.set.inmsgButtonTopicClose = config.set.inmsgButtonTopicClose || "closebutton";
+		myconfig.set.inmsgButtonTopicReset = config.set.inmsgButtonTopicReset || "resetbutton";
+		myconfig.set.inmsgWinswitchTopic = config.set.inmsgWinswitchTopic || "switch";
+	
+		// Converting typed inputs
+		if (myconfig.set.inmsgButtonPayloadOpenType === 'num') {myconfig.set.inmsgButtonPayloadOpen = Number(config.set.inmsgButtonPayloadOpen)}
+		else if (myconfig.set.inmsgButtonPayloadOpenType === 'bool') {myconfig.set.inmsgButtonPayloadOpen = config.set.inmsgButtonPayloadOpen === 'true'}
+		if (myconfig.set.inmsgButtonPayloadCloseType === 'num') {myconfig.set.inmsgButtonPayloadClose = Number(config.set.inmsgButtonPayloadClose)}
+		else if (myconfig.set.inmsgButtonPayloadCloseType === 'bool') {myconfig.set.inmsgButtonPayloadClose = config.set.inmsgButtonPayloadClose === 'true'}
+		if (myconfig.set.inmsgButtonPayloadResetType === 'num') {myconfig.set.inmsgButtonPayloadReset = Number(config.set.inmsgButtonPayloadReset)}
+		else if (myconfig.set.inmsgButtonPayloadResetType === 'bool') {myconfig.set.inmsgButtonPayloadReset = config.set.inmsgButtonPayloadReset === 'true'}
+		if (myconfig.set.inmsgWinswitchPayloadOpenedType === 'num') {myconfig.set.inmsgWinswitchPayloadOpened = Number(config.set.inmsgWinswitchPayloadOpened)}
+		else if (myconfig.set.inmsgWinswitchPayloadOpenedType === 'bool') {myconfig.set.inmsgWinswitchPayloadOpened = config.set.inmsgWinswitchPayloadOpened === 'true'}
+		if (myconfig.set.inmsgWinswitchPayloadTiltedType === 'num') {myconfig.set.inmsgWinswitchPayloadTilted = Number(config.set.inmsgWinswitchPayloadTilted)}
+		else if (myconfig.set.inmsgWinswitchPayloadTiltedType === 'bool') {myconfig.set.inmsgWinswitchPayloadTilted = config.set.inmsgWinswitchPayloadTilted === 'true'}
+		if (myconfig.set.inmsgWinswitchPayloadClosedType === 'num') {myconfig.set.inmsgWinswitchPayloadClosed = Number(config.set.inmsgWinswitchPayloadClosed)}
+		else if (myconfig.set.inmsgWinswitchPayloadClosedType === 'bool') {myconfig.set.inmsgWinswitchPayloadClosed = config.set.inmsgWinswitchPayloadClosed === 'true'}
+		myconfig.set.shadingSetposOpen = Number(config.set.shadingSetposOpen);
+		myconfig.set.shadingSetposShade = Number(config.set.shadingSetposShade);
+		myconfig.set.shadingSetposClose = Number(config.set.shadingSetposClose);
+		
 		// Main loop
+		mainloopFunc();
 		loopIntervalHandle = setInterval(mainloopFunc, loopIntervalTime);	// Interval run
 
 
+
+		// MESSAGE EVENT ACTIONS -->
+
 		this.on('input', function(msg,send,done) {
 				
-			// Set replacement values for optional fields
-			config.set.inmsgButtonTopicOpen = config.set.inmsgButtonTopicOpen || "openbutton";
-			config.set.inmsgButtonTopicClose = config.set.inmsgButtonTopicClose || "closebutton";
-			config.set.inmsgWinswitchTopic = config.set.inmsgWinswitchTopic || "switch";
-		
-			// Converting typed inputs
-			if (config.set.inmsgButtonPayloadOpenType === 'num') {config.set.inmsgButtonPayloadOpen = Number(config.set.inmsgButtonPayloadOpen)}
-			else if (config.set.inmsgButtonPayloadOpenType === 'bool') {config.set.inmsgButtonPayloadOpen = config.set.inmsgButtonPayloadOpen === 'true'}
-			if (config.set.inmsgButtonPayloadCloseType === 'num') {config.set.inmsgButtonPayloadClose = Number(config.set.inmsgButtonPayloadClose)}
-			else if (config.set.inmsgButtonPayloadCloseType === 'bool') {config.set.inmsgButtonPayloadClose = config.set.inmsgButtonPayloadClose === 'true'}
-			if (config.set.inmsgWinswitchPayloadOpenedType === 'num') {config.set.inmsgWinswitchPayloadOpened = Number(config.set.inmsgWinswitchPayloadOpened)}
-			else if (config.set.inmsgWinswitchPayloadOpenedType === 'bool') {config.set.inmsgWinswitchPayloadOpened = config.set.inmsgWinswitchPayloadOpened === 'true'}
-			if (config.set.inmsgWinswitchPayloadTiltedType === 'num') {config.set.inmsgWinswitchPayloadTilted = Number(config.set.inmsgWinswitchPayloadTilted)}
-			else if (config.set.inmsgWinswitchPayloadTiltedType === 'bool') {config.set.inmsgWinswitchPayloadTilted = config.set.inmsgWinswitchPayloadTilted === 'true'}
-			if (config.set.inmsgWinswitchPayloadClosedType === 'num') {config.set.inmsgWinswitchPayloadClosed = Number(config.set.inmsgWinswitchPayloadClosed)}
-			else if (config.set.inmsgWinswitchPayloadClosedType === 'bool') {config.set.inmsgWinswitchPayloadClosed = config.set.inmsgWinswitchPayloadClosed === 'true'}
-			config.set.shadingSetposOpen = Number(config.set.shadingSetposOpen);
-			config.set.shadingSetposShade = Number(config.set.shadingSetposShade);
-			config.set.shadingSetposClose = Number(config.set.shadingSetposClose);
-
-
-			// Button press event
-			if (msg.topic === config.set.inmsgButtonTopicOpen || msg.topic === config.set.inmsgButtonTopicClose) {
+			
+			// Button open/close event
+			if (msg.topic === myconfig.set.inmsgButtonTopicOpen || msg.topic === myconfig.set.inmsgButtonTopicClose) {
 				context.autoLocked = true;		// TODO unlock
-				sendMsgDebugFunc(msg, "Pushbutton");
-				console.log("Pushbutton received");
-				if (msg.topic === config.set.inmsgButtonTopicOpen && msg.payload === config.set.inmsgButtonPayloadOpen) {
+				sendMsgDebugFunc(msg, "Open/Close pushbutton");
+				console.log("Open/Close pushbutton received");
+				if (msg.topic === myconfig.set.inmsgButtonTopicOpen && msg.payload === myconfig.set.inmsgButtonPayloadOpen) {
 					console.log("Open command received")
-				} else if (msg.topic === config.set.inmsgButtonTopicClose && msg.payload === config.set.inmsgButtonPayloadClose) {
+				} else if (msg.topic === myconfig.set.inmsgButtonTopicClose && msg.payload === myconfig.set.inmsgButtonPayloadClose) {
 					console.log("Close command received")
 				}
 			}
+			
+			// Button reset event
+			if (msg.topic === myconfig.set.inmsgButtonTopicReset && msg.payload === myconfig.set.inmsgButtonPayloadReset) {
+				context.autoLocked = false;
+				sendMsgDebugFunc(msg, "Reset pushbutton");
+				console.log("Reset pushbutton received");
+			}
+
+
+
 
 			// if (msg.debug) {sendMsgDebugFunc(msg, "Debug solo")}; // TODO irgendwie einbauen, damit das nicht immer gesendet wird
 

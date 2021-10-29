@@ -109,6 +109,9 @@
             inmsgButtonTopicClose: {},
             inmsgButtonPayloadClose: {value: "true", validate: RED.validators.typedInput("buttonPayloadCloseType")},
             inmsgButtonPayloadCloseType: {value: "initval"},
+            inmsgButtonTopicReset: {},
+            inmsgButtonPayloadReset: {value: "true", validate: RED.validators.typedInput("buttonPayloadCloseType")},
+            inmsgButtonPayloadResetType: {value: "initval"},
             behButtonLocksUntil: {value: "initval"},
             inmsgWinswitchTopic: {value: "switch"},
             inmsgWinswitchPayloadOpened: {value: 1},
@@ -142,6 +145,9 @@
             }
             if (this.inmsgButtonPayloadCloseType === "initval") {
                 $("#node-config-input-inmsgButtonPayloadCloseType").val("bool")
+            }
+            if (this.inmsgButtonPayloadResetType === "initval") {
+                $("#node-config-input-inmsgButtonPayloadResetType").val("bool")
             }
             if (this.inmsgWinswitchPayloadOpenedType === "initval") {
                 $("#node-config-input-inmsgWinswitchPayloadOpenedType").val("num")
@@ -185,6 +191,11 @@
             $("#node-config-input-inmsgButtonPayloadClose").typedInput({
                 default: "bool",
                 typeField: $("#node-config-input-inmsgButtonPayloadCloseType"),
+                types: ["bool","num","str"]
+            })
+            $("#node-config-input-inmsgButtonPayloadReset").typedInput({
+                default: "bool",
+                typeField: $("#node-config-input-inmsgButtonPayloadResetType"),
                 types: ["bool","num","str"]
             })
             $("#node-config-input-inmsgWinswitchPayloadOpened").typedInput({
@@ -312,6 +323,16 @@
         <label for="node-config-input-inmsgButtonPayloadClose"><i class="fa fa-tag"></i> Payload</label>
         <input type="hidden" id="node-config-input-inmsgButtonPayloadCloseType">
         <input type="text" id="node-config-input-inmsgButtonPayloadClose">
+    </div>
+    <h4>Manual reset command</h4>
+    <div class="form-row">
+        <label for="node-config-input-inmsgButtonTopicReset"><i class="fa fa-tasks"></i> Topic</label>
+        <input type="text" id="node-config-input-inmsgButtonTopicReset" placeholder="Expecting 'resetbutton' if left blank">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-inmsgButtonPayloadReset"><i class="fa fa-tag"></i> Payload</label>
+        <input type="hidden" id="node-config-input-inmsgButtonPayloadResetType">
+        <input type="text" id="node-config-input-inmsgButtonPayloadReset">
     </div>
     <h3>Window switch</h3>
     <div class="form-row">
