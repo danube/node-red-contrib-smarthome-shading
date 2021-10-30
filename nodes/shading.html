@@ -104,16 +104,10 @@
             shadingSetposClose: {value: 100, required: true},
             shadingSetposCloseType: {value: "initval"},
             inmsgButtonTopicOpen: {},
-            inmsgButtonPayloadOpen: {value: "true", validate: RED.validators.typedInput("buttonPayloadOpenType")},
-            inmsgButtonPayloadOpenType: {value: "initval"},
             inmsgButtonTopicClose: {},
-            inmsgButtonPayloadClose: {value: "true", validate: RED.validators.typedInput("buttonPayloadCloseType")},
-            inmsgButtonPayloadCloseType: {value: "initval"},
-            inmsgButtonTopicReset: {},
-            inmsgButtonPayloadReset: {value: "true", validate: RED.validators.typedInput("buttonPayloadCloseType")},
-            inmsgButtonPayloadResetType: {value: "initval"},
+            inmsgTopicReset: {},
             behButtonLocksUntil: {value: "initval"},
-            inmsgWinswitchTopic: {value: "switch"},
+            inmsgWinswitchTopic: {},
             inmsgWinswitchPayloadOpened: {value: 1},
             inmsgWinswitchPayloadOpenedType: {value: "initval"},
             inmsgWinswitchPayloadTilted: {value: 2},
@@ -139,15 +133,6 @@
             }
             if (this.shadingSetposCloseType === "initval") {
                 $("#node-config-input-shadingSetposCloseType").val("num")
-            }
-            if (this.inmsgButtonPayloadOpenType === "initval") {
-                $("#node-config-input-inmsgButtonPayloadOpenType").val("bool")
-            }
-            if (this.inmsgButtonPayloadCloseType === "initval") {
-                $("#node-config-input-inmsgButtonPayloadCloseType").val("bool")
-            }
-            if (this.inmsgButtonPayloadResetType === "initval") {
-                $("#node-config-input-inmsgButtonPayloadResetType").val("bool")
             }
             if (this.inmsgWinswitchPayloadOpenedType === "initval") {
                 $("#node-config-input-inmsgWinswitchPayloadOpenedType").val("num")
@@ -182,21 +167,6 @@
                 default: "num",
                 typeField: $("#node-config-input-shadingSetposCloseType"),
                 types: ["num"]
-            })
-            $("#node-config-input-inmsgButtonPayloadOpen").typedInput({
-                default: "bool",
-                typeField: $("#node-config-input-inmsgButtonPayloadOpenType"),
-                types: ["bool","num","str"]
-            })
-            $("#node-config-input-inmsgButtonPayloadClose").typedInput({
-                default: "bool",
-                typeField: $("#node-config-input-inmsgButtonPayloadCloseType"),
-                types: ["bool","num","str"]
-            })
-            $("#node-config-input-inmsgButtonPayloadReset").typedInput({
-                default: "bool",
-                typeField: $("#node-config-input-inmsgButtonPayloadResetType"),
-                types: ["bool","num","str"]
             })
             $("#node-config-input-inmsgWinswitchPayloadOpened").typedInput({
                 default: "num",
@@ -257,7 +227,7 @@
 <script type="text/html" data-template-name="shading configuration">
     <style>
         .red-ui-editor .form-row label {
-            width: 130px
+            width: 200px
         }
         .red-ui-editor .form-row input {
             width: 250px
@@ -301,38 +271,20 @@
     </div>
     <h3>Pushbutton configuration</h3>
     <div class="form-row">
-        <label for="node-config-input-behButtonLocksUntil"><i class="fa fa-sliders"></i> Locks until</label>
-        <input type="text" id="node-config-input-behButtonLocksUntil">
-    </div>
-    <h4>Open command</h4>
-    <div class="form-row">
-        <label for="node-config-input-inmsgButtonTopicOpen"><i class="fa fa-tasks"></i> Topic</label>
+        <label for="node-config-input-inmsgButtonTopicOpen"><i class="fa fa-tasks"></i> Open Topic</label>
         <input type="text" id="node-config-input-inmsgButtonTopicOpen" placeholder="Expecting 'openbutton' if left blank">
     </div>
     <div class="form-row">
-        <label for="node-config-input-inmsgButtonPayloadOpen"><i class="fa fa-tag"></i> Payload</label>
-        <input type="hidden" id="node-config-input-inmsgButtonPayloadOpenType">
-        <input type="text" id="node-config-input-inmsgButtonPayloadOpen">
-    </div>
-    <h4>Close command</h4>
-    <div class="form-row">
-        <label for="node-config-input-inmsgButtonTopicClose"><i class="fa fa-tasks"></i> Topic</label>
+        <label for="node-config-input-inmsgButtonTopicClose"><i class="fa fa-tasks"></i> Close Topic</label>
         <input type="text" id="node-config-input-inmsgButtonTopicClose" placeholder="Expecting 'closebutton' if left blank">
     </div>
     <div class="form-row">
-        <label for="node-config-input-inmsgButtonPayloadClose"><i class="fa fa-tag"></i> Payload</label>
-        <input type="hidden" id="node-config-input-inmsgButtonPayloadCloseType">
-        <input type="text" id="node-config-input-inmsgButtonPayloadClose">
-    </div>
-    <h4>Manual reset command</h4>
-    <div class="form-row">
-        <label for="node-config-input-inmsgButtonTopicReset"><i class="fa fa-tasks"></i> Topic</label>
-        <input type="text" id="node-config-input-inmsgButtonTopicReset" placeholder="Expecting 'resetbutton' if left blank">
+        <label for="node-config-input-behButtonLocksUntil"><i class="fa fa-sliders"></i> Locks until</label>
+        <input type="text" id="node-config-input-behButtonLocksUntil">
     </div>
     <div class="form-row">
-        <label for="node-config-input-inmsgButtonPayloadReset"><i class="fa fa-tag"></i> Payload</label>
-        <input type="hidden" id="node-config-input-inmsgButtonPayloadResetType">
-        <input type="text" id="node-config-input-inmsgButtonPayloadReset">
+        <label for="node-config-input-inmsgTopicReset"><i class="fa fa-tasks"></i> Reset Topic</label>
+        <input type="text" id="node-config-input-inmsgTopicReset" placeholder="Expecting 'reset' if left blank">
     </div>
     <h3>Window switch</h3>
     <div class="form-row">

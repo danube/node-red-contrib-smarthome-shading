@@ -121,16 +121,10 @@ module.exports = function(RED) {
 		// Set replacement values for optional fields
 		myconfig.set.inmsgButtonTopicOpen = config.set.inmsgButtonTopicOpen || "openbutton";
 		myconfig.set.inmsgButtonTopicClose = config.set.inmsgButtonTopicClose || "closebutton";
-		myconfig.set.inmsgButtonTopicReset = config.set.inmsgButtonTopicReset || "resetbutton";
+		myconfig.set.inmsgTopicReset = config.set.inmsgTopicReset || "reset";
 		myconfig.set.inmsgWinswitchTopic = config.set.inmsgWinswitchTopic || "switch";
 	
 		// Converting typed inputs
-		if (myconfig.set.inmsgButtonPayloadOpenType === 'num') {myconfig.set.inmsgButtonPayloadOpen = Number(config.set.inmsgButtonPayloadOpen)}
-		else if (myconfig.set.inmsgButtonPayloadOpenType === 'bool') {myconfig.set.inmsgButtonPayloadOpen = config.set.inmsgButtonPayloadOpen === 'true'}
-		if (myconfig.set.inmsgButtonPayloadCloseType === 'num') {myconfig.set.inmsgButtonPayloadClose = Number(config.set.inmsgButtonPayloadClose)}
-		else if (myconfig.set.inmsgButtonPayloadCloseType === 'bool') {myconfig.set.inmsgButtonPayloadClose = config.set.inmsgButtonPayloadClose === 'true'}
-		if (myconfig.set.inmsgButtonPayloadResetType === 'num') {myconfig.set.inmsgButtonPayloadReset = Number(config.set.inmsgButtonPayloadReset)}
-		else if (myconfig.set.inmsgButtonPayloadResetType === 'bool') {myconfig.set.inmsgButtonPayloadReset = config.set.inmsgButtonPayloadReset === 'true'}
 		if (myconfig.set.inmsgWinswitchPayloadOpenedType === 'num') {myconfig.set.inmsgWinswitchPayloadOpened = Number(config.set.inmsgWinswitchPayloadOpened)}
 		else if (myconfig.set.inmsgWinswitchPayloadOpenedType === 'bool') {myconfig.set.inmsgWinswitchPayloadOpened = config.set.inmsgWinswitchPayloadOpened === 'true'}
 		if (myconfig.set.inmsgWinswitchPayloadTiltedType === 'num') {myconfig.set.inmsgWinswitchPayloadTilted = Number(config.set.inmsgWinswitchPayloadTilted)}
@@ -155,26 +149,40 @@ module.exports = function(RED) {
 			// Button open/close event
 			if (msg.topic === myconfig.set.inmsgButtonTopicOpen || msg.topic === myconfig.set.inmsgButtonTopicClose) {
 				context.autoLocked = true;		// TODO unlock
-				sendMsgDebugFunc(msg, "Open/Close pushbutton");
-				console.log("Open/Close pushbutton received");
-				if (msg.topic === myconfig.set.inmsgButtonTopicOpen && msg.payload === myconfig.set.inmsgButtonPayloadOpen) {
-					console.log("Open command received")
-				} else if (msg.topic === myconfig.set.inmsgButtonTopicClose && msg.payload === myconfig.set.inmsgButtonPayloadClose) {
-					console.log("Close command received")
+				if (msg.topic === myconfig.set.inmsgButtonTopicOpen && msg.payload) {
+					sendMsgDebugFunc(msg, "Open pushbutton pressed");
+					// TODO actions
+					context.cmd = 1;
+				} else if (msg.topic === myconfig.set.inmsgButtonTopicClose && msg.payload) {
+					sendMsgDebugFunc(msg, "Close pushbutton pressed");
+					// TODO actions
+					context.cmd = 2;
+				} else if ((msg.topic === myconfig.set.inmsgButtonTopicOpen || msg.topic === myconfig.set.inmsgButtonTopicClose) && !msg.payload) {
+					sendMsgDebugFunc(msg, "Pushbutton released");
+					// TODO actions
+					context.cmd = 0;
 				}
+
+				msgCmd = {
+					topic: "command",
+					cmd: context.cmd
+				}
+				that.send(msgCmd);
+	
 			}
 			
 			// Button reset event
-			if (msg.topic === myconfig.set.inmsgButtonTopicReset && msg.payload === myconfig.set.inmsgButtonPayloadReset) {
+			else if (msg.topic === myconfig.set.inmsgTopicReset) {
 				context.autoLocked = false;
-				sendMsgDebugFunc(msg, "Reset pushbutton");
-				console.log("Reset pushbutton received");
+				sendMsgDebugFunc(msg, "Reset");
 			}
 
+			// Debug solo
+			else if (msg.debug) {
+				sendMsgDebugFunc(msg, "Debug solo")
+			};
 
 
-
-			// if (msg.debug) {sendMsgDebugFunc(msg, "Debug solo")}; // TODO irgendwie einbauen, damit das nicht immer gesendet wird
 
 			if (err) {
 				if (done) {
