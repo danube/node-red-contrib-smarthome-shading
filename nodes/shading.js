@@ -27,6 +27,7 @@ module.exports = function(RED) {
 		let myconfig = config;
 		
 		const loopIntervalTime = 5000;		// Node loop interval
+		const dblClickTime = 1000;			// Waiting time for second button press		// TODO Zeit konfigurierbar machen
 		var loopIntervalHandle;
 		
 		var initDone, err = false;
@@ -49,26 +50,47 @@ module.exports = function(RED) {
 					context: context,
 					reason: reason
 				}
-				that.send(msgDebug);
+				that.send(msgDebug); // TODO umschreiben auf vier Ausgänge
 			}
 		}
 
-		function sendMsgCmd(value) {
-			msgCmd = {
-				topic: "command",
-				payload: value
-			}
-			that.send(msgCmd);
-			sendMsgDebugFunc(msg, "New command");
+		function sendCmdFunc(a,b,c,d) {
+			var msgA, msgB, msgC, msgD = null;
+			if (a != null) {
+				msgA = {
+					topic: "opencommand",
+					cmd: a
+				};
+			};
+			if (b != null) {
+				msgB = {
+					topic: "closecommand",
+					cmd: b
+				};
+			};
+			if (c != null) {
+				msgC = {
+					topic: "resetcommand",
+					cmd: c
+				};
+			};
+			if (d != null) {
+				msgD = {
+					topic: "setpointcommand",
+					cmd: d
+				};
+			};
+			that.send([msgA, msgB, msgC, msgD]);
+
 		}
-	
-		function sunCalcFunc(){
-			console.log("DEBUG: new SunCalc call")
+		
+		function sunCalcFunc() {
+			// console.log("DEBUG: new SunCalc call")
 			const sunTimes = SunCalc.getTimes(actDate, myconfig.location.lat, myconfig.location.lon);
 			context.sunrise = sunTimes.sunrise.valueOf();
 			context.sunset = sunTimes.sunset.valueOf();
-		}		
-
+		}
+		
 		function mainloopFunc(){
 			actDate = new Date();
 			const oldDate = new Date(context.oldTime);
@@ -89,27 +111,29 @@ module.exports = function(RED) {
 			if (actDate.valueOf() < context.sunrise) {context.blockSunrise = false};
 			if (actDate.valueOf() >= context.sunrise && !context.blockSunrise) {
 				// Begin of sunrise actions
-					console.log("DEBUG: sunrise");
-					if (myconfig.set.behSunrise === "open") {sendMsgCmd(myconfig.set.shadingSetposOpen)}
-					else if (myconfig.set.behSunrise === "shade") {sendMsgCmd(myconfig.set.shadingSetposShade)}
-					else if (myconfig.set.behSunrise === "close") {sendMsgCmd(myconfig.set.shadingSetposClose)};
-				// End of sunrise actions
-				context.blockSunrise = true;
-			}
-		
-			// Sunset
-			if (actDate.valueOf() < context.sunset) {context.blockSunset = false};
-			if (actDate.valueOf() >= context.sunset && !context.blockSunset) {
-				// Begin of sunset actions
-					console.log("DEBUG: sunset")
-					if (myconfig.set.behSunset === "open") {sendMsgCmd(myconfig.set.shadingSetposOpen)}
-					else if (myconfig.set.behSunset === "shade") {sendMsgCmd(myconfig.set.shadingSetposShade)}
-					else if (myconfig.set.behSunset === "close") {sendMsgCmd(myconfig.set.shadingSetposClose)};
+					// console.log("DEBUG: sunrise");
+					// TODO umschreiben auf vier Ausgänge Prinzip:
+					// if (myconfig.set.behSunrise === "open") {sendMsgCmd(myconfig.set.shadingSetposOpen)}
+					// else if (myconfig.set.behSunrise === "shade") {sendMsgCmd(myconfig.set.shadingSetposShade)}
+					// else if (myconfig.set.behSunrise === "close") {sendMsgCmd(myconfig.set.shadingSetposClose)};
+					// End of sunrise actions
+					context.blockSunrise = true;
+				}
+				
+				// Sunset
+				if (actDate.valueOf() < context.sunset) {context.blockSunset = false};
+				if (actDate.valueOf() >= context.sunset && !context.blockSunset) {
+					// Begin of sunset actions
+					// console.log("DEBUG: sunset")
+					// TODO umschreiben auf vier Ausgänge Prinzip:
+					// if (myconfig.set.behSunset === "open") {sendMsgCmd(myconfig.set.shadingSetposOpen)}
+					// else if (myconfig.set.behSunset === "shade") {sendMsgCmd(myconfig.set.shadingSetposShade)}
+					// else if (myconfig.set.behSunset === "close") {sendMsgCmd(myconfig.set.shadingSetposClose)};
 				// End of sunset actions
 				context.blockSunset = true;
 			}
 			
-			console.log("DEBUG: looping... | Time: " + actDate + " | " + context.blockSunrise + " | " + context.blockSunset)
+			// console.log("DEBUG: looping... | Time: " + actDate + " | " + context.blockSunrise + " | " + context.blockSunset)
 
 			context.oldTime = actDate.getTime();
 			initDone = true;
@@ -144,30 +168,80 @@ module.exports = function(RED) {
 		// MESSAGE EVENT ACTIONS -->
 
 		this.on('input', function(msg,send,done) {
-				
 			
+			// Storing peripheral states
+			if (msg.topic === myconfig.set.inmsgButtonTopicOpen) {context.stateButtonOpen = msg.payload}
+			else if (msg.topic === myconfig.set.inmsgButtonTopicClose) {context.stateButtonClose = msg.payload};
+
 			// Button open/close event
 			if (msg.topic === myconfig.set.inmsgButtonTopicOpen || msg.topic === myconfig.set.inmsgButtonTopicClose) {
 				context.autoLocked = true;		// TODO unlock
+				context.stateButtonRunning = false;
+
+				// Button open pressed
 				if (msg.topic === myconfig.set.inmsgButtonTopicOpen && msg.payload) {
-					sendMsgDebugFunc(msg, "Open pushbutton pressed");
-					// TODO actions
-					context.cmd = 1;
+					clearTimeout(context.buttonCloseTimeoutHandle); context.buttonCloseTimeoutHandle = null;
+
+					// Single/double click detection
+					if (context.buttonOpenTimeoutHandle) {
+						
+						// double click actions
+						clearTimeout(context.buttonOpenTimeoutHandle); context.buttonOpenTimeoutHandle = null;
+						sendCmdFunc(null,null,null,myconfig.set.shadingSetposOpen);
+
+					} else {
+						context.buttonOpenTimeoutHandle = setTimeout(function(){
+							clearTimeout(context.buttonOpenTimeoutHandle); context.buttonOpenTimeoutHandle = null;
+							if (context.stateButtonOpen) {
+
+								// single click actions
+								sendCmdFunc(true,null,null,null);
+								context.stateButtonRunning = true;
+								
+							}
+						}, dblClickTime);
+					}
+					
+					
+					
+				// Button close pressed
 				} else if (msg.topic === myconfig.set.inmsgButtonTopicClose && msg.payload) {
-					sendMsgDebugFunc(msg, "Close pushbutton pressed");
-					// TODO actions
-					context.cmd = 2;
-				} else if ((msg.topic === myconfig.set.inmsgButtonTopicOpen || msg.topic === myconfig.set.inmsgButtonTopicClose) && !msg.payload) {
-					sendMsgDebugFunc(msg, "Pushbutton released");
-					// TODO actions
-					context.cmd = 0;
+					clearTimeout(context.buttonOpenTimeoutHandle); context.buttonOpenTimeoutHandle = null;
+					
+					// Single/double click detection
+					if (context.buttonCloseTimeoutHandle) {
+						clearTimeout(context.buttonCloseTimeoutHandle); context.buttonCloseTimeoutHandle = null;
+						
+						// double click actions
+						sendCmdFunc(null,null,null,myconfig.set.shadingSetposClose);
+						
+					} else {
+						context.buttonCloseTimeoutHandle = setTimeout(function(){
+							clearTimeout(context.buttonCloseTimeoutHandle); context.buttonCloseTimeoutHandle = null;
+							if (context.stateButtonClose) {
+								
+								// single click actions
+								sendCmdFunc(null,true,null,null);
+								context.stateButtonRunning = true;
+								
+							}
+						}, dblClickTime);
+					}
+					
+				// Open/close button released
+				} else if ((msg.topic === myconfig.set.inmsgButtonTopicOpen || msg.topic === myconfig.set.inmsgButtonTopicClose) && !msg.payload && context.stateButtonRunning) {
+					
+					// reset actions
+					console.log("reset");
+					context.stateButtonRunning = false;
+					sendCmdFunc(null,null,true,null);
 				}
 
-				msgCmd = {
-					topic: "command",
-					cmd: context.cmd
-				}
-				that.send(msgCmd);
+
+
+
+
+
 	
 			}
 			

@@ -115,7 +115,8 @@
             inmsgWinswitchPayloadClosed: {value: 3},
             inmsgWinswitchPayloadClosedType: {value: "initval"},
             behSunrise: {value: "initval"},
-            behSunset: {value: "initval"}
+            behSunset: {value: "initval"},
+            behSuppFalse: {}
         },
         label: function() {
             return this.name
@@ -255,19 +256,19 @@
     </div>
     <h3>Blind configuration</h3>
     <div class="form-row">
-        <label for="node-config-input-shadingSetposOpen"><i class="fa fa-window-maximize"></i> Open position</label>
+        <label for="node-config-input-shadingSetposOpen"><i class="fa fa-window-maximize"></i> Open value</label>
         <input type="hidden" id="node-config-input-shadingSetposOpenType">
-        <input type="text" id="node-config-input-shadingSetposOpen"> %
+        <input type="text" id="node-config-input-shadingSetposOpen">
     </div>
     <div class="form-row">
-        <label for="node-config-input-shadingSetposShade"><i class="fa fa-window-maximize"></i> Shade position</label>
+        <label for="node-config-input-shadingSetposShade"><i class="fa fa-window-maximize"></i> Shade value</label>
         <input type="hidden" id="node-config-input-shadingSetposShadeType">
-        <input type="text" id="node-config-input-shadingSetposShade"> %
+        <input type="text" id="node-config-input-shadingSetposShade">
     </div>
     <div class="form-row">
-        <label for="node-config-input-shadingSetposClose"><i class="fa fa-window-maximize"></i> Close position</label>
+        <label for="node-config-input-shadingSetposClose"><i class="fa fa-window-maximize"></i> Close value</label>
         <input type="hidden" id="node-config-input-shadingSetposCloseType">
-        <input type="text" id="node-config-input-shadingSetposClose"> %
+        <input type="text" id="node-config-input-shadingSetposClose">
     </div>
     <h3>Pushbutton configuration</h3>
     <div class="form-row">
@@ -315,6 +316,10 @@
         <label for="node-config-input-behSunset"><i class="fa fa-sliders"></i> Sunset</label>
         <input type="text" id="node-config-input-behSunset">
     </div>
+    <div class="form-row">
+        <label><i class="fa fa-power-off"></i> Suppress FALSE message</label>
+        <input type="checkbox" id="node-config-input-behSuppFalse" style="display:inline-block; width:auto;">
+    </div>
 </script>
 
 
@@ -325,7 +330,8 @@
         category: 'Smart Home',
         color: '#C0DEED',
         inputs: 1,
-        outputs: 1,
+        outputs: 4,
+        outputLabels: ["Open command","Close command","Stop command", "Analog setpoint"],
         icon: "font-awesome/fa-window-maximize",
         defaults: {
             name: {value: ""},
