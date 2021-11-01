@@ -59,25 +59,25 @@ module.exports = function(RED) {
 			if (a != null) {
 				msgA = {
 					topic: "opencommand",
-					cmd: a
+					payload: a
 				};
 			};
 			if (b != null) {
 				msgB = {
 					topic: "closecommand",
-					cmd: b
+					payload: b
 				};
 			};
 			if (c != null) {
 				msgC = {
 					topic: "resetcommand",
-					cmd: c
+					payload: c
 				};
 			};
 			if (d != null) {
 				msgD = {
 					topic: "setpointcommand",
-					cmd: d
+					payload: d
 				};
 			};
 			that.send([msgA, msgB, msgC, msgD]);
@@ -169,17 +169,28 @@ module.exports = function(RED) {
 
 		this.on('input', function(msg,send,done) {
 			
-			// Storing peripheral states
+			/** Storing peripheral states */
 			if (msg.topic === myconfig.set.inmsgButtonTopicOpen) {context.stateButtonOpen = msg.payload}
 			else if (msg.topic === myconfig.set.inmsgButtonTopicClose) {context.stateButtonClose = msg.payload};
 
-			// Button open/close event
-			if (msg.topic === myconfig.set.inmsgButtonTopicOpen || msg.topic === myconfig.set.inmsgButtonTopicClose) {
+			/** Button open/close event based on incoming message topic */
+			var buttonEvent = msg.topic === myconfig.set.inmsgButtonTopicOpen || msg.topic === myconfig.set.inmsgButtonTopicClose;
+			/** Button press event based on incoming message topic, if payload is TRUE */
+			var buttonPressEvent = buttonEvent && msg.payload === true;
+			/** Button press open event */
+			var buttonPressOpenEvent = msg.topic === myconfig.set.inmsgButtonTopicOpen && msg.payload === true;
+			/** Button press close event */
+			var buttonPressCloseEvent = msg.topic === myconfig.set.inmsgButtonTopicClose && msg.payload === true;
+			/** Button release event based on incoming message topic, if payload is FALSE */
+			var buttonReleaseEvent = buttonEvent && msg.payload === false;
+			/** Reset event based on incoming message topic */
+			var resetEvent = msg.topic === myconfig.set.inmsgTopicReset;
+
+			if (buttonEvent) {
 				context.autoLocked = true;		// TODO unlock
-				context.stateButtonRunning = false;
 
 				// Button open pressed
-				if (msg.topic === myconfig.set.inmsgButtonTopicOpen && msg.payload) {
+				if (buttonPressOpenEvent) {
 					clearTimeout(context.buttonCloseTimeoutHandle); context.buttonCloseTimeoutHandle = null;
 
 					// Single/double click detection
@@ -205,7 +216,7 @@ module.exports = function(RED) {
 					
 					
 				// Button close pressed
-				} else if (msg.topic === myconfig.set.inmsgButtonTopicClose && msg.payload) {
+				} else if (buttonPressCloseEvent) {
 					clearTimeout(context.buttonOpenTimeoutHandle); context.buttonOpenTimeoutHandle = null;
 					
 					// Single/double click detection
@@ -229,10 +240,9 @@ module.exports = function(RED) {
 					}
 					
 				// Open/close button released
-				} else if ((msg.topic === myconfig.set.inmsgButtonTopicOpen || msg.topic === myconfig.set.inmsgButtonTopicClose) && !msg.payload && context.stateButtonRunning) {
+				} else if (buttonReleaseEvent && context.stateButtonRunning) {
 					
 					// reset actions
-					console.log("reset");
 					context.stateButtonRunning = false;
 					sendCmdFunc(null,null,true,null);
 				}
@@ -245,8 +255,8 @@ module.exports = function(RED) {
 	
 			}
 			
-			// Button reset event
-			else if (msg.topic === myconfig.set.inmsgTopicReset) {
+			// Reset event
+			else if (resetEvent) {
 				context.autoLocked = false;
 				sendMsgDebugFunc(msg, "Reset");
 			}
