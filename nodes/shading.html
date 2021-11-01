@@ -18,29 +18,31 @@
             lon: {value: "", required: true, validate:RED.validators.number()},
         },
         label: function() {
-            return this.name || this.lat + " / " + this.lon
+            return this.name || "Lat " + this.lat + "° / " + "Lon " + this.lon + "°"
         }
     })
 </script>
 
 <script type="text/html" data-template-name="shading location">
+    <style>
+        .red-ui-editor .form-row label {
+            width: 150px
+        }
+        .red-ui-editor .form-row input {
+            width: 250px
+        }
+    </style>
     <div class="form-row">
         <label for="node-config-input-name"><i class="fa fa-bookmark"></i> Name</span></label>
         <input type="text" id="node-config-input-name" placeholder="Home, Apartment, Cabin, ...">
     </div>
     <div class="form-row">
         <label for="node-config-input-lat"><i class="fa fa-compass"></i> Latitude</label>
-        <input type="text" id="node-config-input-lat" placeholder="47.4791446">
+        <input type="text" id="node-config-input-lat" placeholder="47.4791446" style="width: 150px;"> °
     </div>
     <div class="form-row">
         <label for="node-config-input-lon"><i class="fa fa-compass"></i> Longitude</label>
-        <input type="text" id="node-config-input-lon" placeholder="9.6631092">
-    </div>
-    <div class="form-tips">
-        <h2>Name</h2>
-        <p>Give the location a name. You probably may have only one location config in your project, so you may name it 'Home' or simply leave it blank to use the coordinates as name.</p>
-        <h2>Latitude, Longitude (DD)</h2>
-        <p>Coordinates of your installation in decimal degrees (DD). There are plenty of mobile apps displaying you the coordinates in various formats. You may start trying the pre-installed compass app first. There's a <a href="https://support.google.com/maps/answer/18539" target="_blank">domestic article by Google</a> how to use maps to find coordinates of a specific location. On <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a>, simply rightclick the point of your interest and choose 'show adress' to see the information like coordinates in a side panel.</p>
+        <input type="text" id="node-config-input-lon" placeholder="9.6631092" style="width: 150px;"> °
     </div>
 </script>
 
@@ -56,6 +58,8 @@
             name: {},
             config: {type: "shading location"},
             direction: {required: true},
+            windowSunAngleEntry: {value: -75, required: true},  // TODO check for -90 - +90°
+            windowSunAngleExit: {value: 75, required: true}
         },
         label: function() {
             return this.name || this.direction + "°";       // TODO: automatisch zusammenstellen: shading location.name + orientation
@@ -64,25 +68,37 @@
 </script>
 
 <script type="text/html" data-template-name="shading orientation">
+    <style>
+        .red-ui-editor .form-row #node-config-input-windowSunAngleEntry,
+        .red-ui-editor .form-row #node-config-input-windowSunAngleExit {
+            width: 100px
+        }
+        .red-ui-editor .form-row label {
+            width: 150px
+        }
+        .red-ui-editor .form-row input {
+            width: 250px
+        }
+    </style>
     <div class="form-row">
         <label for="node-config-input-name"><i class="fa fa-bookmark"></i> Name</label>
         <input type="text" id="node-config-input-name" placeholder="East, Streetside, Garden, ...">
     </div>
     <div class="form-row">
         <label for="node-config-input-config"><i class="fa fa-compass"></i> Location</label>
-        <input type="text" id="node-config-input-config">
+        <input type="text" id="node-config-input-config" style="width: 250px;">     <!-- TODO find width css trick -->
     </div>
     <div class="form-row">
         <label for="node-config-input-direction"><i class="fa fa-location-arrow"></i> Direction</label>
         <input type="number" id="node-config-input-direction" style="width:100px" placeholder="0 - 359" min="0" max="359"> °
     </div>
-    <div class="form-tips">
-        <h2>Name</h2>
-        <p>Give the orientation a name or simply leave it blank to use the entered number as identifier. If you have a room with one window, you may want to give it the room's name (like 'livingroom'). If you have more windows in a room, you may use an identifier (like 'left' or 'right').</p>
-        <h2>Location</h2>
-        <p>We need to know the location of the facility where the shading operates. This is important when it comes sun or weather relevant functions.</p>
-        <h2>Direction</h2>
-        <p>Use a regular compass, the compass app on your mobile or try to determine the orientation on a map like <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> or <a href="https://maps.google.com" target="_blank">Google Maps</a>. The value must be a number in degrees >= 0 and < 360.</p>
+    <div class="form-row">
+        <label for="node-config-input-windowSunAngleEntry"><i class="fa fa-location-arrow"></i> Sun entry angle</label>
+        <input type="number" id="node-config-input-windowSunAngleEntry" placeholder="-90 - 0" min="-90" max="0"> °
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-windowSunAngleExit"><i class="fa fa-location-arrow"></i> Sun exit angle</label>
+        <input type="number" id="node-config-input-windowSunAngleExit" placeholder="0 - 90" min="0" max="90"> °
     </div>
 </script>
 
@@ -95,8 +111,6 @@
         category: 'config',
         defaults: {
             name: {required: true},
-            windowSunAngleEntry: {value: -75, required: true},
-            windowSunAngleExit: {value: 75, required: true},
             shadingSetposOpen: {value: "initval", required: true},  // WORKAROUND: requires "initval" because if 0, the field is left blank.
             shadingSetposOpenType: {value: "initval"},
             shadingSetposShade: {value: 80, required: true},
@@ -105,7 +119,6 @@
             shadingSetposCloseType: {value: "initval"},
             inmsgButtonTopicOpen: {},
             inmsgButtonTopicClose: {},
-            inmsgTopicReset: {},
             behButtonLocksUntil: {value: "initval"},
             inmsgWinswitchTopic: {},
             inmsgWinswitchPayloadOpened: {value: 1},
@@ -114,9 +127,15 @@
             inmsgWinswitchPayloadTiltedType: {value: "initval"},
             inmsgWinswitchPayloadClosed: {value: 3},
             inmsgWinswitchPayloadClosedType: {value: "initval"},
+            payloadOpenCmd: {value: false},
+            payloadOpenCmdType: {value: "initval"},
+            payloadCloseCmd: {},
+            payloadCloseCmdType: {value: "initval"},
+            payloadStopCmd: {},
+            payloadStopCmdType: {value: "initval"},
             behSunrise: {value: "initval"},
             behSunset: {value: "initval"},
-            behSuppFalse: {}
+            inmsgTopicReset: {},
         },
         label: function() {
             return this.name
@@ -153,6 +172,15 @@
             if (this.behButtonLocksUntil === "initval") {
                 $("#node-config-input-behButtonLocksUntil").val("sunriseset")
             }
+            // if (this.payloadOpenCmdType === "initval") {
+            //     $("#node-config-input-payloadOpenCmdType").val("bool")
+            // }
+            // if (this.payloadCloseCmdType === "initval") {
+            //     $("#node-config-input-payloadCloseCmdType").val("bool")
+            // }
+            // if (this.payloadStopCmdType === "initval") {
+            //     $("#node-config-input-payloadStopCmdType").val("bool")
+            // }
             // defining input types
             $("#node-config-input-shadingSetposOpen").typedInput({
                 default: "num",
@@ -182,6 +210,21 @@
             $("#node-config-input-inmsgWinswitchPayloadClosed").typedInput({
                 default: "num",
                 typeField: $("#node-config-input-inmsgWinswitchPayloadClosedType"),
+                types: ["bool","num","str"]
+            })
+            $("#node-config-input-payloadOpenCmd").typedInput({
+                default: "bool",
+                typeField: $("#node-config-input-payloadOpenCmdType"),
+                types: ["bool","num","str"]
+            })
+            $("#node-config-input-payloadCloseCmd").typedInput({
+                default: "bool",
+                typeField: $("#node-config-input-payloadCloseCmdType"),
+                types: ["bool","num","str"]
+            })
+            $("#node-config-input-payloadStopCmd").typedInput({
+                default: "bool",
+                typeField: $("#node-config-input-payloadStopCmdType"),
                 types: ["bool","num","str"]
             })
             $("#node-config-input-behSunrise").typedInput({
@@ -233,8 +276,6 @@
         .red-ui-editor .form-row input {
             width: 250px
         }
-        .red-ui-editor .form-row #node-config-input-windowSunAngleEntry,
-        .red-ui-editor .form-row #node-config-input-windowSunAngleExit,
         .red-ui-editor .form-row #node-config-input-shadingSetposOpen,
         .red-ui-editor .form-row #node-config-input-shadingSetposShade,
         .red-ui-editor .form-row #node-config-input-shadingSetposClose {
@@ -244,15 +285,6 @@
     <div class="form-row">
         <label for="node-config-input-name"><i class="fa fa-bookmark"></i> Name</label>
         <input type="text" id="node-config-input-name" placeholder="Name of onfiguration set">
-    </div>
-    <h3>Sun configuration</h3>
-    <div class="form-row">
-        <label for="node-config-input-windowSunAngleEntry"><i class="fa fa-location-arrow"></i> Entry angle</label>
-        <input type="number" id="node-config-input-windowSunAngleEntry" placeholder="-90 - 0" min="-90" max="0"> °
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-windowSunAngleExit"><i class="fa fa-location-arrow"></i> Exit angle</label>
-        <input type="number" id="node-config-input-windowSunAngleExit" placeholder="0 - 90" min="0" max="90"> °
     </div>
     <h3>Blind configuration</h3>
     <div class="form-row">
@@ -283,10 +315,6 @@
         <label for="node-config-input-behButtonLocksUntil"><i class="fa fa-sliders"></i> Locks until</label>
         <input type="text" id="node-config-input-behButtonLocksUntil">
     </div>
-    <div class="form-row">
-        <label for="node-config-input-inmsgTopicReset"><i class="fa fa-tasks"></i> Reset Topic</label>
-        <input type="text" id="node-config-input-inmsgTopicReset" placeholder="Expecting 'reset' if left blank">
-    </div>
     <h3>Window switch</h3>
     <div class="form-row">
         <label for="node-config-input-inmsgWinswitchTopic"><i class="fa fa-tasks"></i> Topic</label>
@@ -307,18 +335,34 @@
         <input type="hidden" id="node-config-input-inmsgWinswitchPayloadClosedType">
         <input type="text" id="node-config-input-inmsgWinswitchPayloadClosed">
     </div>
-    <h3>Behavior configuration</h3>
+    <h3>Command output configuration</h3>
     <div class="form-row">
-        <label for="node-config-input-behSunrise"><i class="fa fa-sliders"></i> Sunrise</label>
+        <label for="node-config-input-payloadOpenCmd"><i class="fa fa-tag"></i> Payload open</label>
+        <input type="hidden" id="node-config-input-payloadOpenCmdType">
+        <input type="text" id="node-config-input-payloadOpenCmd">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-payloadCloseCmd"><i class="fa fa-tag"></i> Payload close</label>
+        <input type="hidden" id="node-config-input-payloadCloseCmdType">
+        <input type="text" id="node-config-input-payloadCloseCmd">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-payloadStopCmd"><i class="fa fa-tag"></i> Payload stop</label>
+        <input type="hidden" id="node-config-input-payloadStopCmdType">
+        <input type="text" id="node-config-input-payloadStopCmd">
+    </div>
+    <h3>Other configuration</h3>
+    <div class="form-row">
+        <label for="node-config-input-behSunrise"><i class="fa fa-sliders"></i> Sunrise action</label>
         <input type="text" id="node-config-input-behSunrise">
     </div>
     <div class="form-row">
-        <label for="node-config-input-behSunset"><i class="fa fa-sliders"></i> Sunset</label>
+        <label for="node-config-input-behSunset"><i class="fa fa-sliders"></i> Sunset action</label>
         <input type="text" id="node-config-input-behSunset">
     </div>
     <div class="form-row">
-        <label><i class="fa fa-power-off"></i> Suppress FALSE message</label>
-        <input type="checkbox" id="node-config-input-behSuppFalse" style="display:inline-block; width:auto;">
+        <label for="node-config-input-inmsgTopicReset"><i class="fa fa-tasks"></i> Reset Topic</label>
+        <input type="text" id="node-config-input-inmsgTopicReset" placeholder="Expecting 'reset' if left blank">
     </div>
 </script>
 
@@ -334,12 +378,23 @@
         outputLabels: ["Open command","Close command","Stop command", "Analog setpoint"],
         icon: "font-awesome/fa-window-maximize",
         defaults: {
-            name: {value: ""},
-            configOrientation: {type: "shading orientation"},
-            configSet: {type: "shading configuration"}
+            name: {},
+            configSet: {type: "shading configuration"},
+            autoActive: {},
+            configOrientation: {type: "shading orientation"} // TODO make required only when visible
         },
         label: function() {
             return this.name || "Shading"
+        },
+        oneditprepare: function() {
+            // hide feedback config area
+            $("#node-input-autoActive").on('change', function() {
+                if ($("#node-input-autoActive")[0].checked) {
+                    $('#autoConfig').show('fast');
+                } else {
+                    $('#autoConfig').hide('fast');
+                }
+            })
         }
     });
 </script>
@@ -355,20 +410,24 @@
         <input type="text" id="node-input-name" placeholder="Kitchen, Livingroom, ...">
     </div>
     <div class="form-row">
-        <label for="node-input-configOrientation"><i class="fa fa-location-arrow"></i> Orientation</label>
-        <input type="text" id="node-input-configOrientation">
-    </div>
-    <div class="form-row">
         <label for="node-input-configSet"><i class="fa fa-sliders"></i> Configuration</label>
         <input type="text" id="node-input-configSet">
     </div>
-    <div class="form-tips">
-        <h2>Name</h2>
-            <p>Give the shading a name. If you have a room with one window, you may want to give it the room's name (like 'livingroom'). If you have more windows in a room, you may append 'left' or 'right'.</p>
-        <h2>Orientation</h2>
-            <p>This is a configuration set holding the geographical orientation of the window. Use it for all other windows on the same frontside.</p>
-        <h2>Configuration</h2>
-            <p>This is a set of configuration, which define, how your shading behaves. Use this configuration set for as many blinds as you wish. Create different configuration sets for blinds you want to behave different.</p>
+
+
+
+    <!-- Geo config -->
+    <h3>Automatic</span></h3>
+    <div class="form-row">
+        <label><i class="fa fa-power-off"></i> Enable</label>
+        <input type="checkbox" id="node-input-autoActive" style="display:inline-block; width:auto;">
     </div>
+    <div id="autoConfig">
+        <div class="form-row">
+            <label for="node-input-configOrientation"><i class="fa fa-location-arrow"></i> Orientation</label>
+            <input type="text" id="node-input-configOrientation">
+        </div>
+    </div>
+
 </script>
 
