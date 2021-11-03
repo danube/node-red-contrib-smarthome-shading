@@ -135,7 +135,7 @@
             payloadStopCmdType: {value: "initval"},
             behSunrise: {value: "initval"},
             behSunset: {value: "initval"},
-            inmsgTopicReset: {},
+            inmsgTopicAutoReenable: {},
         },
         label: function() {
             return this.name
@@ -259,7 +259,7 @@
                         value: "behButtonLocksUntil",
                         options: [
                             {value: "sunriseset", label: "Next sunrise / sunset"},
-                            {value: "manualreset", label: "Manual reset"}       // TODO describe how to manually reset
+                            {value: "autoreenable", label: "Auto re-enable"}       // TODO describe how to manually re-enable
                         ]
                     }
                 ]
@@ -271,7 +271,7 @@
 <script type="text/html" data-template-name="shading configuration">
     <style>
         .red-ui-editor .form-row label {
-            width: 200px
+            width: 150px
         }
         .red-ui-editor .form-row input {
             width: 250px
@@ -361,8 +361,8 @@
         <input type="text" id="node-config-input-behSunset">
     </div>
     <div class="form-row">
-        <label for="node-config-input-inmsgTopicReset"><i class="fa fa-tasks"></i> Reset Topic</label>
-        <input type="text" id="node-config-input-inmsgTopicReset" placeholder="Expecting 'reset' if left blank">
+        <label for="node-config-input-inmsgTopicAutoReenable"><i class="fa fa-tasks"></i> Auto re-enable topic</label>
+        <input type="text" id="node-config-input-inmsgTopicAutoReenable" placeholder="Expecting 'auto' if left blank">
     </div>
 </script>
 
@@ -380,8 +380,9 @@
         defaults: {
             name: {},
             configSet: {type: "shading configuration"},
+            debug: {},
             autoActive: {},
-            configOrientation: {type: "shading orientation"} // TODO make required only when visible
+            configOrientation: {type: "shading orientation", required: false} // TODO make required only when visible
         },
         label: function() {
             return this.name || "Shading"
@@ -413,10 +414,6 @@
         <label for="node-input-configSet"><i class="fa fa-sliders"></i> Configuration</label>
         <input type="text" id="node-input-configSet">
     </div>
-
-
-
-    <!-- Geo config -->
     <h3>Automatic</span></h3>
     <div class="form-row">
         <label><i class="fa fa-power-off"></i> Enable</label>
@@ -428,6 +425,10 @@
             <input type="text" id="node-input-configOrientation">
         </div>
     </div>
-
+    <h3>Debugging</span></h3>
+    <div class="form-row">
+        <label><i class="fa fa-bug"></i> Enable</label>
+        <input type="checkbox" id="node-input-debug" style="display:inline-block; width:auto;">
+    </div>
 </script>
 

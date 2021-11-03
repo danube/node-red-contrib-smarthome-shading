@@ -31,64 +31,62 @@ module.exports = function(RED) {
 		var loopIntervalHandle;
 		
 		var initDone, err = false;
-		var msgDebug;
 		var SunCalc = require("suncalc");
 		var actDate = new Date();
-		
 
 		myconfig.set = RED.nodes.getNode(config.configSet).config;
-		myconfig.orientation = RED.nodes.getNode(config.configOrientation).config;
-		myconfig.location = RED.nodes.getNode(RED.nodes.getNode(config.configOrientation).config.config).config;
-
-		function sendMsgDebugFunc(msg, reason) {
-			if (msg.debug) {
-				msgDebug = {
-					topic: "debug",
-					inmsg: msg,
-					config: config,
-					myconfig: myconfig,
-					context: context,
-					reason: reason
-				}
-				that.send(msgDebug); // TODO umschreiben auf vier Ausgänge
-			}
+		
+		if (myconfig.autoActive) {
+			myconfig.orientation = RED.nodes.getNode(config.configOrientation).config;
+			myconfig.location = RED.nodes.getNode(RED.nodes.getNode(config.configOrientation).config.config).config;
 		}
 
 		function sendCmdFunc(a,b,c,d) {
 			var msgA, msgB, msgC, msgD = null;
+			if (myconfig.debug) {
+				const debug = {
+					msg: context.msg,
+					config: config,
+					myconfig: myconfig,
+					context: context
+				}
+			}
+
 			if (a != null) {
-				msgA = {
-					topic: "opencommand",
-					payload: a
-				};
+				msgA = {topic: "opencommand", payload: a};
+				if (myconfig.debug) {
+					msgA = {topic: msgA.topic, payload: msgA.payload, debug: debug}
+				}
 			};
 			if (b != null) {
-				msgB = {
-					topic: "closecommand",
-					payload: b
-				};
+				msgB = {topic: "closecommand", payload: b};
+				if (myconfig.debug) {
+					msgB = {topic: msgB.topic, payload: msgB.payload, debug: debug}
+				}
 			};
 			if (c != null) {
-				msgC = {
-					topic: "resetcommand",
-					payload: c
-				};
+				msgC = {topic: "resetcommand", payload: c};
+				if (myconfig.debug) {
+					msgC = {topic: msgC.topic, payload: msgC.payload, debug: debug}
+				}
 			};
 			if (d != null) {
-				msgD = {
-					topic: "setpointcommand",
-					payload: d
-				};
+				msgD = {topic: "setpointcommand", payload: d};
+				if (myconfig.debug) {
+					msgD = {topic: msgD.topic, payload: msgD.payload, debug: debug}
+				}
 			};
 			that.send([msgA, msgB, msgC, msgD]);
 
 		}
 		
+		/** Calculates sunrise and sunset, only if atomatic is enabled. */
 		function sunCalcFunc() {
-			// console.log("DEBUG: new SunCalc call")
-			const sunTimes = SunCalc.getTimes(actDate, myconfig.location.lat, myconfig.location.lon);
-			context.sunrise = sunTimes.sunrise.valueOf();
-			context.sunset = sunTimes.sunset.valueOf();
+			if (myconfig.autoActive) {
+				const sunTimes = SunCalc.getTimes(actDate, myconfig.location.lat, myconfig.location.lon);
+				context.sunrise = sunTimes.sunrise.valueOf();
+				context.sunset = sunTimes.sunset.valueOf();
+			}
 		}
 		
 		function mainloopFunc(){
@@ -145,7 +143,7 @@ module.exports = function(RED) {
 		// Set replacement values for optional fields
 		myconfig.set.inmsgButtonTopicOpen = config.set.inmsgButtonTopicOpen || "openbutton";
 		myconfig.set.inmsgButtonTopicClose = config.set.inmsgButtonTopicClose || "closebutton";
-		myconfig.set.inmsgTopicReset = config.set.inmsgTopicReset || "reset";
+		myconfig.set.inmsgTopicAutoReenable = config.set.inmsgTopicReset || "auto";
 		myconfig.set.inmsgWinswitchTopic = config.set.inmsgWinswitchTopic || "switch";
 	
 		// Converting typed inputs
@@ -169,6 +167,8 @@ module.exports = function(RED) {
 
 		this.on('input', function(msg,send,done) {
 			
+			context.msg = msg;
+
 			/** Storing peripheral states */
 			if (msg.topic === myconfig.set.inmsgButtonTopicOpen) {context.stateButtonOpen = msg.payload}
 			else if (msg.topic === myconfig.set.inmsgButtonTopicClose) {context.stateButtonClose = msg.payload};
@@ -183,8 +183,8 @@ module.exports = function(RED) {
 			var buttonPressCloseEvent = msg.topic === myconfig.set.inmsgButtonTopicClose && msg.payload === true;
 			/** Button release event based on incoming message topic, if payload is FALSE */
 			var buttonReleaseEvent = buttonEvent && msg.payload === false;
-			/** Reset event based on incoming message topic */
-			var resetEvent = msg.topic === myconfig.set.inmsgTopicReset;
+			/** Auto re-enable event based on incoming message topic */
+			var autoReenableEvent = msg.topic === myconfig.set.inmsgTopicAutoReenable;
 
 			if (buttonEvent) {
 				context.autoLocked = true;		// TODO unlock
@@ -242,7 +242,7 @@ module.exports = function(RED) {
 				// Open/close button released
 				} else if (buttonReleaseEvent && context.stateButtonRunning) {
 					
-					// reset actions
+					// auto re-enable actions
 					context.stateButtonRunning = false;
 					sendCmdFunc(null,null,true,null);
 				}
@@ -255,16 +255,10 @@ module.exports = function(RED) {
 	
 			}
 			
-			// Reset event
-			else if (resetEvent) {
+			// Auto re-enable event
+			else if (autoReenableEvent) {
 				context.autoLocked = false;
-				sendMsgDebugFunc(msg, "Reset");
 			}
-
-			// Debug solo
-			else if (msg.debug) {
-				sendMsgDebugFunc(msg, "Debug solo")
-			};
 
 
 
