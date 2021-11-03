@@ -110,7 +110,7 @@
             inmsgButtonPayloadClose: {value: "true", validate: RED.validators.typedInput("buttonPayloadCloseType")},
             inmsgButtonPayloadCloseType: {value: "initval"},
             behButtonLocksUntil: {value: "initval"},
-            inmsgWinswitchTopic: {value: "switch"},
+            inmsgWinswitchTopic: {},
             inmsgWinswitchPayloadOpened: {value: 1},
             inmsgWinswitchPayloadOpenedType: {value: "initval"},
             inmsgWinswitchPayloadTilted: {value: 2},
@@ -263,31 +263,37 @@
         <label for="node-config-input-name"><i class="fa fa-bookmark"></i> Name</label>
         <input type="text" id="node-config-input-name" placeholder="Name of onfiguration set">
     </div>
-    <h3>Sun configuration</h3>
-    <div class="form-row">
-        <label for="node-config-input-windowSunAngleEntry"><i class="fa fa-location-arrow"></i> Entry angle</label>
-        <input type="number" id="node-config-input-windowSunAngleEntry" placeholder="-90 - 0" min="-90" max="0"> °
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-windowSunAngleExit"><i class="fa fa-location-arrow"></i> Exit angle</label>
-        <input type="number" id="node-config-input-windowSunAngleExit" placeholder="0 - 90" min="0" max="90"> °
-    </div>
-    <h3>Blind configuration</h3>
-    <div class="form-row">
-        <label for="node-config-input-shadingSetposOpen"><i class="fa fa-window-maximize"></i> Open position</label>
-        <input type="hidden" id="node-config-input-shadingSetposOpenType">
-        <input type="text" id="node-config-input-shadingSetposOpen"> %
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-shadingSetposShade"><i class="fa fa-window-maximize"></i> Shade position</label>
-        <input type="hidden" id="node-config-input-shadingSetposShadeType">
-        <input type="text" id="node-config-input-shadingSetposShade"> %
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-shadingSetposClose"><i class="fa fa-window-maximize"></i> Close position</label>
-        <input type="hidden" id="node-config-input-shadingSetposCloseType">
-        <input type="text" id="node-config-input-shadingSetposClose"> %
-    </div>
+    <table>
+        <tr><td style="background-color: aquamarine">
+            <h3>Sun configuration</h3>
+            <div class="form-row">
+                <label for="node-config-input-windowSunAngleEntry"><i class="fa fa-location-arrow"></i> Entry angle</label>
+                <input type="number" id="node-config-input-windowSunAngleEntry" placeholder="-90 - 0" min="-90" max="0"> °
+            </div>
+            <div class="form-row">
+                <label for="node-config-input-windowSunAngleExit"><i class="fa fa-location-arrow"></i> Exit angle</label>
+                <input type="number" id="node-config-input-windowSunAngleExit" placeholder="0 - 90" min="0" max="90"> °
+            </div>
+        </td></tr>
+        <tr><td>
+            <h3>Blind configuration</h3>
+            <div class="form-row">
+                <label for="node-config-input-shadingSetposOpen"><i class="fa fa-window-maximize"></i> Open position</label>
+                <input type="hidden" id="node-config-input-shadingSetposOpenType">
+                <input type="text" id="node-config-input-shadingSetposOpen"> %
+            </div>
+            <div class="form-row">
+                <label for="node-config-input-shadingSetposShade"><i class="fa fa-window-maximize"></i> Shade position</label>
+                <input type="hidden" id="node-config-input-shadingSetposShadeType">
+                <input type="text" id="node-config-input-shadingSetposShade"> %
+            </div>
+            <div class="form-row">
+                <label for="node-config-input-shadingSetposClose"><i class="fa fa-window-maximize"></i> Close position</label>
+                <input type="hidden" id="node-config-input-shadingSetposCloseType">
+                <input type="text" id="node-config-input-shadingSetposClose"> %
+            </div>
+        </td></tr>
+    </table>
     <h3>Pushbutton configuration</h3>
     <div class="form-row">
         <label for="node-config-input-behButtonLocksUntil"><i class="fa fa-sliders"></i> Locks until</label>
