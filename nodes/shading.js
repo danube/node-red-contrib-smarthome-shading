@@ -39,16 +39,14 @@ module.exports = function(RED) {
 			myconfig.automatic = RED.nodes.getNode(config.configAutomatic).config;
 			myconfig.location = RED.nodes.getNode(RED.nodes.getNode(config.configAutomatic).config.config).config;
 		}
-
+		
 		function sendCmdFunc(a,b,c,d) {
 			var msgA, msgB, msgC, msgD = null;
-			if (myconfig.debug) {
-				const debug = {
-					msg: context.msg,
-					config: config,
-					myconfig: myconfig,
-					context: context
-				}
+			const debug = {
+				msg: context.msg,
+				config: config,
+				myconfig: myconfig,
+				context: context
 			}
 
 			if (a != null) {
@@ -189,7 +187,7 @@ module.exports = function(RED) {
 			/** Button release event based on incoming message topic, if payload is FALSE */
 			var buttonReleaseEvent = buttonEvent && msg.payload === false;
 			/** Auto re-enable event based on incoming message topic */
-			var autoReenableEvent = msg.topic === myconfig.automatic.inmsgTopicAutoReenable;
+			if (myconfig.autoActive) {var autoReenableEvent = msg.topic === myconfig.automatic.inmsgTopicAutoReenable;};
 
 			if (buttonEvent) {
 				context.autoLocked = true;		// TODO unlock
@@ -201,7 +199,7 @@ module.exports = function(RED) {
 					// Single/double click detection
 					if (context.buttonOpenTimeoutHandle) {
 						
-						// double click actions
+						// DOUBLE CLICK ACTIONS -->
 						clearTimeout(context.buttonOpenTimeoutHandle); context.buttonOpenTimeoutHandle = null;
 						sendCmdFunc(null,null,null,myconfig.set.shadingSetposOpen);
 
@@ -210,8 +208,8 @@ module.exports = function(RED) {
 							clearTimeout(context.buttonOpenTimeoutHandle); context.buttonOpenTimeoutHandle = null;
 							if (context.stateButtonOpen) {
 
-								// single click actions
-								sendCmdFunc(true,null,null,null);
+								// SINGLE CLICK ACTIONS -->
+								sendCmdFunc(config.set.payloadOpenCmd,null,null,null);
 								context.stateButtonRunning = true;
 								
 							}
@@ -228,7 +226,7 @@ module.exports = function(RED) {
 					if (context.buttonCloseTimeoutHandle) {
 						clearTimeout(context.buttonCloseTimeoutHandle); context.buttonCloseTimeoutHandle = null;
 						
-						// double click actions
+						// DOUBLE CLICK ACTIONS -->
 						sendCmdFunc(null,null,null,myconfig.set.shadingSetposClose);
 						
 					} else {
@@ -236,8 +234,8 @@ module.exports = function(RED) {
 							clearTimeout(context.buttonCloseTimeoutHandle); context.buttonCloseTimeoutHandle = null;
 							if (context.stateButtonClose) {
 								
-								// single click actions
-								sendCmdFunc(null,true,null,null);
+								// SINGLE CLICK ACTIONS -->
+								sendCmdFunc(null,config.set.payloadCloseCmd,null,null);
 								context.stateButtonRunning = true;
 								
 							}
@@ -247,9 +245,9 @@ module.exports = function(RED) {
 				// Open/close button released
 				} else if (buttonReleaseEvent && context.stateButtonRunning) {
 					
-					// auto re-enable actions
+					// BUTTONS RELEASED ACTIONS -->
 					context.stateButtonRunning = false;
-					sendCmdFunc(null,null,true,null);
+					sendCmdFunc(null,null,config.set.payloadStopCmd,null);
 				}
 
 
