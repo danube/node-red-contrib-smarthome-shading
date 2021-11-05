@@ -22,7 +22,23 @@ module.exports = function(RED) {
 
 		RED.nodes.createNode(this,config);
 		
-		/** The nodes context object */
+		/**
+		 * The nodes context object
+		 * @property {object} context The context object
+		 * @property {Number} context.windowState 1 = opened, 2 = tilted, 3 = closed
+		 * @property {Number} context.sunrise Time of sunrise in ms since 1.1.1970
+		 * @property {Number} context.sunset Time of sunset in ms since 1.1.1970
+		 * @property {Bool} context.blockSunrise If set, sunrise actions will not be fired
+		 * @property {Bool} context.blocksSunset If set, sunset actions will not be fired
+		 * @property {Bool} context.autoLocked If set, no automatic actios will be fired
+		 * @property {Number} context.oldTime Stored time after all actions have been fired for comarison on next run
+		 * @property {object} context.msg The original incoming message object
+		 * @property {Bool} context.stateButtonOpen Button open is pressed
+		 * @property {Bool} context.stateButtonClose Button close is pressed
+		 * @property {Bool} context.stateButtonRunning Any button has been pressed and action is running
+		 * @property {Number} context.buttonCloseTimeoutHandle Handle for the close button single press timer
+		 * @property {Number} context.buttonOpenTimeoutHandle Handle for the open button single press timer
+		 */
 		var context = this.context();
 		var that = this;
 		let myconfig = config;
@@ -187,7 +203,12 @@ module.exports = function(RED) {
 
 			/** Storing peripheral states */
 			if (msg.topic === myconfig.set.inmsgButtonTopicOpen) {context.stateButtonOpen = msg.payload}
-			else if (msg.topic === myconfig.set.inmsgButtonTopicClose) {context.stateButtonClose = msg.payload};
+			else if (msg.topic === myconfig.set.inmsgButtonTopicClose) {context.stateButtonClose = msg.payload}
+			else if (msg.topic === myconfig.set.inmsgWinswitchTopic) {
+				if (msg.payload === myconfig.set.inmsgWinswitchPayloadOpened) {context.windowState = 1} else
+				if (msg.payload === myconfig.set.inmsgWinswitchPayloadTilted) {context.windowState = 2} else
+				if (msg.payload === myconfig.set.inmsgWinswitchPayloadClosed) {context.windowState = 3};
+			};
 
 			/** Button open/close event based on incoming message topic */
 			var buttonEvent = msg.topic === myconfig.set.inmsgButtonTopicOpen || msg.topic === myconfig.set.inmsgButtonTopicClose;
