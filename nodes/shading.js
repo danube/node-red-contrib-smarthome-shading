@@ -163,15 +163,18 @@ module.exports = function(RED) {
 		myconfig.set.shadingSetposShade = Number(config.set.shadingSetposShade);
 		myconfig.set.shadingSetposClose = Number(config.set.shadingSetposClose);
 		
-		if (myconfig.debug) {
-			that.log("Debugging is enabled in the node properties. Here comes the node configuration:");
-			console.log(myconfig);
-		}
-
 		// Main loop
 		if (myconfig.autoActive) {
 			mainloopFunc();														// Trigger once as setInterval will fire first after timeout
 			loopIntervalHandle = setInterval(mainloopFunc, loopIntervalTime);	// Continuous interval run
+		}
+		
+		// Show config and context on console
+		if (myconfig.debug) {
+			that.log("Debugging is enabled in the node properties. Here comes the node configuration:");
+			console.log(myconfig);
+			that.log("Debugging is enabled in the node properties. Here comes the node context:");
+			console.log(context);
 		}
 
 		// <== FIRST RUN ACTIONS
