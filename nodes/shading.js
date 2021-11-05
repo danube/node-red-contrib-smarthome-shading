@@ -98,7 +98,8 @@ module.exports = function(RED) {
 		 * @param {String} what Must be either "sunrise" or "sunset"
 		 */
 		function sunriseset(what) {
-			if (context.autoLocked && myconfig.automatic.behButtonLocksUntil === "sunriseset") {context.autoLocked = false};
+			if (myconfig.automatic.behButtonLocksUntil === "sunriseset") {context.autoLocked = false};
+			if (context.autoLocked) {return};
 			if (what === "sunrise") {
 				if (config.debug) {console.log("Now it's sunrise")};
 				if (myconfig.automatic.behSunrise === "open") {sendCmdFunc(null,null,null,myconfig.set.shadingSetposOpen)}
@@ -128,23 +129,16 @@ module.exports = function(RED) {
 				context.blockSunset = true;
 			}
 		
-			// console.log("DEBUG: looping... | Time: " + actDate + " | Old DOW: " + oldDate.getDay() + " | New DOW: " + actDate.getDay())
-		
-			// if (oldDate.getDay() != actDate.getDay()){			// Use this to detect a new day (productive use)
-			if (oldDate.getMinutes() != actDate.getMinutes()){		// Use this to detect a new minute (testing use)
-				sunCalcFunc();										// New period detected, run suncalc.
-			}
+			if (oldDate.getDay() != actDate.getDay()){sunCalcFunc()};
 		
 			// Release blockers
 			if (actDate.valueOf() < context.sunrise) {context.blockSunrise = false};
 			if (actDate.valueOf() < context.sunset) {context.blockSunset = false};
 
-			// Trigger sunrise/sunset function
+			// TRIGGER SUNRISE/SUNSET ACTIONS
 			if (actDate.valueOf() >= context.sunrise && !context.blockSunrise) {sunriseset("sunrise")};
 			if (actDate.valueOf() >= context.sunset && !context.blockSunset) {sunriseset("sunset")};
 			
-			// console.log("DEBUG: looping... | Time: " + actDate + " | " + context.blockSunrise + " | " + context.blockSunset)
-
 			context.oldTime = actDate.getTime();	// Save actual time as old time
 			initDone = true;						// Mark initialization as done
 		}
@@ -176,8 +170,8 @@ module.exports = function(RED) {
 
 		// Main loop
 		if (myconfig.autoActive) {
-			mainloopFunc();
-			loopIntervalHandle = setInterval(mainloopFunc, loopIntervalTime);	// Interval run
+			mainloopFunc();														// Trigger once as setInterval will fire first after timeout
+			loopIntervalHandle = setInterval(mainloopFunc, loopIntervalTime);	// Continuous interval run
 		}
 
 		// <== FIRST RUN ACTIONS
