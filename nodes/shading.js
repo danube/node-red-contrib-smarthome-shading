@@ -148,7 +148,7 @@ module.exports = function(RED) {
 		myconfig.set.inmsgButtonTopicOpen = config.set.inmsgButtonTopicOpen || "openbutton";
 		myconfig.set.inmsgButtonTopicClose = config.set.inmsgButtonTopicClose || "closebutton";
 		myconfig.set.inmsgWinswitchTopic = config.set.inmsgWinswitchTopic || "switch";
-		myconfig.automatic.inmsgTopicAutoReenable = config.automatic.inmsgTopicReset || "auto";
+		if (myconfig.autoActive) {myconfig.automatic.inmsgTopicAutoReenable = config.automatic.inmsgTopicReset || "auto";};
 	
 		// Converting typed inputs
 		if (myconfig.set.inmsgWinswitchPayloadOpenedType === 'num') {myconfig.set.inmsgWinswitchPayloadOpened = Number(config.set.inmsgWinswitchPayloadOpened)}
