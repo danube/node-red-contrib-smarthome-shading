@@ -1,10 +1,10 @@
 module.exports = function(RED) {
 
-    function ShadingOrientationNode(config) {
+    function ShadingAutomaticNode(config) {
 		RED.nodes.createNode(this,config);
 		this.config = config;
     }
-    RED.nodes.registerType("shading orientation",ShadingOrientationNode);
+    RED.nodes.registerType("shading automatic",ShadingAutomaticNode);
 
     function ShadingLocationNode(config) {
 		RED.nodes.createNode(this,config);
@@ -37,8 +37,8 @@ module.exports = function(RED) {
 		myconfig.set = RED.nodes.getNode(config.configSet).config;
 		
 		if (myconfig.autoActive) {
-			myconfig.orientation = RED.nodes.getNode(config.configOrientation).config;
-			myconfig.location = RED.nodes.getNode(RED.nodes.getNode(config.configOrientation).config.config).config;
+			myconfig.automatic = RED.nodes.getNode(config.configAutomatic).config;
+			myconfig.location = RED.nodes.getNode(RED.nodes.getNode(config.configAutomatic).config.config).config;
 		}
 
 		function sendCmdFunc(a,b,c,d) {

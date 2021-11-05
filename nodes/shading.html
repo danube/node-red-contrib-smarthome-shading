@@ -7,7 +7,7 @@
  -->
 
 
-
+<!-- BEGIN location configuration -->
 
  <script type="text/javascript">
     RED.nodes.registerType("shading location", {
@@ -46,28 +46,81 @@
     </div>
 </script>
 
+<!-- END location configuration -->
 
 
 
-
+<!-- BEGIN automatic configuration -->
 
 <script type="text/javascript">
-    RED.nodes.registerType('shading orientation',{
+    RED.nodes.registerType('shading automatic',{
         category: 'config',
         defaults: {
             name: {},
             config: {type: "shading location"},
-            direction: {required: true},
+            orientation: {required: true},
             windowSunAngleEntry: {value: -75, required: true},  // TODO check for -90 - +90°
-            windowSunAngleExit: {value: 75, required: true}
+            windowSunAngleExit: {value: 75, required: true},
+            behSunrise: {value: "initval"},
+            behSunset: {value: "initval"},
+            inmsgTopicAutoReenable: {},
+            behButtonLocksUntil: {value: "initval"},
         },
         label: function() {
-            return this.name || this.direction + "°";       // TODO: automatisch zusammenstellen: shading location.name + orientation
+            return this.name || this.orientation + "°";       // TODO: automatisch zusammenstellen: shading location.name + orientation
+        },
+        oneditprepare: function() {
+            if (this.behSunrise === "initval") {
+                $("#node-config-input-behSunrise").val("nothing")
+            }
+            if (this.behSunset === "initval") {
+                $("#node-config-input-behSunset").val("nothing")
+            }
+            if (this.behButtonLocksUntil === "initval") {
+                $("#node-config-input-behButtonLocksUntil").val("sunriseset")
+            }
+            $("#node-config-input-behSunrise").typedInput({
+                types: [
+                    {
+                        value: "behSunrise",
+                        options: [
+                            {value: "nothing", label: "Nothing"},
+                            {value: "open", label: "Open"},
+                            {value: "shade", label: "Shade"},
+                            {value: "close", label: "Close"}
+                        ]
+                    }
+                ]
+            })
+            $("#node-config-input-behSunset").typedInput({
+                types: [
+                    {
+                        value: "behSunset",
+                        options: [
+                            {value: "nothing", label: "Nothing"},
+                            {value: "open", label: "Open"},
+                            {value: "shade", label: "Shade"},
+                            {value: "close", label: "Close"}
+                        ]
+                    }
+                ]
+            })
+            $("#node-config-input-behButtonLocksUntil").typedInput({
+                types: [
+                    {
+                        value: "behButtonLocksUntil",
+                        options: [
+                            {value: "sunriseset", label: "Next sunrise / sunset"},
+                            {value: "autoreenable", label: "Auto re-enable"}       // TODO describe how to manually re-enable
+                        ]
+                    }
+                ]
+            })
         }
     })
 </script>
 
-<script type="text/html" data-template-name="shading orientation">
+<script type="text/html" data-template-name="shading automatic">
     <style>
         .red-ui-editor .form-row #node-config-input-windowSunAngleEntry,
         .red-ui-editor .form-row #node-config-input-windowSunAngleExit {
@@ -85,12 +138,12 @@
         <input type="text" id="node-config-input-name" placeholder="East, Streetside, Garden, ...">
     </div>
     <div class="form-row">
-        <label for="node-config-input-config"><i class="fa fa-compass"></i> Location</label>
+        <label for="node-config-input-config"><i class="fa fa-compass"></i> Home location</label>
         <input type="text" id="node-config-input-config" style="width: 250px;">     <!-- TODO find width css trick -->
     </div>
     <div class="form-row">
-        <label for="node-config-input-direction"><i class="fa fa-location-arrow"></i> Direction</label>
-        <input type="number" id="node-config-input-direction" style="width:100px" placeholder="0 - 359" min="0" max="359"> °
+        <label for="node-config-input-orientation"><i class="fa fa-location-arrow"></i> Orientation</label>
+        <input type="number" id="node-config-input-orientation" style="width:100px" placeholder="0 - 359" min="0" max="359"> °
     </div>
     <div class="form-row">
         <label for="node-config-input-windowSunAngleEntry"><i class="fa fa-location-arrow"></i> Sun entry angle</label>
@@ -100,12 +153,30 @@
         <label for="node-config-input-windowSunAngleExit"><i class="fa fa-location-arrow"></i> Sun exit angle</label>
         <input type="number" id="node-config-input-windowSunAngleExit" placeholder="0 - 90" min="0" max="90"> °
     </div>
+
+    <div class="form-row">
+        <label for="node-config-input-behSunrise"><i class="fa fa-sliders"></i> Sunrise action</label>
+        <input type="text" id="node-config-input-behSunrise">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-behSunset"><i class="fa fa-sliders"></i> Sunset action</label>
+        <input type="text" id="node-config-input-behSunset">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-inmsgTopicAutoReenable"><i class="fa fa-tasks"></i> Auto re-enable topic</label>
+        <input type="text" id="node-config-input-inmsgTopicAutoReenable" placeholder="Expecting 'auto' if left blank">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-behButtonLocksUntil"><i class="fa fa-sliders"></i> Locks until</label>
+        <input type="text" id="node-config-input-behButtonLocksUntil">
+    </div>
+
 </script>
 
+<!-- END automatic configuration -->
 
 
-
-
+<!-- BEGIN basic configuration -->
 <script type="text/javascript">
     RED.nodes.registerType ('shading configuration', {
         category: 'config',
@@ -119,7 +190,6 @@
             shadingSetposCloseType: {value: "initval"},
             inmsgButtonTopicOpen: {},
             inmsgButtonTopicClose: {},
-            behButtonLocksUntil: {value: "initval"},
             inmsgWinswitchTopic: {},
             inmsgWinswitchPayloadOpened: {value: 1},
             inmsgWinswitchPayloadOpenedType: {value: "initval"},
@@ -133,9 +203,6 @@
             payloadCloseCmdType: {value: "initval"},
             payloadStopCmd: {},
             payloadStopCmdType: {value: "initval"},
-            behSunrise: {value: "initval"},
-            behSunset: {value: "initval"},
-            inmsgTopicAutoReenable: {},
         },
         label: function() {
             return this.name
@@ -162,15 +229,6 @@
             }
             if (this.inmsgWinswitchPayloadClosedType === "initval") {
                 $("#node-config-input-inmsgWinswitchPayloadClosedType").val("num")
-            }
-            if (this.behSunrise === "initval") {
-                $("#node-config-input-behSunrise").val("nothing")
-            }
-            if (this.behSunset === "initval") {
-                $("#node-config-input-behSunset").val("nothing")
-            }
-            if (this.behButtonLocksUntil === "initval") {
-                $("#node-config-input-behButtonLocksUntil").val("sunriseset")
             }
             // if (this.payloadOpenCmdType === "initval") {
             //     $("#node-config-input-payloadOpenCmdType").val("bool")
@@ -227,43 +285,6 @@
                 typeField: $("#node-config-input-payloadStopCmdType"),
                 types: ["bool","num","str"]
             })
-            $("#node-config-input-behSunrise").typedInput({
-                types: [
-                    {
-                        value: "behSunrise",
-                        options: [
-                            {value: "nothing", label: "Nothing"},
-                            {value: "open", label: "Open"},
-                            {value: "shade", label: "Shade"},
-                            {value: "close", label: "Close"}
-                        ]
-                    }
-                ]
-            })
-            $("#node-config-input-behSunset").typedInput({
-                types: [
-                    {
-                        value: "behSunset",
-                        options: [
-                            {value: "nothing", label: "Nothing"},
-                            {value: "open", label: "Open"},
-                            {value: "shade", label: "Shade"},
-                            {value: "close", label: "Close"}
-                        ]
-                    }
-                ]
-            })
-            $("#node-config-input-behButtonLocksUntil").typedInput({
-                types: [
-                    {
-                        value: "behButtonLocksUntil",
-                        options: [
-                            {value: "sunriseset", label: "Next sunrise / sunset"},
-                            {value: "autoreenable", label: "Auto re-enable"}       // TODO describe how to manually re-enable
-                        ]
-                    }
-                ]
-            })
         }
     })
 </script>
@@ -304,16 +325,12 @@
     </div>
     <h3>Pushbutton configuration</h3>
     <div class="form-row">
-        <label for="node-config-input-inmsgButtonTopicOpen"><i class="fa fa-tasks"></i> Open Topic</label>
+        <label for="node-config-input-inmsgButtonTopicOpen"><i class="fa fa-tasks"></i> Topic Open</label>
         <input type="text" id="node-config-input-inmsgButtonTopicOpen" placeholder="Expecting 'openbutton' if left blank">
     </div>
     <div class="form-row">
-        <label for="node-config-input-inmsgButtonTopicClose"><i class="fa fa-tasks"></i> Close Topic</label>
+        <label for="node-config-input-inmsgButtonTopicClose"><i class="fa fa-tasks"></i> Topic Close</label>
         <input type="text" id="node-config-input-inmsgButtonTopicClose" placeholder="Expecting 'closebutton' if left blank">
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-behButtonLocksUntil"><i class="fa fa-sliders"></i> Locks until</label>
-        <input type="text" id="node-config-input-behButtonLocksUntil">
     </div>
     <h3>Window switch</h3>
     <div class="form-row">
@@ -321,53 +338,42 @@
         <input type="text" id="node-config-input-inmsgWinswitchTopic" placeholder="Expecting 'switch' if left blank">
     </div>
     <div class="form-row">
-        <label for="node-config-input-inmsgWinswitchPayloadOpened"><i class="fa fa-tag"></i> Opened</label>
+        <label for="node-config-input-inmsgWinswitchPayloadOpened"><i class="fa fa-tag"></i> Payload Opened</label>
         <input type="hidden" id="node-config-input-inmsgWinswitchPayloadOpenedType">
         <input type="text" id="node-config-input-inmsgWinswitchPayloadOpened">
     </div>
     <div class="form-row">
-        <label for="node-config-input-inmsgWinswitchPayloadTilted"><i class="fa fa-tag"></i> Tilted</label>
+        <label for="node-config-input-inmsgWinswitchPayloadTilted"><i class="fa fa-tag"></i> Payload Tilted</label>
         <input type="hidden" id="node-config-input-inmsgWinswitchPayloadTiltedType">
         <input type="text" id="node-config-input-inmsgWinswitchPayloadTilted">
     </div>
     <div class="form-row">
-        <label for="node-config-input-inmsgWinswitchPayloadClosed"><i class="fa fa-tag"></i> Closed</label>
+        <label for="node-config-input-inmsgWinswitchPayloadClosed"><i class="fa fa-tag"></i> Payload Closed</label>
         <input type="hidden" id="node-config-input-inmsgWinswitchPayloadClosedType">
         <input type="text" id="node-config-input-inmsgWinswitchPayloadClosed">
     </div>
     <h3>Command output configuration</h3>
     <div class="form-row">
-        <label for="node-config-input-payloadOpenCmd"><i class="fa fa-tag"></i> Payload open</label>
+        <label for="node-config-input-payloadOpenCmd"><i class="fa fa-tag"></i> Payload Open</label>
         <input type="hidden" id="node-config-input-payloadOpenCmdType">
         <input type="text" id="node-config-input-payloadOpenCmd">
     </div>
     <div class="form-row">
-        <label for="node-config-input-payloadCloseCmd"><i class="fa fa-tag"></i> Payload close</label>
+        <label for="node-config-input-payloadCloseCmd"><i class="fa fa-tag"></i> Payload Close</label>
         <input type="hidden" id="node-config-input-payloadCloseCmdType">
         <input type="text" id="node-config-input-payloadCloseCmd">
     </div>
     <div class="form-row">
-        <label for="node-config-input-payloadStopCmd"><i class="fa fa-tag"></i> Payload stop</label>
+        <label for="node-config-input-payloadStopCmd"><i class="fa fa-tag"></i> Payload Stop</label>
         <input type="hidden" id="node-config-input-payloadStopCmdType">
         <input type="text" id="node-config-input-payloadStopCmd">
     </div>
-    <h3>Other configuration</h3>
-    <div class="form-row">
-        <label for="node-config-input-behSunrise"><i class="fa fa-sliders"></i> Sunrise action</label>
-        <input type="text" id="node-config-input-behSunrise">
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-behSunset"><i class="fa fa-sliders"></i> Sunset action</label>
-        <input type="text" id="node-config-input-behSunset">
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-inmsgTopicAutoReenable"><i class="fa fa-tasks"></i> Auto re-enable topic</label>
-        <input type="text" id="node-config-input-inmsgTopicAutoReenable" placeholder="Expecting 'auto' if left blank">
-    </div>
 </script>
 
+<!-- END basic configuration -->
 
 
+<!-- BEGIN Main node -->
 
 <script type="text/javascript">
     RED.nodes.registerType('shading',{
@@ -382,7 +388,7 @@
             configSet: {type: "shading configuration"},
             debug: {},
             autoActive: {},
-            configOrientation: {type: "shading orientation", required: false} // TODO make required only when visible
+            configAutomatic: {type: "shading automatic", required: false} // TODO make required only when visible
         },
         label: function() {
             return this.name || "Shading"
@@ -403,7 +409,10 @@
 <script type="text/html" data-template-name="shading">
     <style>
         .red-ui-editor .form-row label {
-            width: 130px
+            width: 170px
+        }
+        .red-ui-editor .form-row input {
+            width: 250px
         }
     </style>
     <div class="form-row">
@@ -412,23 +421,22 @@
     </div>
     <div class="form-row">
         <label for="node-input-configSet"><i class="fa fa-sliders"></i> Configuration</label>
-        <input type="text" id="node-input-configSet">
+        <input type="text" id="node-input-configSet" style="width: 150px;">
     </div>
-    <h3>Automatic</span></h3>
     <div class="form-row">
-        <label><i class="fa fa-power-off"></i> Enable</label>
+        <label><i class="fa fa-power-off"></i> Enable automatic</label>
         <input type="checkbox" id="node-input-autoActive" style="display:inline-block; width:auto;">
     </div>
     <div id="autoConfig">
         <div class="form-row">
-            <label for="node-input-configOrientation"><i class="fa fa-location-arrow"></i> Orientation</label>
-            <input type="text" id="node-input-configOrientation">
+            <label for="node-input-configAutomatic"><i class="fa fa-sliders"></i> Auto configuration</label>
+            <input type="text" id="node-input-configAutomatic" style="width: 150px;">
         </div>
     </div>
-    <h3>Debugging</span></h3>
     <div class="form-row">
-        <label><i class="fa fa-bug"></i> Enable</label>
+        <label><i class="fa fa-bug"></i> Enable debugging</label>
         <input type="checkbox" id="node-input-debug" style="display:inline-block; width:auto;">
     </div>
 </script>
 
+<!-- END Main node -->
