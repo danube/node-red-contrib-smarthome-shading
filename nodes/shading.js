@@ -139,11 +139,7 @@ module.exports = function(RED) {
 
 		// FIRST RUN ACTIONS -->
 
-		if (myconfig.debug) {
-			that.log("node-red-contrib-smarthome-shading: Debugging is enabled. Disable it in the node properties. Here comes the node configuration:");
-			console.log(myconfig);
-		}
-
+		
 		// Set replacement values for optional fields
 		myconfig.set.inmsgButtonTopicOpen = config.set.inmsgButtonTopicOpen || "openbutton";
 		myconfig.set.inmsgButtonTopicClose = config.set.inmsgButtonTopicClose || "closebutton";
@@ -161,6 +157,11 @@ module.exports = function(RED) {
 		myconfig.set.shadingSetposShade = Number(config.set.shadingSetposShade);
 		myconfig.set.shadingSetposClose = Number(config.set.shadingSetposClose);
 		
+		if (myconfig.debug) {
+			that.log("Debugging is enabled. Disable it in the node properties. Here comes the node configuration:");
+			console.log(myconfig);
+		}
+
 		// Main loop
 		mainloopFunc();
 		loopIntervalHandle = setInterval(mainloopFunc, loopIntervalTime);	// Interval run
