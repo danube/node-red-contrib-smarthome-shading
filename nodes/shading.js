@@ -22,6 +22,7 @@ module.exports = function(RED) {
 
 		RED.nodes.createNode(this,config);
 		
+		/** The nodes context object */
 		var context = this.context();
 		var that = this;
 		let myconfig = config;
@@ -40,6 +41,13 @@ module.exports = function(RED) {
 			myconfig.location = RED.nodes.getNode(RED.nodes.getNode(config.configAutomatic).config.config).config;
 		}
 		
+		/**
+		 * This function will write the relevant node's output.
+		 * @param {String} a Payload for output 1 (opencommand)
+		 * @param {String} b Payload for output 2 (closecommand)
+		 * @param {String} c Payload for output 3 (resetcommand)
+		 * @param {String} d Payload for output 4 (setpointcommand)
+		 */
 		function sendCmdFunc(a,b,c,d) {
 			var msgA, msgB, msgC, msgD = null;
 			const debug = {
@@ -48,7 +56,6 @@ module.exports = function(RED) {
 				myconfig: myconfig,
 				context: context
 			}
-
 			if (a != null) {
 				msgA = {topic: "opencommand", payload: a};
 				if (myconfig.debug) {
@@ -74,22 +81,48 @@ module.exports = function(RED) {
 				}
 			};
 			that.send([msgA, msgB, msgC, msgD]);
-
 		}
 		
-		/** Calculates sunrise and sunset, only if atomatic is enabled. */
+		/** Calculates sunrise and sunset */
 		function sunCalcFunc() {
-			if (myconfig.autoActive) {
-				const sunTimes = SunCalc.getTimes(actDate, myconfig.location.lat, myconfig.location.lon);
-				context.sunrise = sunTimes.sunrise.valueOf();
-				context.sunset = sunTimes.sunset.valueOf();
+			/** Suncalc: https://www.npmjs.com/package/suncalc#reference */
+			const sunTimes = SunCalc.getTimes(actDate, myconfig.location.lat, myconfig.location.lon);
+			/** Sunrise time in ms since 1.1.1970 */
+			context.sunrise = sunTimes.sunrise.valueOf();
+			/** Sunset time in ms since 1.1.1970 */
+			context.sunset = sunTimes.sunset.valueOf();
+		}
+		
+		/**
+		 * Performing actions depending on sunrise or sunset or any of it. 
+		 * @param {String} what Must be either "sunrise" or "sunset"
+		 */
+		function sunriseset(what) {
+			if (context.autoLocked && myconfig.automatic.behButtonLocksUntil === "sunriseset") {context.autoLocked = false};
+			if (what === "sunrise") {
+				if (config.debug) {console.log("Now it's sunrise")};
+				if (myconfig.automatic.behSunrise === "open") {sendCmdFunc(null,null,null,myconfig.set.shadingSetposOpen)}
+				else if (myconfig.automatic.behSunrise === "shade") {sendCmdFunc(null,null,null,myconfig.set.shadingSetposShade)}
+				else if (myconfig.automatic.behSunrise === "close") {sendCmdFunc(null,null,null,myconfig.set.shadingSetposClose)};
+				context.blockSunrise = true;
+			} else if (what === "sunset") {
+				if (config.debug) {console.log("Now it's sunset")};
+				if (myconfig.automatic.behSunset === "open") {sendCmdFunc(null,null,null,myconfig.set.shadingSetposOpen)}
+				else if (myconfig.automatic.behSunset === "shade") {sendCmdFunc(null,null,null,myconfig.set.shadingSetposShade)}
+				else if (myconfig.automatic.behSunset === "close") {sendCmdFunc(null,null,null,myconfig.set.shadingSetposClose)};
+				context.blockSunset = true;
 			}
 		}
-		
+
+
+
+		/** This is the loop function which will be processed only if automatic is enabled. */
 		function mainloopFunc(){
 			actDate = new Date();
 			const oldDate = new Date(context.oldTime);
 
+			// Those blockers help to prevent sunrise/sunset triggers from being fired,
+			// after the node is initially loaded (or Node-RED has been restarted).
 			if (!initDone) {
 				context.blockSunrise = true;
 				context.blockSunset = true;
@@ -97,46 +130,27 @@ module.exports = function(RED) {
 		
 			// console.log("DEBUG: looping... | Time: " + actDate + " | Old DOW: " + oldDate.getDay() + " | New DOW: " + actDate.getDay())
 		
-			// if (oldDate.getDay() != actDate.getDay()){
-			if (oldDate.getMinutes() != actDate.getMinutes()){
-				sunCalcFunc();
+			// if (oldDate.getDay() != actDate.getDay()){			// Use this to detect a new day (productive use)
+			if (oldDate.getMinutes() != actDate.getMinutes()){		// Use this to detect a new minute (testing use)
+				sunCalcFunc();										// New period detected, run suncalc.
 			}
 		
-			// Sunrise
+			// Release blockers
 			if (actDate.valueOf() < context.sunrise) {context.blockSunrise = false};
-			if (actDate.valueOf() >= context.sunrise && !context.blockSunrise) {
-				// Begin of sunrise actions
-					// console.log("DEBUG: sunrise");
-					// TODO umschreiben auf vier Ausgänge Prinzip:
-					// if (myconfig.set.behSunrise === "open") {sendMsgCmd(myconfig.set.shadingSetposOpen)}
-					// else if (myconfig.set.behSunrise === "shade") {sendMsgCmd(myconfig.set.shadingSetposShade)}
-					// else if (myconfig.set.behSunrise === "close") {sendMsgCmd(myconfig.set.shadingSetposClose)};
-					// End of sunrise actions
-					context.blockSunrise = true;
-				}
-				
-				// Sunset
-				if (actDate.valueOf() < context.sunset) {context.blockSunset = false};
-				if (actDate.valueOf() >= context.sunset && !context.blockSunset) {
-					// Begin of sunset actions
-					// console.log("DEBUG: sunset")
-					// TODO umschreiben auf vier Ausgänge Prinzip:
-					// if (myconfig.set.behSunset === "open") {sendMsgCmd(myconfig.set.shadingSetposOpen)}
-					// else if (myconfig.set.behSunset === "shade") {sendMsgCmd(myconfig.set.shadingSetposShade)}
-					// else if (myconfig.set.behSunset === "close") {sendMsgCmd(myconfig.set.shadingSetposClose)};
-				// End of sunset actions
-				context.blockSunset = true;
-			}
+			if (actDate.valueOf() < context.sunset) {context.blockSunset = false};
+
+			// Trigger sunrise/sunset function
+			if (actDate.valueOf() >= context.sunrise && !context.blockSunrise) {sunriseset("sunrise")};
+			if (actDate.valueOf() >= context.sunset && !context.blockSunset) {sunriseset("sunset")};
 			
 			// console.log("DEBUG: looping... | Time: " + actDate + " | " + context.blockSunrise + " | " + context.blockSunset)
 
-			context.oldTime = actDate.getTime();
-			initDone = true;
+			context.oldTime = actDate.getTime();	// Save actual time as old time
+			initDone = true;						// Mark initialization as done
 		}
 
 
-		// FIRST RUN ACTIONS -->
-
+		// FIRST RUN ACTIONS ==>
 		
 		// Set replacement values for optional fields
 		myconfig.set.inmsgButtonTopicOpen = config.set.inmsgButtonTopicOpen || "openbutton";
@@ -156,17 +170,19 @@ module.exports = function(RED) {
 		myconfig.set.shadingSetposClose = Number(config.set.shadingSetposClose);
 		
 		if (myconfig.debug) {
-			that.log("Debugging is enabled. Disable it in the node properties. Here comes the node configuration:");
+			that.log("Debugging is enabled in the node properties. Here comes the node configuration:");
 			console.log(myconfig);
 		}
 
 		// Main loop
-		mainloopFunc();
-		loopIntervalHandle = setInterval(mainloopFunc, loopIntervalTime);	// Interval run
+		if (myconfig.autoActive) {
+			mainloopFunc();
+			loopIntervalHandle = setInterval(mainloopFunc, loopIntervalTime);	// Interval run
+		}
 
+		// <== FIRST RUN ACTIONS
 
-
-		// MESSAGE EVENT ACTIONS -->
+		// MESSAGE EVENT ACTIONS ==>
 
 		this.on('input', function(msg,send,done) {
 			
@@ -199,18 +215,20 @@ module.exports = function(RED) {
 					// Single/double click detection
 					if (context.buttonOpenTimeoutHandle) {
 						
-						// DOUBLE CLICK ACTIONS -->
+						// DOUBLE CLICK ACTIONS ==>
 						clearTimeout(context.buttonOpenTimeoutHandle); context.buttonOpenTimeoutHandle = null;
 						sendCmdFunc(null,null,null,myconfig.set.shadingSetposOpen);
+						// <== DOUBLE CLICK ACTIONS
 
 					} else {
 						context.buttonOpenTimeoutHandle = setTimeout(function(){
 							clearTimeout(context.buttonOpenTimeoutHandle); context.buttonOpenTimeoutHandle = null;
 							if (context.stateButtonOpen) {
 
-								// SINGLE CLICK ACTIONS -->
+								// SINGLE CLICK ACTIONS ==>
 								sendCmdFunc(config.set.payloadOpenCmd,null,null,null);
 								context.stateButtonRunning = true;
+								// <== SINGLE CLICK ACTIONS
 								
 							}
 						}, dblClickTime);
@@ -224,19 +242,21 @@ module.exports = function(RED) {
 					
 					// Single/double click detection
 					if (context.buttonCloseTimeoutHandle) {
-						clearTimeout(context.buttonCloseTimeoutHandle); context.buttonCloseTimeoutHandle = null;
 						
-						// DOUBLE CLICK ACTIONS -->
+						// DOUBLE CLICK ACTIONS ==>
+						clearTimeout(context.buttonCloseTimeoutHandle); context.buttonCloseTimeoutHandle = null;
 						sendCmdFunc(null,null,null,myconfig.set.shadingSetposClose);
+						// <== DOUBLE CLICK ACTIONS
 						
 					} else {
 						context.buttonCloseTimeoutHandle = setTimeout(function(){
 							clearTimeout(context.buttonCloseTimeoutHandle); context.buttonCloseTimeoutHandle = null;
 							if (context.stateButtonClose) {
 								
-								// SINGLE CLICK ACTIONS -->
+								// SINGLE CLICK ACTIONS ==>
 								sendCmdFunc(null,config.set.payloadCloseCmd,null,null);
 								context.stateButtonRunning = true;
+								// <== SINGLE CLICK ACTIONS
 								
 							}
 						}, dblClickTime);
@@ -277,9 +297,10 @@ module.exports = function(RED) {
 
 			
 		});
+
+		// <== MESSAGE EVENT ACTIONS
 		
-		// Backing up context
-		this.context = context;
+		this.context = context;		// Backing up context
 		
 
 	}
