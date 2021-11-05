@@ -35,7 +35,6 @@ module.exports = function(RED) {
 		var actDate = new Date();
 
 		myconfig.set = RED.nodes.getNode(config.configSet).config;
-		
 		if (myconfig.autoActive) {
 			myconfig.automatic = RED.nodes.getNode(config.configAutomatic).config;
 			myconfig.location = RED.nodes.getNode(RED.nodes.getNode(config.configAutomatic).config.config).config;
@@ -140,11 +139,16 @@ module.exports = function(RED) {
 
 		// FIRST RUN ACTIONS -->
 
+		if (myconfig.debug) {
+			that.log("node-red-contrib-smarthome-shading: Debugging is enabled. Disable it in the node properties. Here comes the node configuration:");
+			console.log(myconfig);
+		}
+
 		// Set replacement values for optional fields
 		myconfig.set.inmsgButtonTopicOpen = config.set.inmsgButtonTopicOpen || "openbutton";
 		myconfig.set.inmsgButtonTopicClose = config.set.inmsgButtonTopicClose || "closebutton";
-		myconfig.set.inmsgTopicAutoReenable = config.set.inmsgTopicReset || "auto";
 		myconfig.set.inmsgWinswitchTopic = config.set.inmsgWinswitchTopic || "switch";
+		myconfig.automatic.inmsgTopicAutoReenable = config.automatic.inmsgTopicReset || "auto";
 	
 		// Converting typed inputs
 		if (myconfig.set.inmsgWinswitchPayloadOpenedType === 'num') {myconfig.set.inmsgWinswitchPayloadOpened = Number(config.set.inmsgWinswitchPayloadOpened)}
@@ -184,7 +188,7 @@ module.exports = function(RED) {
 			/** Button release event based on incoming message topic, if payload is FALSE */
 			var buttonReleaseEvent = buttonEvent && msg.payload === false;
 			/** Auto re-enable event based on incoming message topic */
-			var autoReenableEvent = msg.topic === myconfig.set.inmsgTopicAutoReenable;
+			var autoReenableEvent = msg.topic === myconfig.automatic.inmsgTopicAutoReenable;
 
 			if (buttonEvent) {
 				context.autoLocked = true;		// TODO unlock
