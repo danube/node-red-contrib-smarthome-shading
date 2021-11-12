@@ -132,8 +132,8 @@ module.exports = function(RED) {
 
 		/** This function releases the automatic lock and sends a log message, if debugging is enabled. */
 		function autoReenableFunc() {
+			if (myconfig.debug && context.autoLocked) {that.log("Automatic enabled")}
 			context.autoLocked = false;
-			if (myconfig.debug) {that.log("Automatic enabled")}
 		}
 
 		/** This is the loop function which will be processed only if automatic is enabled. */
@@ -229,8 +229,8 @@ module.exports = function(RED) {
 			var autoReenableEvent = msg.topic === myconfig.automatic.inmsgTopicAutoReenable;
 
 			if (buttonEvent) {
+				if (myconfig.debug && !context.autoLocked) {that.log("Automatic disabled")}
 				context.autoLocked = true;
-				if (myconfig.debug) {that.log("Automatic disabled")}
 
 				// Button open pressed
 				if (buttonPressOpenEvent) {
