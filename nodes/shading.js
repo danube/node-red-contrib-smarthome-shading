@@ -40,6 +40,9 @@ module.exports = function(RED) {
 		
 		const loopIntervalTime = 5000;		// Node loop interval
 		const dblClickTime = 1000;			// Waiting time for second button press		// TODO Zeit konfigurierbar machen
+		const shadingSetposOpen = 0;
+		const shadingSetposClose = 100;
+
 		var loopIntervalHandle;
 		let prevDateString, sunriseAheadPrev, sunsetAheadPrev, sunTimes = null;
 		
@@ -96,21 +99,22 @@ module.exports = function(RED) {
 		/**
 		 * Performing actions depending on sunrise or sunset or any of it. 
 		 * @param {String} what Must be either "sunrise" or "sunset"
+		 * @todo Sollwerte auch verfügbar machen, wenn autoLocked, damit bei Unlock diese angefahren werden können.
 		 */
 		function sunRiseSetFunc(what) {
-			if (myconfig.automatic.behButtonLocksUntil === "sunriseset") {context.autoLocked = false};
+			if (myconfig.automatic.behButtonLocksUntil === "sunriseset") {autoReenableFunc()};
 			if (context.autoLocked) {return};
 			if (what === "sunrise") {
 				if (config.debug) {console.log("Now it's sunrise")};
-				if (myconfig.automatic.behSunrise === "open") {sendCmdFunc(null,null,null,myconfig.set.shadingSetposOpen)}
+				if (myconfig.automatic.behSunrise === "open") {sendCmdFunc(null,null,null,shadingSetposOpen)}
 				else if (myconfig.automatic.behSunrise === "shade") {sendCmdFunc(null,null,null,myconfig.set.shadingSetposShade)}
-				else if (myconfig.automatic.behSunrise === "close") {sendCmdFunc(null,null,null,myconfig.set.shadingSetposClose)};
+				else if (myconfig.automatic.behSunrise === "close") {sendCmdFunc(null,null,null,shadingSetposClose)};
 				context.blockSunrise = true;
 			} else if (what === "sunset") {
 				if (config.debug) {console.log("Now it's sunset")};
-				if (myconfig.automatic.behSunset === "open") {sendCmdFunc(null,null,null,myconfig.set.shadingSetposOpen)}
+				if (myconfig.automatic.behSunset === "open") {sendCmdFunc(null,null,null,shadingSetposOpen)}
 				else if (myconfig.automatic.behSunset === "shade") {sendCmdFunc(null,null,null,myconfig.set.shadingSetposShade)}
-				else if (myconfig.automatic.behSunset === "close") {sendCmdFunc(null,null,null,myconfig.set.shadingSetposClose)};
+				else if (myconfig.automatic.behSunset === "close") {sendCmdFunc(null,null,null,shadingSetposClose)};
 				context.blockSunset = true;
 			}
 		}
@@ -126,7 +130,11 @@ module.exports = function(RED) {
 			return suncalc.getTimes(date, myconfig.location.lat, myconfig.location.lon);
 		}
 
-
+		/** This function releases the automatic lock and sends a log message, if debugging is enabled. */
+		function autoReenableFunc() {
+			context.autoLocked = false;
+			if (myconfig.debug) {that.log("Automatic enabled")}
+		}
 
 		/** This is the loop function which will be processed only if automatic is enabled. */
 		function mainloopFunc(){
@@ -162,7 +170,7 @@ module.exports = function(RED) {
 
 
 		// FIRST RUN ACTIONS ==>
-		
+
 		// Set replacement values for optional fields
 		myconfig.set.inmsgButtonTopicOpen = config.set.inmsgButtonTopicOpen || "openbutton";
 		myconfig.set.inmsgButtonTopicClose = config.set.inmsgButtonTopicClose || "closebutton";
@@ -176,9 +184,7 @@ module.exports = function(RED) {
 		else if (myconfig.set.inmsgWinswitchPayloadTiltedType === 'bool') {myconfig.set.inmsgWinswitchPayloadTilted = config.set.inmsgWinswitchPayloadTilted === 'true'}
 		if (myconfig.set.inmsgWinswitchPayloadClosedType === 'num') {myconfig.set.inmsgWinswitchPayloadClosed = Number(config.set.inmsgWinswitchPayloadClosed)}
 		else if (myconfig.set.inmsgWinswitchPayloadClosedType === 'bool') {myconfig.set.inmsgWinswitchPayloadClosed = config.set.inmsgWinswitchPayloadClosed === 'true'}
-		myconfig.set.shadingSetposOpen = Number(config.set.shadingSetposOpen);
 		myconfig.set.shadingSetposShade = Number(config.set.shadingSetposShade);
-		myconfig.set.shadingSetposClose = Number(config.set.shadingSetposClose);
 		
 		// Main loop
 		if (myconfig.autoActive) {
@@ -220,10 +226,11 @@ module.exports = function(RED) {
 			/** Button release event based on incoming message topic, if payload is FALSE */
 			var buttonReleaseEvent = buttonEvent && msg.payload === false;
 			/** Auto re-enable event based on incoming message topic */
-			if (myconfig.autoActive) {var autoReenableEvent = msg.topic === myconfig.automatic.inmsgTopicAutoReenable;};
+			var autoReenableEvent = msg.topic === myconfig.automatic.inmsgTopicAutoReenable;
 
 			if (buttonEvent) {
-				context.autoLocked = true;		// TODO unlock
+				context.autoLocked = true;
+				if (myconfig.debug) {that.log("Automatic disabled")}
 
 				// Button open pressed
 				if (buttonPressOpenEvent) {
@@ -234,7 +241,7 @@ module.exports = function(RED) {
 						
 						// DOUBLE CLICK ACTIONS ==>
 						clearTimeout(context.buttonOpenTimeoutHandle); context.buttonOpenTimeoutHandle = null;
-						sendCmdFunc(null,null,null,myconfig.set.shadingSetposOpen);
+						sendCmdFunc(null,null,null,shadingSetposOpen);
 						// <== DOUBLE CLICK ACTIONS
 
 					} else {
@@ -262,7 +269,7 @@ module.exports = function(RED) {
 						
 						// DOUBLE CLICK ACTIONS ==>
 						clearTimeout(context.buttonCloseTimeoutHandle); context.buttonCloseTimeoutHandle = null;
-						sendCmdFunc(null,null,null,myconfig.set.shadingSetposClose);
+						sendCmdFunc(null,null,null,shadingSetposClose);
 						// <== DOUBLE CLICK ACTIONS
 						
 					} else {
@@ -286,19 +293,10 @@ module.exports = function(RED) {
 					context.stateButtonRunning = false;
 					sendCmdFunc(null,null,config.set.payloadStopCmd,null);
 				}
-
-
-
-
-
-
-	
 			}
 			
 			// Auto re-enable event
-			else if (autoReenableEvent) {
-				context.autoLocked = false;
-			}
+			else if (autoReenableEvent) {autoReenableFunc()};
 
 
 
