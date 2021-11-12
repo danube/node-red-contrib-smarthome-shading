@@ -11,7 +11,7 @@
     "license": "EUPL-1.2",
     "node-red" : {
       "nodes": {
-          "powerswitch": "nodes/shading.js"
+          "shading": "nodes/shading.js"
       }
     },
     "repository": {

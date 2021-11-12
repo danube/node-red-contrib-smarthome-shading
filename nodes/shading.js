@@ -26,12 +26,7 @@ module.exports = function(RED) {
 		 * The nodes context object
 		 * @property {object} context The context object
 		 * @property {Number} context.windowState 1 = opened, 2 = tilted, 3 = closed
-		 * @property {Number} context.sunrise Time of sunrise in ms since 1.1.1970
-		 * @property {Number} context.sunset Time of sunset in ms since 1.1.1970
-		 * @property {Bool} context.blockSunrise If set, sunrise actions will not be fired
-		 * @property {Bool} context.blocksSunset If set, sunset actions will not be fired
 		 * @property {Bool} context.autoLocked If set, no automatic actios will be fired
-		 * @property {Number} context.oldTime Stored time after all actions have been fired for comarison on next run
 		 * @property {object} context.msg The original incoming message object
 		 * @property {Bool} context.stateButtonOpen Button open is pressed
 		 * @property {Bool} context.stateButtonClose Button close is pressed
@@ -46,10 +41,10 @@ module.exports = function(RED) {
 		const loopIntervalTime = 5000;		// Node loop interval
 		const dblClickTime = 1000;			// Waiting time for second button press		// TODO Zeit konfigurierbar machen
 		var loopIntervalHandle;
+		let prevDateString, sunriseAheadPrev, sunsetAheadPrev, sunTimes = null;
 		
 		var initDone, err = false;
-		var SunCalc = require("suncalc");
-		var actDate = new Date();
+		var suncalc = require("suncalc");	// https://www.npmjs.com/package/suncalc#reference
 
 		myconfig.set = RED.nodes.getNode(config.configSet).config;
 		if (myconfig.autoActive) {
@@ -67,7 +62,6 @@ module.exports = function(RED) {
 		function sendCmdFunc(a,b,c,d) {
 			var msgA, msgB, msgC, msgD = null;
 			const debug = {
-				msg: context.msg,
 				config: config,
 				myconfig: myconfig,
 				context: context
@@ -99,21 +93,11 @@ module.exports = function(RED) {
 			that.send([msgA, msgB, msgC, msgD]);
 		}
 		
-		/** Calculates sunrise and sunset */
-		function sunCalcFunc() {
-			/** Suncalc: https://www.npmjs.com/package/suncalc#reference */
-			const sunTimes = SunCalc.getTimes(actDate, myconfig.location.lat, myconfig.location.lon);
-			/** Sunrise time in ms since 1.1.1970 */
-			context.sunrise = sunTimes.sunrise.valueOf();
-			/** Sunset time in ms since 1.1.1970 */
-			context.sunset = sunTimes.sunset.valueOf();
-		}
-		
 		/**
 		 * Performing actions depending on sunrise or sunset or any of it. 
 		 * @param {String} what Must be either "sunrise" or "sunset"
 		 */
-		function sunriseset(what) {
+		function sunRiseSetFunc(what) {
 			if (myconfig.automatic.behButtonLocksUntil === "sunriseset") {context.autoLocked = false};
 			if (context.autoLocked) {return};
 			if (what === "sunrise") {
@@ -131,32 +115,49 @@ module.exports = function(RED) {
 			}
 		}
 
+		/** This function checks if the parameter is a valid date type
+		 * https://stackoverflow.com/questions/1353684/detecting-an-invalid-date-date-instance-in-javascript
+		 */
+		function isValidDate(d) {
+			return d instanceof Date && !isNaN(d);
+		}
+
+		function suncalcFunc(date) {
+			return suncalc.getTimes(date, myconfig.location.lat, myconfig.location.lon);
+		}
+
 
 
 		/** This is the loop function which will be processed only if automatic is enabled. */
 		function mainloopFunc(){
-			actDate = new Date();
-			const oldDate = new Date(context.oldTime);
-
-			// Those blockers help to prevent sunrise/sunset triggers from being fired,
-			// after the node is initially loaded (or Node-RED has been restarted).
-			if (!initDone) {
-				context.blockSunrise = true;
-				context.blockSunset = true;
-			}
-		
-			if (oldDate.getDay() != actDate.getDay()){sunCalcFunc()};
-		
-			// Release blockers
-			if (actDate.valueOf() < context.sunrise) {context.blockSunrise = false};
-			if (actDate.valueOf() < context.sunset) {context.blockSunset = false};
-
-			// TRIGGER SUNRISE/SUNSET ACTIONS
-			if (actDate.valueOf() >= context.sunrise && !context.blockSunrise) {sunriseset("sunrise")};
-			if (actDate.valueOf() >= context.sunset && !context.blockSunset) {sunriseset("sunset")};
+			const actDate = new Date();
 			
-			context.oldTime = actDate.getTime();	// Save actual time as old time
-			initDone = true;						// Mark initialization as done
+			if (prevDateString) {
+				const prevDate = new Date(prevDateString);
+				if (prevDate.getDay() != actDate.getDay()) {
+					sunTimes = suncalcFunc(actDate);
+				};
+			} else {
+				sunTimes = suncalcFunc(actDate);
+			}
+
+			if (!isValidDate(sunTimes.sunrise) || !isValidDate(sunTimes.sunset)) {
+				return -1;		// TODO break, something is wrong;
+			}
+			
+			let sunriseAhead = sunTimes.sunrise > actDate;
+			let sunsetAhead = sunTimes.sunset > actDate;
+
+			if (sunriseAhead === false && sunriseAheadPrev === true) {
+				sunRiseSetFunc("sunrise");
+			} else if (sunsetAhead === false && sunsetAheadPrev === true) {
+				sunRiseSetFunc("sunset");
+			}
+			
+			prevDateString = actDate.toISOString();
+			sunriseAheadPrev = sunriseAhead;
+			sunsetAheadPrev = sunsetAhead;
+
 		}
 
 
@@ -189,8 +190,6 @@ module.exports = function(RED) {
 		if (myconfig.debug) {
 			that.log("Debugging is enabled in the node properties. Here comes the node configuration:");
 			console.log(myconfig);
-			that.log("Debugging is enabled in the node properties. Here comes the node context:");
-			console.log(context);
 		}
 
 		// <== FIRST RUN ACTIONS
