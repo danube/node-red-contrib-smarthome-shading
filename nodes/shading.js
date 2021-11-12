@@ -39,7 +39,7 @@ module.exports = function(RED) {
 		let myconfig = config;
 		
 		const loopIntervalTime = 5000;		// Node loop interval
-		const dblClickTime = 1000;			// Waiting time for second button press		// TODO Zeit konfigurierbar machen
+		const dblClickTime = 500;			// Waiting time for second button press		// TODO Zeit konfigurierbar machen
 		const shadingSetposOpen = 0;
 		const shadingSetposClose = 100;
 
