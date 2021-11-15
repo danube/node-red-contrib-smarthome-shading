@@ -114,13 +114,13 @@ module.exports = function(RED) {
 			if (myconfig.automatic.behButtonLocksUntil === "sunriseset") {autoReenableFunc()};
 			if (context.autoLocked) {return};
 			if (what === "sunrise") {
-				if (config.debug) {console.log("Now it's sunrise")};
+				if (config.debug) {that.log("Now it's sunrise")};
 				if (myconfig.automatic.behSunrise === "open") {sendCmdFunc(null,null,null,shadingSetposOpen)}
 				else if (myconfig.automatic.behSunrise === "shade") {sendCmdFunc(null,null,null,myconfig.set.shadingSetposShade)}
 				else if (myconfig.automatic.behSunrise === "close") {sendCmdFunc(null,null,null,shadingSetposClose)};
 				context.blockSunrise = true;
 			} else if (what === "sunset") {
-				if (config.debug) {console.log("Now it's sunset")};
+				if (config.debug) {that.log("Now it's sunset")};
 				if (myconfig.automatic.behSunset === "open") {sendCmdFunc(null,null,null,shadingSetposOpen)}
 				else if (myconfig.automatic.behSunset === "shade") {sendCmdFunc(null,null,null,myconfig.set.shadingSetposShade)}
 				else if (myconfig.automatic.behSunset === "close") {sendCmdFunc(null,null,null,shadingSetposClose)};
@@ -183,26 +183,29 @@ module.exports = function(RED) {
 		// Set replacement values for optional fields
 		myconfig.set.inmsgButtonTopicOpen = config.set.inmsgButtonTopicOpen || "openbutton";
 		myconfig.set.inmsgButtonTopicClose = config.set.inmsgButtonTopicClose || "closebutton";
-		myconfig.set.inmsgWinswitchTopic = config.set.inmsgWinswitchTopic || "switch";
+		myconfig.automatic.inmsgwinswitchTopic = config.set.inmsgWinswitchTopic || "switch";
 		if (myconfig.autoActive) {
 			myconfig.automatic.inmsgTopicAutoReenable = config.automatic.inmsgTopicAutoReenable || "auto";
-			myconfig.automatic.inmsgTopicActPosHeight = config.automatic.inmsgTopicActPosHeight || "actposheight";
 		};
 	
 		// Converting typed inputs
-		if (myconfig.set.inmsgWinswitchPayloadOpenedType === 'num') {myconfig.set.inmsgWinswitchPayloadOpened = Number(config.set.inmsgWinswitchPayloadOpened)}
-		else if (myconfig.set.inmsgWinswitchPayloadOpenedType === 'bool') {myconfig.set.inmsgWinswitchPayloadOpened = config.set.inmsgWinswitchPayloadOpened === 'true'}
-		if (myconfig.set.inmsgWinswitchPayloadTiltedType === 'num') {myconfig.set.inmsgWinswitchPayloadTilted = Number(config.set.inmsgWinswitchPayloadTilted)}
-		else if (myconfig.set.inmsgWinswitchPayloadTiltedType === 'bool') {myconfig.set.inmsgWinswitchPayloadTilted = config.set.inmsgWinswitchPayloadTilted === 'true'}
-		if (myconfig.set.inmsgWinswitchPayloadClosedType === 'num') {myconfig.set.inmsgWinswitchPayloadClosed = Number(config.set.inmsgWinswitchPayloadClosed)}
-		else if (myconfig.set.inmsgWinswitchPayloadClosedType === 'bool') {myconfig.set.inmsgWinswitchPayloadClosed = config.set.inmsgWinswitchPayloadClosed === 'true'}
+		if (myconfig.automatic.inmsgwinswitchPayloadOpenedType === 'num') {myconfig.automatic.inmsgwinswitchPayloadOpened = Number(config.automatic.inmsgWinswitchPayloadOpened)}
+		else if (myconfig.automatic.inmsgwinswitchPayloadOpenedType === 'bool') {myconfig.automatic.inmsgwinswitchPayloadOpened = config.automatic.inmsgWinswitchPayloadOpened === 'true'}
+		else {
+			console.log("DEBUG: WTF is it???");
+			console.log(myconfig.automatic.inmsgwinswitchPayloadOpenedType);
+		}
+		if (myconfig.automatic.inmsgwinswitchPayloadTiltedType === 'num') {myconfig.automatic.inmsgwinswitchPayloadTilted = Number(config.automatic.inmsgWinswitchPayloadTilted)}
+		else if (myconfig.automatic.inmsgwinswitchPayloadTiltedType === 'bool') {myconfig.automatic.inmsgwinswitchPayloadTilted = config.automatic.inmsgWinswitchPayloadTilted === 'true'}
+		if (myconfig.automatic.inmsgwinswitchPayloadClosedType === 'num') {myconfig.automatic.inmsgwinswitchPayloadClosed = Number(config.automatic.inmsgWinswitchPayloadClosed)}
+		else if (myconfig.automatic.inmsgwinswitchPayloadClosedType === 'bool') {myconfig.automatic.inmsgwinswitchPayloadClosed = config.automatic.inmsgWinswitchPayloadClosed === 'true'}
 		myconfig.set.shadingSetposShade = Number(config.set.shadingSetposShade);
 		
 		// Show config and context on console
 		if (myconfig.debug) {
-			that.log("Debugging is enabled in the node properties. Here comes the node configuration:");
+			console.log("Debugging is enabled in the node properties. Here comes the node configuration:");
 			console.log(myconfig);
-			that.log("Debugging is enabled in the node properties. Here comes the node context:");
+			console.log("Debugging is enabled in the node properties. Here comes the node context:");
 			console.log(context);
 		}
 
@@ -232,15 +235,17 @@ module.exports = function(RED) {
 			var buttonPressCloseEvent = msg.topic === myconfig.set.inmsgButtonTopicClose && msg.payload === true;
 			/** Button release event based on incoming message topic, if payload is FALSE */
 			var buttonReleaseEvent = buttonEvent && msg.payload === false;
-			/** Window switch event based on incoming message topic */
-			var windowEvent = msg.topic === myconfig.set.inmsgWinswitchTopic;
-
+			
 			if (myconfig.autoActive) {
+				/** Window switch event based on incoming message topic */
+				var windowEvent = msg.topic === myconfig.automatic.inmsgwinswitchTopic;
 				/** Auto re-enable event based on incoming message topic */
 				var autoReenableEvent = msg.topic === myconfig.automatic.inmsgTopicAutoReenable;
 				/** Height drive position event based on incoming message topic */
 				var driveHeightEvent = msg.topic === myconfig.automatic.inmsgTopicActPosHeight;
 			}
+
+
 
 			if (buttonEvent) {
 				if (myconfig.debug && !context.autoLocked) {that.log("Automatic disabled")}
@@ -309,15 +314,17 @@ module.exports = function(RED) {
 				}
 			}
 			else if (windowEvent) {
-				if (msg.payload === myconfig.set.inmsgWinswitchPayloadOpened) {context.windowState = 1} else
-				if (msg.payload === myconfig.set.inmsgWinswitchPayloadTilted) {context.windowState = 2} else
-				if (msg.payload === myconfig.set.inmsgWinswitchPayloadClosed) {context.windowState = 3};
+				/** Storing context values */
+				if (myconfig.debug) {that.log("DEBUG: Window switch event detected")};
+				if (msg.payload === myconfig.automatic.inmsgwinswitchPayloadOpened) {context.windowState = 1} else
+				if (msg.payload === myconfig.automatic.inmsgwinswitchPayloadTilted) {context.windowState = 2} else
+				if (msg.payload === myconfig.automatic.inmsgwinswitchPayloadClosed) {context.windowState = 3};
 			}
 			else if (autoReenableEvent) {autoReenableFunc()
 			}
 			else if (driveHeightEvent) {
 				if (msg.payload >= 0 && msg.payload <= 100 && typeof msg.payload === "number") {
-					context.actPosHeight = msg.payload
+					context.actPosHeight = msg.payload;
 				} else {
 					that.warn("W001: Actual drive position must be number between 0 and 100, but received '" + msg.payload + "'.")
 				}
@@ -335,8 +342,16 @@ module.exports = function(RED) {
 				}
 			}
 
+			if (myconfig.debug) {
+				console.log("\nDEBUG: Message:");
+				console.log(msg);
+				console.log("\nDEBUG: Context:");
+				console.log(context);
+				console.log("\n");
+			}
 			
 		});
+
 
 		// <==== MESSAGE EVENT ACTIONS
 		
