@@ -65,6 +65,7 @@
             behSunset: {value: "initval"},
             inmsgTopicAutoReenable: {},
             behButtonLocksUntil: {value: "initval"},
+            inmsgTopicActPosHeight: {}
         },
         label: function() {
             return this.name || this.orientation + "°";       // TODO: automatisch zusammenstellen: shading location.name + orientation
@@ -169,6 +170,10 @@
     <div class="form-row">
         <label for="node-config-input-behButtonLocksUntil"><i class="fa fa-sliders"></i> Locks until</label>
         <input type="text" id="node-config-input-behButtonLocksUntil">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-inmsgTopicActPosHeight"><i class="fa fa-tasks"></i> Actual height position</label>
+        <input type="text" id="node-config-input-inmsgTopicActPosHeight" placeholder="Expecting 'actposheight' if left blank">
     </div>
 
 </script>
