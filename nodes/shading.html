@@ -65,7 +65,16 @@
             behSunset: {value: "initval"},
             inmsgTopicAutoReenable: {},
             behButtonLocksUntil: {value: "initval"},
-            inmsgTopicActPosHeight: {}
+            inmsgTopicActPosHeight: {value: "actposheight", required: true},
+            allowLoweringWhenTilted: {},
+            allowLoweringWhenOpened: {},
+            inmsgWinswitchTopic: {},
+            inmsgWinswitchPayloadOpened: {value: 1},
+            inmsgWinswitchPayloadOpenedType: {value: "initval"},
+            inmsgWinswitchPayloadTilted: {value: 2},
+            inmsgWinswitchPayloadTiltedType: {value: "initval"},
+            inmsgWinswitchPayloadClosed: {value: 3},
+            inmsgWinswitchPayloadClosedType: {value: "initval"},
         },
         label: function() {
             return this.name || this.orientation + "°";       // TODO: automatisch zusammenstellen: shading location.name + orientation
@@ -79,6 +88,15 @@
             }
             if (this.behButtonLocksUntil === "initval") {
                 $("#node-config-input-behButtonLocksUntil").val("sunriseset")
+            }
+            if (this.inmsgWinswitchPayloadOpenedType === "initval") {
+                $("#node-config-input-inmsgWinswitchPayloadOpenedType").val("num")
+            }
+            if (this.inmsgWinswitchPayloadTiltedType === "initval") {
+                $("#node-config-input-inmsgWinswitchPayloadTiltedType").val("num")
+            }
+            if (this.inmsgWinswitchPayloadClosedType === "initval") {
+                $("#node-config-input-inmsgWinswitchPayloadClosedType").val("num")
             }
             $("#node-config-input-behSunrise").typedInput({
                 types: [
@@ -117,6 +135,22 @@
                     }
                 ]
             })
+            $("#node-config-input-inmsgWinswitchPayloadOpened").typedInput({
+                default: "num",
+                typeField: $("#node-config-input-inmsgWinswitchPayloadOpenedType"),
+                types: ["bool","num","str"]
+            })
+            $("#node-config-input-inmsgWinswitchPayloadTilted").typedInput({
+                default: "num",
+                typeField: $("#node-config-input-inmsgWinswitchPayloadTiltedType"),
+                types: ["bool","num","str"]
+            })
+            $("#node-config-input-inmsgWinswitchPayloadClosed").typedInput({
+                default: "num",
+                typeField: $("#node-config-input-inmsgWinswitchPayloadClosedType"),
+                types: ["bool","num","str"]
+            })
+
         }
     })
 </script>
@@ -172,8 +206,36 @@
         <input type="text" id="node-config-input-behButtonLocksUntil">
     </div>
     <div class="form-row">
-        <label for="node-config-input-inmsgTopicActPosHeight"><i class="fa fa-tasks"></i> Actual height position</label>
-        <input type="text" id="node-config-input-inmsgTopicActPosHeight" placeholder="Expecting 'actposheight' if left blank">
+        <label for="node-config-input-inmsgTopicActPosHeight"><i class="fa fa-tasks"></i> Actual height position topic</label>  <!-- TODO find better description -->
+        <input type="text" id="node-config-input-inmsgTopicActPosHeight">
+    </div>
+    <div class="form-row">
+        <label><i class="fa fa-bars"></i> Allow lowering when tilted</label>
+        <input type="checkbox" id="node-config-input-allowLoweringWhenTilted" checked="checked" style="display:inline-block; width:auto;">
+    </div>
+    <div class="form-row">
+        <label><i class="fa fa-bars"></i> Allow lowering when opened</label>
+        <input type="checkbox" id="node-config-input-allowLoweringWhenOpened" style="display:inline-block; width:auto;">
+    </div>
+    <h3>Window switch</h3>
+    <div class="form-row">
+        <label for="node-config-input-inmsgWinswitchTopic"><i class="fa fa-tasks"></i> Topic</label>
+        <input type="text" id="node-config-input-inmsgWinswitchTopic" placeholder="Expecting 'switch' if left blank">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-inmsgWinswitchPayloadOpened"><i class="fa fa-tag"></i> Payload Opened</label>
+        <input type="hidden" id="node-config-input-inmsgWinswitchPayloadOpenedType">
+        <input type="text" id="node-config-input-inmsgWinswitchPayloadOpened">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-inmsgWinswitchPayloadTilted"><i class="fa fa-tag"></i> Payload Tilted</label>
+        <input type="hidden" id="node-config-input-inmsgWinswitchPayloadTiltedType">
+        <input type="text" id="node-config-input-inmsgWinswitchPayloadTilted">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-inmsgWinswitchPayloadClosed"><i class="fa fa-tag"></i> Payload Closed</label>
+        <input type="hidden" id="node-config-input-inmsgWinswitchPayloadClosedType">
+        <input type="text" id="node-config-input-inmsgWinswitchPayloadClosed">
     </div>
 
 </script>
@@ -191,13 +253,6 @@
             shadingSetposShadeType: {value: "initval"},
             inmsgButtonTopicOpen: {},
             inmsgButtonTopicClose: {},
-            inmsgWinswitchTopic: {},
-            inmsgWinswitchPayloadOpened: {value: 1},
-            inmsgWinswitchPayloadOpenedType: {value: "initval"},
-            inmsgWinswitchPayloadTilted: {value: 2},
-            inmsgWinswitchPayloadTiltedType: {value: "initval"},
-            inmsgWinswitchPayloadClosed: {value: 3},
-            inmsgWinswitchPayloadClosedType: {value: "initval"},
             payloadOpenCmd: {value: false},
             payloadOpenCmdType: {value: "initval"},
             payloadCloseCmd: {},
@@ -213,35 +268,11 @@
             if (this.shadingSetposShadeType === "initval") {
                 $("#node-config-input-shadingSetposShadeType").val("num")
             }
-            if (this.inmsgWinswitchPayloadOpenedType === "initval") {
-                $("#node-config-input-inmsgWinswitchPayloadOpenedType").val("num")
-            }
-            if (this.inmsgWinswitchPayloadTiltedType === "initval") {
-                $("#node-config-input-inmsgWinswitchPayloadTiltedType").val("num")
-            }
-            if (this.inmsgWinswitchPayloadClosedType === "initval") {
-                $("#node-config-input-inmsgWinswitchPayloadClosedType").val("num")
-            }
             // defining input types
             $("#node-config-input-shadingSetposShade").typedInput({
                 default: "num",
                 typeField: $("#node-config-input-shadingSetposShadeType"),
                 types: ["num"]
-            })
-            $("#node-config-input-inmsgWinswitchPayloadOpened").typedInput({
-                default: "num",
-                typeField: $("#node-config-input-inmsgWinswitchPayloadOpenedType"),
-                types: ["bool","num","str"]
-            })
-            $("#node-config-input-inmsgWinswitchPayloadTilted").typedInput({
-                default: "num",
-                typeField: $("#node-config-input-inmsgWinswitchPayloadTiltedType"),
-                types: ["bool","num","str"]
-            })
-            $("#node-config-input-inmsgWinswitchPayloadClosed").typedInput({
-                default: "num",
-                typeField: $("#node-config-input-inmsgWinswitchPayloadClosedType"),
-                types: ["bool","num","str"]
             })
             $("#node-config-input-payloadOpenCmd").typedInput({
                 default: "bool",
@@ -292,26 +323,6 @@
     <div class="form-row">
         <label for="node-config-input-inmsgButtonTopicClose"><i class="fa fa-tasks"></i> Topic Close</label>
         <input type="text" id="node-config-input-inmsgButtonTopicClose" placeholder="Expecting 'closebutton' if left blank">
-    </div>
-    <h3>Window switch</h3>
-    <div class="form-row">
-        <label for="node-config-input-inmsgWinswitchTopic"><i class="fa fa-tasks"></i> Topic</label>
-        <input type="text" id="node-config-input-inmsgWinswitchTopic" placeholder="Expecting 'switch' if left blank">
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-inmsgWinswitchPayloadOpened"><i class="fa fa-tag"></i> Payload Opened</label>
-        <input type="hidden" id="node-config-input-inmsgWinswitchPayloadOpenedType">
-        <input type="text" id="node-config-input-inmsgWinswitchPayloadOpened">
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-inmsgWinswitchPayloadTilted"><i class="fa fa-tag"></i> Payload Tilted</label>
-        <input type="hidden" id="node-config-input-inmsgWinswitchPayloadTiltedType">
-        <input type="text" id="node-config-input-inmsgWinswitchPayloadTilted">
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-inmsgWinswitchPayloadClosed"><i class="fa fa-tag"></i> Payload Closed</label>
-        <input type="hidden" id="node-config-input-inmsgWinswitchPayloadClosedType">
-        <input type="text" id="node-config-input-inmsgWinswitchPayloadClosed">
     </div>
     <h3>Command output configuration</h3>
     <div class="form-row">
