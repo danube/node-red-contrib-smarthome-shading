@@ -183,29 +183,25 @@ module.exports = function(RED) {
 		// Set replacement values for optional fields
 		myconfig.set.inmsgButtonTopicOpen = config.set.inmsgButtonTopicOpen || "openbutton";
 		myconfig.set.inmsgButtonTopicClose = config.set.inmsgButtonTopicClose || "closebutton";
-		myconfig.automatic.inmsgwinswitchTopic = config.set.inmsgWinswitchTopic || "switch";
+		myconfig.automatic.inmsgWinswitchTopic = config.set.inmsgWinswitchTopic || "switch";
 		if (myconfig.autoActive) {
 			myconfig.automatic.inmsgTopicAutoReenable = config.automatic.inmsgTopicAutoReenable || "auto";
 		};
 	
 		// Converting typed inputs
-		if (myconfig.automatic.inmsgwinswitchPayloadOpenedType === 'num') {myconfig.automatic.inmsgwinswitchPayloadOpened = Number(config.automatic.inmsgWinswitchPayloadOpened)}
-		else if (myconfig.automatic.inmsgwinswitchPayloadOpenedType === 'bool') {myconfig.automatic.inmsgwinswitchPayloadOpened = config.automatic.inmsgWinswitchPayloadOpened === 'true'}
-		else {
-			console.log("DEBUG: WTF is it???");
-			console.log(myconfig.automatic.inmsgwinswitchPayloadOpenedType);
-		}
-		if (myconfig.automatic.inmsgwinswitchPayloadTiltedType === 'num') {myconfig.automatic.inmsgwinswitchPayloadTilted = Number(config.automatic.inmsgWinswitchPayloadTilted)}
-		else if (myconfig.automatic.inmsgwinswitchPayloadTiltedType === 'bool') {myconfig.automatic.inmsgwinswitchPayloadTilted = config.automatic.inmsgWinswitchPayloadTilted === 'true'}
-		if (myconfig.automatic.inmsgwinswitchPayloadClosedType === 'num') {myconfig.automatic.inmsgwinswitchPayloadClosed = Number(config.automatic.inmsgWinswitchPayloadClosed)}
-		else if (myconfig.automatic.inmsgwinswitchPayloadClosedType === 'bool') {myconfig.automatic.inmsgwinswitchPayloadClosed = config.automatic.inmsgWinswitchPayloadClosed === 'true'}
+		if (myconfig.automatic.inmsgWinswitchPayloadOpenedType === 'num') {myconfig.automatic.inmsgWinswitchPayloadOpened = Number(config.automatic.inmsgWinswitchPayloadOpened)}
+		else if (myconfig.automatic.inmsgWinswitchPayloadOpenedType === 'bool') {myconfig.automatic.inmsgWinswitchPayloadOpened = config.automatic.inmsgWinswitchPayloadOpened === 'true'}
+		if (myconfig.automatic.inmsgWinswitchPayloadTiltedType === 'num') {myconfig.automatic.inmsgWinswitchPayloadTilted = Number(config.automatic.inmsgWinswitchPayloadTilted)}
+		else if (myconfig.automatic.inmsgWinswitchPayloadTiltedType === 'bool') {myconfig.automatic.inmsgWinswitchPayloadTilted = config.automatic.inmsgWinswitchPayloadTilted === 'true'}
+		if (myconfig.automatic.inmsgWinswitchPayloadClosedType === 'num') {myconfig.automatic.inmsgWinswitchPayloadClosed = Number(config.automatic.inmsgWinswitchPayloadClosed)}
+		else if (myconfig.automatic.inmsgWinswitchPayloadClosedType === 'bool') {myconfig.automatic.inmsgWinswitchPayloadClosed = config.automatic.inmsgWinswitchPayloadClosed === 'true'}
 		myconfig.set.shadingSetposShade = Number(config.set.shadingSetposShade);
 		
 		// Show config and context on console
 		if (myconfig.debug) {
-			console.log("Debugging is enabled in the node properties. Here comes the node configuration:");
+			console.log("Debugging is enabled in the node properties. Here comes myconfig:");
 			console.log(myconfig);
-			console.log("Debugging is enabled in the node properties. Here comes the node context:");
+			console.log("Debugging is enabled in the node properties. Here comes context:");
 			console.log(context);
 		}
 
@@ -238,7 +234,7 @@ module.exports = function(RED) {
 			
 			if (myconfig.autoActive) {
 				/** Window switch event based on incoming message topic */
-				var windowEvent = msg.topic === myconfig.automatic.inmsgwinswitchTopic;
+				var windowEvent = msg.topic === myconfig.automatic.inmsgWinswitchTopic;
 				/** Auto re-enable event based on incoming message topic */
 				var autoReenableEvent = msg.topic === myconfig.automatic.inmsgTopicAutoReenable;
 				/** Height drive position event based on incoming message topic */
@@ -316,9 +312,9 @@ module.exports = function(RED) {
 			else if (windowEvent) {
 				/** Storing context values */
 				if (myconfig.debug) {that.log("DEBUG: Window switch event detected")};
-				if (msg.payload === myconfig.automatic.inmsgwinswitchPayloadOpened) {context.windowState = 1} else
-				if (msg.payload === myconfig.automatic.inmsgwinswitchPayloadTilted) {context.windowState = 2} else
-				if (msg.payload === myconfig.automatic.inmsgwinswitchPayloadClosed) {context.windowState = 3};
+				if (msg.payload === myconfig.automatic.inmsgWinswitchPayloadOpened) {context.windowState = 1} else
+				if (msg.payload === myconfig.automatic.inmsgWinswitchPayloadTilted) {context.windowState = 2} else
+				if (msg.payload === myconfig.automatic.inmsgWinswitchPayloadClosed) {context.windowState = 3};
 			}
 			else if (autoReenableEvent) {autoReenableFunc()
 			}
