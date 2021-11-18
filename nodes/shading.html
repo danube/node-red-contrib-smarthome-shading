@@ -75,28 +75,16 @@
             inmsgWinswitchPayloadTiltedType: {value: "initval"},
             inmsgWinswitchPayloadClosed: {value: 3},
             inmsgWinswitchPayloadClosedType: {value: "initval"},
+            hardlock: {required: false},
+            hardlockType: {value: "initval"}
         },
         label: function() {
             return this.name || this.orientation + "°";       // TODO: automatisch zusammenstellen: shading location.name + orientation
         },
         oneditprepare: function() {
+
             if (this.behSunrise === "initval") {
                 $("#node-config-input-behSunrise").val("nothing")
-            }
-            if (this.behSunset === "initval") {
-                $("#node-config-input-behSunset").val("nothing")
-            }
-            if (this.behButtonLocksUntil === "initval") {
-                $("#node-config-input-behButtonLocksUntil").val("sunriseset")
-            }
-            if (this.inmsgWinswitchPayloadOpenedType === "initval") {
-                $("#node-config-input-inmsgWinswitchPayloadOpenedType").val("num")
-            }
-            if (this.inmsgWinswitchPayloadTiltedType === "initval") {
-                $("#node-config-input-inmsgWinswitchPayloadTiltedType").val("num")
-            }
-            if (this.inmsgWinswitchPayloadClosedType === "initval") {
-                $("#node-config-input-inmsgWinswitchPayloadClosedType").val("num")
             }
             $("#node-config-input-behSunrise").typedInput({
                 types: [
@@ -111,6 +99,10 @@
                     }
                 ]
             })
+
+            if (this.behSunset === "initval") {
+                $("#node-config-input-behSunset").val("nothing")
+            }
             $("#node-config-input-behSunset").typedInput({
                 types: [
                     {
@@ -124,6 +116,10 @@
                     }
                 ]
             })
+
+            if (this.behButtonLocksUntil === "initval") {
+                $("#node-config-input-behButtonLocksUntil").val("sunriseset")
+            }
             $("#node-config-input-behButtonLocksUntil").typedInput({
                 types: [
                     {
@@ -135,20 +131,41 @@
                     }
                 ]
             })
+
+            if (this.inmsgWinswitchPayloadOpenedType === "initval") {
+                $("#node-config-input-inmsgWinswitchPayloadOpenedType").val("num")
+            }
             $("#node-config-input-inmsgWinswitchPayloadOpened").typedInput({
                 default: "num",
                 typeField: $("#node-config-input-inmsgWinswitchPayloadOpenedType"),
                 types: ["bool","num","str"]
             })
+
+            if (this.inmsgWinswitchPayloadTiltedType === "initval") {
+                $("#node-config-input-inmsgWinswitchPayloadTiltedType").val("num")
+            }
             $("#node-config-input-inmsgWinswitchPayloadTilted").typedInput({
                 default: "num",
                 typeField: $("#node-config-input-inmsgWinswitchPayloadTiltedType"),
                 types: ["bool","num","str"]
             })
+
+            if (this.inmsgWinswitchPayloadClosedType === "initval") {
+                $("#node-config-input-inmsgWinswitchPayloadClosedType").val("num")
+            }
             $("#node-config-input-inmsgWinswitchPayloadClosed").typedInput({
                 default: "num",
                 typeField: $("#node-config-input-inmsgWinswitchPayloadClosedType"),
                 types: ["bool","num","str"]
+            })
+            
+            if (this.hardlockType === "initval") {
+                $("#node-config-input-hardlockType").val("global")
+            }
+            $("#node-config-input-hardlock").typedInput({
+                default: "global",
+                typeField: $("#node-config-input-hardlockType"),
+                types: ["flow","global"]
             })
 
         }
@@ -216,6 +233,11 @@
     <div class="form-row">
         <label><i class="fa fa-bars"></i> Allow lowering when opened</label>
         <input type="checkbox" id="node-config-input-allowLoweringWhenOpened" style="display:inline-block; width:auto;">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-hardlock"><i class="fa fa-tag"></i> Hard lock variable</label>
+        <input type="hidden" id="node-config-input-hardlockType">
+        <input type="text" id="node-config-input-hardlock">
     </div>
     <h3>Window switch</h3>
     <div class="form-row">
