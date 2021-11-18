@@ -218,7 +218,7 @@ module.exports = function(RED) {
 
 		
 		/** This is the loop function which will be processed only if automatic is enabled. */
-		function mainloopFunc(){
+		function mainloopFunc(){			// FIXME after 6 loops, [warn] Context 4e8b050c279a33a2:f6f2187d.f17ca8 contains a circular reference that cannot be persisted appears on the console
 
 			actDate = new Date();
 			loopCounter += 1;
