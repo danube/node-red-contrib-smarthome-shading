@@ -17,11 +17,12 @@ module.exports = function(RED) {
 		this.config = config;
     }
     RED.nodes.registerType("shading configuration",ShadingConfigNode);
-	
+
 	function ShadingNode(originalConfig) {
 
 		RED.nodes.createNode(this,originalConfig);
-		
+
+			
 		const that = this;
 		let config = originalConfig;
 
@@ -57,10 +58,10 @@ module.exports = function(RED) {
 			const dblClickTime = 500;			// Waiting time for second button press		// TODO Zeit konfigurierbar machen
 			const shadingSetposOpen = 0;
 			const shadingSetposClose = 100;
-			let loopIntervalHandle;
-
+			
 			let sunTimes = null;
 			var err = false;
+			let loopCounter = 0;
 
 			/** The backed up time as ISO string */
 			let dateStringPrev = null;
@@ -68,8 +69,8 @@ module.exports = function(RED) {
 			let sunriseAheadPrev = null;
 			/** The backed up state of sunet being in the future */
 			let sunsetAheadPrev = null;
-			/** Contains the backed up time as date object */
-			const actDate = new Date();
+			/** The actual time as date object */
+			let actDate = new Date();
 			/** Sunrise is in the future */
 			let sunriseAhead;
 			/** Sunset is in the future */
@@ -93,6 +94,11 @@ module.exports = function(RED) {
 
 
 
+
+
+
+
+
 		/**
 		 * This function will write the relevant node's output.
 		 * @param {String} a Payload for output 1 (opencommand)
@@ -103,13 +109,6 @@ module.exports = function(RED) {
 		function sendCommandFunc(a,b,c,d) {
 			
 			let msgA, msgB, msgC, msgD = null;
-			const debug = {
-				originalConfig: originalConfig,
-				config: config,
-				context: context,
-				hardlock: hardlock,
-				sunTimes: sunTimes
-			}
 			if (a != null) {
 				msgA = {topic: "opencommand", payload: a};
 				if (config.debug) {msgA = {topic: msgA.topic, payload: msgA.payload, debug: debug}}
@@ -221,6 +220,9 @@ module.exports = function(RED) {
 		/** This is the loop function which will be processed only if automatic is enabled. */
 		function mainloopFunc(){
 
+			actDate = new Date();
+			loopCounter += 1;
+
 			if (dateStringPrev) {								// We have a previous date already backed up
 				const prevDate = new Date(dateStringPrev);		// Convert string to date object
 				if (prevDate.getDay() != actDate.getDay()) {	// A new day has arrived
@@ -236,6 +238,10 @@ module.exports = function(RED) {
 			sunriseAhead = sunTimes.sunrise > actDate;
 			/** Sunset is in the future */
 			sunsetAhead = sunTimes.sunset > actDate;
+
+			if (config.debug) {
+				console.log("Loop: " + loopCounter + ", Time: " + actDate.toLocaleString() + ", Sunrise ahead: " + sunriseAhead + ", Sunset ahead: " + sunsetAhead);
+			}
 
 			if (sunriseAhead === false && sunriseAheadPrev === true) {			// Now it's sunrise
 				prepareAutoposFunc("sunrise");
@@ -283,8 +289,13 @@ module.exports = function(RED) {
 
 			// Main loop
 			if (config.autoActive) {
-				mainloopFunc();														// Trigger once as setInterval will fire first after timeout
-				loopIntervalHandle = setInterval(mainloopFunc, loopIntervalTime);	// Continuous interval run
+				mainloopFunc();		// Trigger once as setInterval will fire first after timeout
+				if (context.loopIntervalHandle) {
+					clearInterval(context.loopIntervalHandle);
+					context.loopIntervalHandle = null;
+				};
+				context.loopIntervalHandle = setInterval(mainloopFunc, loopIntervalTime);	// Continuous interval run
+				if (config.debug) {console.log("Installed main loop with interval " + loopIntervalTime + " and handle " + context.loopIntervalHandle)};
 			}
 		
 		// <==== FIRST RUN ACTIONS
@@ -426,6 +437,45 @@ module.exports = function(RED) {
 
 
 
+
+
+			// ONLY FOR DEBUGGING ====>
+			
+			if (msg.frcSunrise) {
+				that.warn("Sunrise value overwritten")
+				sunTimes.sunrise = new Date(msg.frcSunrise)
+			};
+
+			if (msg.frcSunset) {
+				that.warn("Sunset value overwritten")
+				sunTimes.sunset = new Date(msg.frcSunset)
+			};
+
+			if (msg.frcSunauto) {
+				that.warn("Sunrise and sunset values valid")
+				actDate = new Date();
+				suncalcFunc(actDate);
+			};
+
+			if (msg.debug) {
+				actDate = new Date();
+				const debug = {
+					timeUTC: actDate.toISOString(),
+					timeLocale: actDate.toLocaleString(),
+					originalConfig: originalConfig,
+					config: config,
+					context: context,
+					hardlock: hardlock,
+					sunTimes: sunTimes
+				}
+				console.log(debug);
+			}
+			
+			// <==== ONLY FOR DEBUGGING
+
+			
+			
+
 			if (err) {
 				if (done) {
 					// Node-RED 1.0 compatible
@@ -436,19 +486,22 @@ module.exports = function(RED) {
 				}
 			}
 
-			if (config.debug) {
-				console.log("DEBUG: Message:");
-				console.log(msg);
-				console.log("DEBUG: Context:");
-				console.log(context);
-				console.log("\n");
-			}
+			// if (config.debug) {
+			// 	console.log("DEBUG: Message:");
+			// 	console.log(msg);
+			// 	console.log("DEBUG: Context:");
+			// 	console.log(context);
+			// 	console.log("\n");
+			// }
 			
 		});
 
 
 		// <==== MESSAGE EVENT ACTIONS
 		
+
+
+
 		nodeContext.set("context", context);		// Backing up context
 	
 
