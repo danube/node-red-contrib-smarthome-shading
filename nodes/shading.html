@@ -63,12 +63,12 @@
             windowSunAngleExit: {value: 75, required: true},
             behSunrise: {value: "initval"},
             behSunset: {value: "initval"},
-            inmsgTopicAutoReenable: {},
+            inmsgTopicAutoReenable: {required: true, value: "auto"},
             behButtonLocksUntil: {value: "initval"},
             inmsgTopicActPosHeight: {value: "actposheight", required: true},
             allowLoweringWhenTilted: {},
             allowLoweringWhenOpened: {},
-            inmsgWinswitchTopic: {},
+            inmsgWinswitchTopic: {required: true, value: "switch"},
             inmsgWinswitchPayloadOpened: {value: 1},
             inmsgWinswitchPayloadOpenedType: {value: "initval"},
             inmsgWinswitchPayloadTilted: {value: 2},
@@ -216,7 +216,7 @@
     </div>
     <div class="form-row">
         <label for="node-config-input-inmsgTopicAutoReenable"><i class="fa fa-tasks"></i> Auto re-enable topic</label>
-        <input type="text" id="node-config-input-inmsgTopicAutoReenable" placeholder="Expecting 'auto' if left blank">
+        <input type="text" id="node-config-input-inmsgTopicAutoReenable">
     </div>
     <div class="form-row">
         <label for="node-config-input-behButtonLocksUntil"><i class="fa fa-sliders"></i> Locks until</label>
@@ -242,7 +242,7 @@
     <h3>Window switch</h3>
     <div class="form-row">
         <label for="node-config-input-inmsgWinswitchTopic"><i class="fa fa-tasks"></i> Topic</label>
-        <input type="text" id="node-config-input-inmsgWinswitchTopic" placeholder="Expecting 'switch' if left blank">
+        <input type="text" id="node-config-input-inmsgWinswitchTopic">
     </div>
     <div class="form-row">
         <label for="node-config-input-inmsgWinswitchPayloadOpened"><i class="fa fa-tag"></i> Payload Opened</label>
@@ -273,8 +273,8 @@
             name: {required: true},
             shadingSetposShade: {value: 80, required: true},
             shadingSetposShadeType: {value: "initval"},
-            inmsgButtonTopicOpen: {},
-            inmsgButtonTopicClose: {},
+            inmsgButtonTopicOpen: {required: true, value: "openbutton"},
+            inmsgButtonTopicClose: {required: true, value: "closebutton"},
             payloadOpenCmd: {value: false},
             payloadOpenCmdType: {value: "initval"},
             payloadCloseCmd: {},
@@ -340,11 +340,11 @@
     <h3>Pushbutton configuration</h3>
     <div class="form-row">
         <label for="node-config-input-inmsgButtonTopicOpen"><i class="fa fa-tasks"></i> Topic Open</label>
-        <input type="text" id="node-config-input-inmsgButtonTopicOpen" placeholder="Expecting 'openbutton' if left blank">
+        <input type="text" id="node-config-input-inmsgButtonTopicOpen"">
     </div>
     <div class="form-row">
         <label for="node-config-input-inmsgButtonTopicClose"><i class="fa fa-tasks"></i> Topic Close</label>
-        <input type="text" id="node-config-input-inmsgButtonTopicClose" placeholder="Expecting 'closebutton' if left blank">
+        <input type="text" id="node-config-input-inmsgButtonTopicClose">
     </div>
     <h3>Command output configuration</h3>
     <div class="form-row">

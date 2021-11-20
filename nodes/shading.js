@@ -218,8 +218,8 @@ module.exports = function(RED) {
 
 		
 		/** This is the loop function which will be processed only if automatic is enabled. */
-		function mainloopFunc(){			// FIXME after 6 loops, [warn] Context 4e8b050c279a33a2:f6f2187d.f17ca8 contains a circular reference that cannot be persisted appears on the console
-
+		function mainloopFunc(){			// FIXME after 6 loops: [warn] Context 4e8b050c279a33a2:f6f2187d.f17ca8 contains a circular reference that cannot be persisted appears on the console
+											// https://discourse.nodered.org/t/where-to-store-handle-of-setinterval/54028
 			actDate = new Date();
 			loopCounter += 1;
 
@@ -262,14 +262,6 @@ module.exports = function(RED) {
 
 		// FIRST RUN ACTIONS ====>
 
-			// Set replacement values for optional fields
-			config.set.inmsgButtonTopicOpen = originalConfig.set.inmsgButtonTopicOpen || "openbutton";
-			config.set.inmsgButtonTopicClose = originalConfig.set.inmsgButtonTopicClose || "closebutton";
-			config.automatic.inmsgWinswitchTopic = originalConfig.set.inmsgWinswitchTopic || "switch";
-			if (config.autoActive) {
-				config.automatic.inmsgTopicAutoReenable = originalConfig.automatic.inmsgTopicAutoReenable || "auto";
-			};
-		
 			// Converting typed inputs
 			if (config.automatic.inmsgWinswitchPayloadOpenedType === 'num') {config.automatic.inmsgWinswitchPayloadOpened = Number(originalConfig.automatic.inmsgWinswitchPayloadOpened)}
 			else if (config.automatic.inmsgWinswitchPayloadOpenedType === 'bool') {config.automatic.inmsgWinswitchPayloadOpened = originalConfig.automatic.inmsgWinswitchPayloadOpened === 'true'}
