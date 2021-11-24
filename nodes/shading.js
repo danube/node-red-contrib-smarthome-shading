@@ -1,5 +1,8 @@
 module.exports = function(RED) {
 
+	// Definition of persistant variables
+	let handle = null;
+
     function ShadingAutomaticNode(config) {
 		RED.nodes.createNode(this,config);
 		this.config = config;
@@ -54,38 +57,39 @@ module.exports = function(RED) {
 		}
 
 		// Variable declaration
-			const loopIntervalTime = 5000;		// Node loop interval
-			const dblClickTime = 500;			// Waiting time for second button press		// TODO Zeit konfigurierbar machen
-			const shadingSetposOpen = 0;
-			const shadingSetposClose = 100;
-			
-			let sunTimes = null;
-			var err = false;
-			let loopCounter = 0;
+		const loopIntervalTime = 5000;
+		const dblClickTime = 500;			// Waiting time for second button press		// TODO Zeit konfigurierbar machen
+		const shadingSetposOpen = 0;
+		const shadingSetposClose = 100;
+		
+		let sunTimes = null;
+		var err = false;
+		let loopCounter = 0;
 
-			/** The backed up time as ISO string */
-			let dateStringPrev = null;
-			/** The backed up state of sunrise being in the future */
-			let sunriseAheadPrev = null;
-			/** The backed up state of sunet being in the future */
-			let sunsetAheadPrev = null;
-			/** The actual time as date object */
-			let actDate = new Date();
-			/** Sunrise is in the future */
-			let sunriseAhead;
-			/** Sunset is in the future */
-			let sunsetAhead;
-			/** Hard lock */
-			let hardlock = null;
-			if (config.automatic.hardlock && config.automatic.hardlockType) {
-				if (config.automatic.hardlockType === "flow") {hardlock = flowContext.get(config.automatic.hardlock)}
-				else if (config.automatic.hardlockType === "global") {hardlock = globalContext.get(config.automatic.hardlock)}
-				if (typeof hardlock === "undefined") {
-					that.warn("W003: Undefined hard lock variable at '" + config.automatic.hardlockType + "." + config.automatic.hardlock + "'. Assuming false until set.")
-				} else if (typeof hardlock !== "boolean") {
-					that.warn("W004: Hard lock variable at '" + config.automatic.hardlockType + "." + config.automatic.hardlock + "' defined but not a boolean. Assuming false until set.")
-				}
+		/** The backed up time as ISO string */
+		let dateStringPrev = null;
+		/** The backed up state of sunrise being in the future */
+		let sunriseAheadPrev = null;
+		/** The backed up state of sunet being in the future */
+		let sunsetAheadPrev = null;
+		/** The actual time as date object */
+		let actDate = new Date();
+		/** Sunrise is in the future */
+		let sunriseAhead;
+		/** Sunset is in the future */
+		let sunsetAhead;
+		/** Hard lock */
+		let hardlock = null;
+		if (config.automatic.hardlock && config.automatic.hardlockType) {
+			if (config.automatic.hardlockType === "flow") {hardlock = flowContext.get(config.automatic.hardlock)}
+			else if (config.automatic.hardlockType === "global") {hardlock = globalContext.get(config.automatic.hardlock)}
+			if (typeof hardlock === "undefined") {
+				that.warn("W003: Undefined hard lock variable at '" + config.automatic.hardlockType + "." + config.automatic.hardlock + "'. Assuming false until set.")
+			} else if (typeof hardlock !== "boolean") {
+				that.warn("W004: Hard lock variable at '" + config.automatic.hardlockType + "." + config.automatic.hardlock + "' defined but not a boolean. Assuming false until set.")
 			}
+		}
+
 		// Loading external modules
 		var suncalc = require("suncalc");	// https://www.npmjs.com/package/suncalc#reference
 
@@ -93,10 +97,7 @@ module.exports = function(RED) {
 
 
 
-
-
-
-
+		// FUNCTIONS ====>
 
 
 		/**
@@ -129,11 +130,8 @@ module.exports = function(RED) {
 		}
 
 
-
-
-
-
-		/** Checks if automatic movement is allowed and sends setpos values
+		/** Checks if automatic movement is allowed and sends setpos values.
+		 * This function MUST be called each time an automatic movement should processed.
 		 * @returns {Boolean} true if allowed, false if not.
 		 */
 		function checkAutoMoveAllowedFunc() {
@@ -153,10 +151,6 @@ module.exports = function(RED) {
 				return false
 			}
 		}
-		
-		
-		
-
 		
 
 		/**
@@ -183,10 +177,6 @@ module.exports = function(RED) {
 		}
 
 
-
-
-
-
 		/** Checks if the parameter is a valid date type
 		 * https://stackoverflow.com/questions/1353684/detecting-an-invalid-date-date-instance-in-javascript
 		 */
@@ -209,27 +199,24 @@ module.exports = function(RED) {
 		 * @property {Date} sunsetStart sunset starts (bottom edge of the sun touches the horizon)
 		*/
 		function suncalcFunc(date) {return suncalc.getTimes(date, config.location.lat, config.location.lon)}
+	
 
-		
-
-
-
-
-
-		
 		/** This is the loop function which will be processed only if automatic is enabled. */
-		function mainloopFunc(){			// FIXME after 6 loops: [warn] Context 4e8b050c279a33a2:f6f2187d.f17ca8 contains a circular reference that cannot be persisted appears on the console
-											// https://discourse.nodered.org/t/where-to-store-handle-of-setinterval/54028
-			actDate = new Date();
-			loopCounter += 1;
-
+		function mainloopFunc(){
+			actDate = new Date();		// Set to actual time
+			
 			if (dateStringPrev) {								// We have a previous date already backed up
 				const prevDate = new Date(dateStringPrev);		// Convert string to date object
-				if (prevDate.getDay() != actDate.getDay()) {	// A new day has arrived
-					sunTimes = suncalcFunc(actDate);			// Get new suncalc values
+				that.log("prevDay: " + prevDate.getDate() + ", actDay: " + actDate.getDate());
+				if (prevDate.getDate() != actDate.getDate()) {	// A new day has arrived
+					that.log("A new day has arrived! Here are the sunTimes:");
+					sunTimes = suncalcFunc(actDate.setHours(12,0,0));		// Get new suncalc values and simulate noon
+					console.log(sunTimes);
 				};
 			} else {											// This must be the first cycle
-				sunTimes = suncalcFunc(actDate);				// Get new suncalc values
+				that.log("This is the first cycle. Here are the sunTimes: ")
+				sunTimes = suncalcFunc(actDate.setHours(12,0,0));			// Get new suncalc values and simulate noon
+				console.log(sunTimes);
 			}
 
 			if (!isValidDate(sunTimes.sunrise) || !isValidDate(sunTimes.sunset)) {return -1}		// TODO break, something is wrong;
@@ -240,7 +227,7 @@ module.exports = function(RED) {
 			sunsetAhead = sunTimes.sunset > actDate;
 
 			if (config.debug) {
-				console.log("Loop: " + loopCounter + ", Time: " + actDate.toLocaleString() + ", Sunrise ahead: " + sunriseAhead + ", Sunset ahead: " + sunsetAhead);
+				that.log("Date: " + actDate.toLocaleString() + ", Sunrise: " + sunTimes.sunrise.toLocaleString() + ", Sunset: " + sunTimes.sunset.toLocaleString() + "\n");
 			}
 
 			if (sunriseAhead === false && sunriseAheadPrev === true) {			// Now it's sunrise
@@ -257,38 +244,37 @@ module.exports = function(RED) {
 		}
 
 
+		// <==== FUNCTIONS
+
+
 
 
 
 		// FIRST RUN ACTIONS ====>
 
-			// Converting typed inputs
-			if (config.automatic.inmsgWinswitchPayloadOpenedType === 'num') {config.automatic.inmsgWinswitchPayloadOpened = Number(originalConfig.automatic.inmsgWinswitchPayloadOpened)}
-			else if (config.automatic.inmsgWinswitchPayloadOpenedType === 'bool') {config.automatic.inmsgWinswitchPayloadOpened = originalConfig.automatic.inmsgWinswitchPayloadOpened === 'true'}
-			if (config.automatic.inmsgWinswitchPayloadTiltedType === 'num') {config.automatic.inmsgWinswitchPayloadTilted = Number(originalConfig.automatic.inmsgWinswitchPayloadTilted)}
-			else if (config.automatic.inmsgWinswitchPayloadTiltedType === 'bool') {config.automatic.inmsgWinswitchPayloadTilted = originalConfig.automatic.inmsgWinswitchPayloadTilted === 'true'}
-			if (config.automatic.inmsgWinswitchPayloadClosedType === 'num') {config.automatic.inmsgWinswitchPayloadClosed = Number(originalConfig.automatic.inmsgWinswitchPayloadClosed)}
-			else if (config.automatic.inmsgWinswitchPayloadClosedType === 'bool') {config.automatic.inmsgWinswitchPayloadClosed = originalConfig.automatic.inmsgWinswitchPayloadClosed === 'true'}
-			config.set.shadingSetposShade = Number(originalConfig.set.shadingSetposShade);
-			
-			// Show config and context on console
-			if (config.debug) {
-				console.log("Debugging is enabled in the node properties. Here comes config:");
-				console.log(config);
-				console.log("Debugging is enabled in the node properties. Here comes context:");
-				console.log(context);
-			}
+		// Converting typed inputs
+		if (config.automatic.inmsgWinswitchPayloadOpenedType === 'num') {config.automatic.inmsgWinswitchPayloadOpened = Number(originalConfig.automatic.inmsgWinswitchPayloadOpened)}
+		else if (config.automatic.inmsgWinswitchPayloadOpenedType === 'bool') {config.automatic.inmsgWinswitchPayloadOpened = originalConfig.automatic.inmsgWinswitchPayloadOpened === 'true'}
+		if (config.automatic.inmsgWinswitchPayloadTiltedType === 'num') {config.automatic.inmsgWinswitchPayloadTilted = Number(originalConfig.automatic.inmsgWinswitchPayloadTilted)}
+		else if (config.automatic.inmsgWinswitchPayloadTiltedType === 'bool') {config.automatic.inmsgWinswitchPayloadTilted = originalConfig.automatic.inmsgWinswitchPayloadTilted === 'true'}
+		if (config.automatic.inmsgWinswitchPayloadClosedType === 'num') {config.automatic.inmsgWinswitchPayloadClosed = Number(originalConfig.automatic.inmsgWinswitchPayloadClosed)}
+		else if (config.automatic.inmsgWinswitchPayloadClosedType === 'bool') {config.automatic.inmsgWinswitchPayloadClosed = originalConfig.automatic.inmsgWinswitchPayloadClosed === 'true'}
+		config.set.shadingSetposShade = Number(originalConfig.set.shadingSetposShade);
+		
+		// Show config and context on console
+		if (config.debug) {
+			console.log("Debugging is enabled in the node properties. Here comes config:");
+			console.log(config);
+			console.log("Debugging is enabled in the node properties. Here comes context:");
+			console.log(context);
+		}
 
-			// Main loop
-			if (config.autoActive) {
-				mainloopFunc();		// Trigger once as setInterval will fire first after timeout
-				if (context.loopIntervalHandle) {
-					clearInterval(context.loopIntervalHandle);
-					context.loopIntervalHandle = null;
-				};
-				context.loopIntervalHandle = setInterval(mainloopFunc, loopIntervalTime);	// Continuous interval run
-				if (config.debug) {console.log("Installed main loop with interval " + loopIntervalTime + " and handle " + context.loopIntervalHandle)};
-			}
+		// Main loop
+		if (config.autoActive) {
+			mainloopFunc();		// Trigger once as setInterval will fire first after timeout
+			clearInterval(handle);		// Clear eventual previous loop
+			handle = setInterval(mainloopFunc, loopIntervalTime);		// Continuous interval run
+		}
 		
 		// <==== FIRST RUN ACTIONS
 
@@ -399,13 +385,26 @@ module.exports = function(RED) {
 
 			else if (windowEvent) {
 				
-				// Sending debug message
-				if (config.debug) {that.log("DEBUG: Window switch event detected")};
-				
+				let oldState = context.windowStateStr;
+
 				// Storing context values
-				if (msg.payload === config.automatic.inmsgWinswitchPayloadOpened) {context.windowState = 1} else
-				if (msg.payload === config.automatic.inmsgWinswitchPayloadTilted) {context.windowState = 2} else
-				if (msg.payload === config.automatic.inmsgWinswitchPayloadClosed) {context.windowState = 3};
+				if (msg.payload === config.automatic.inmsgWinswitchPayloadOpened) {
+					context.windowState = 1
+					context.windowStateStr = "open"
+				} else if (msg.payload === config.automatic.inmsgWinswitchPayloadTilted) {
+					context.windowState = 2
+					context.windowStateStr = "tilted"
+				} else if (msg.payload === config.automatic.inmsgWinswitchPayloadClosed) {
+					context.windowState = 3
+					context.windowStateStr = "close"
+				} else {
+					context.windowState = null
+					context.windowStateStr = "unknown"
+				};
+
+				if (config.debug) {
+					that.log("Window switch event detected: " + oldState + " -> "  + context.windowStateStr)
+				}
 
 				// Process
 				// TODO Define window event process
@@ -494,8 +493,20 @@ module.exports = function(RED) {
 
 
 
+
 		nodeContext.set("context", context);		// Backing up context
-	
+
+		
+
+
+
+		// CLOSE EVENTS ====>
+
+		this.on('close', function() {
+			clearInterval(handle);
+		})
+
+		// <==== CLOSE EVENTS
 
 	}
 
