@@ -76,7 +76,7 @@
             inmsgWinswitchPayloadClosed: {value: 3},
             inmsgWinswitchPayloadClosedType: {value: "initval"},
             hardlock: {required: false},
-            hardlockType: {value: "initval"}
+            hardlockType: {required: false, value: "initval"}
         },
         label: function() {
             return this.name || this.orientation + "°";       // TODO: automatisch zusammenstellen: shading location.name + orientation
@@ -270,7 +270,7 @@
     RED.nodes.registerType ('shading configuration', {
         category: 'config',
         defaults: {
-            name: {required: true},
+            name: {value: "Basic configuration", required: true},
             shadingSetposShade: {value: 80, required: true},
             shadingSetposShadeType: {value: "initval"},
             inmsgButtonTopicOpen: {required: true, value: "openbutton"},
@@ -328,12 +328,12 @@
         }
     </style>
     <div class="form-row">
-        <label for="node-config-input-name"><i class="fa fa-bookmark"></i> Name</label>
+        <label for="node-config-input-name"><i class="fa fa-bookmark"></i> Blind name</label>
         <input type="text" id="node-config-input-name" placeholder="Name of onfiguration set">
     </div>
     <h3>Blind configuration</h3>
     <div class="form-row">
-        <label for="node-config-input-shadingSetposShade"><i class="fa fa-window-maximize"></i> Shade value</label>
+        <label for="node-config-input-shadingSetposShade"><i class="fa fa-window-maximize"></i> Shade position</label>
         <input type="hidden" id="node-config-input-shadingSetposShadeType">
         <input type="text" id="node-config-input-shadingSetposShade">
     </div>
