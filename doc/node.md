@@ -4,3 +4,6 @@
 Give the node a name
 ### Configuration
 Give the node a configuration
+### Configuration
+some text
+### [Configuration] (#thirdconfiguration)
