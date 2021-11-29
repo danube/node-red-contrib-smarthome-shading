@@ -79,13 +79,13 @@ module.exports = function(RED) {
 		/** Sunset is in the future */
 		let sunsetAhead;
 		/** Hard lock */
-		let hardlock = null;
+		context.hardlock = null;
 		if (config.automatic.hardlock && config.automatic.hardlockType) {
-			if (config.automatic.hardlockType === "flow") {hardlock = flowContext.get(config.automatic.hardlock)}
-			else if (config.automatic.hardlockType === "global") {hardlock = globalContext.get(config.automatic.hardlock)}
-			if (typeof hardlock === "undefined") {
+			if (config.automatic.hardlockType === "flow") {context.hardlock = flowContext.get(config.automatic.hardlock)}
+			else if (config.automatic.hardlockType === "global") {context.hardlock = globalContext.get(config.automatic.hardlock)}
+			if (typeof context.hardlock === "undefined") {
 				that.warn("W003: Undefined hard lock variable at '" + config.automatic.hardlockType + "." + config.automatic.hardlock + "'. Assuming false until set.")
-			} else if (typeof hardlock !== "boolean") {
+			} else if (typeof context.hardlock !== "boolean") {
 				that.warn("W004: Hard lock variable at '" + config.automatic.hardlockType + "." + config.automatic.hardlock + "' defined but not a boolean. Assuming false until set.")
 			}
 		}
@@ -112,19 +112,19 @@ module.exports = function(RED) {
 			let msgA, msgB, msgC, msgD = null;
 			if (a != null) {
 				msgA = {topic: "opencommand", payload: a};
-				if (config.debug) {msgA = {topic: msgA.topic, payload: msgA.payload, debug: debug}}
+				if (config.debug) {msgA = {topic: msgA.topic, payload: msgA.payload}}		// TODO debug dran hängen
 			};
 			if (b != null) {
 				msgB = {topic: "closecommand", payload: b};
-				if (config.debug) {msgB = {topic: msgB.topic, payload: msgB.payload, debug: debug}}
+				if (config.debug) {msgB = {topic: msgB.topic, payload: msgB.payload}}
 			};
 			if (c != null) {
 				msgC = {topic: "resetcommand", payload: c};
-				if (config.debug) {msgC = {topic: msgC.topic, payload: msgC.payload, debug: debug}}
+				if (config.debug) {msgC = {topic: msgC.topic, payload: msgC.payload}}
 			};
 			if (d != null) {
 				msgD = {topic: "setpointcommand", payload: d};
-				if (config.debug) {msgD = {topic: msgD.topic, payload: msgD.payload, debug: debug}}
+				if (config.debug) {msgD = {topic: msgD.topic, payload: msgD.payload}}
 			};
 			that.send([msgA, msgB, msgC, msgD]);
 		}
@@ -135,7 +135,7 @@ module.exports = function(RED) {
 		 * @returns {Boolean} true if allowed, false if not.
 		 */
 		function checkAutoMoveAllowedFunc() {
-			if (hardlock) {
+			if (context.hardlock) {
 				return false
 			} else if (context.setposHeight < context.actposHeight) {		// Lowering
 				if (context.windowState === 3) {
@@ -158,22 +158,27 @@ module.exports = function(RED) {
 		 * @param {String} what Must be either "sunrise" or "sunset"
 		 */
 		function prepareAutoposFunc(what) {
-			if (config.automatic.behButtonLocksUntil === "sunriseset") {
-				context.autoLocked = false;
+			if (what === "sunrise") {
+				if (config.auto.autoIfSunrise) {context.autoLocked = false};
 				if (config.debug) {that.log("Automatic enabled")}
-			};
-			if (what === "sunrise" && !context.autoLocked) {
-				if (config.debug) {that.log("Now it's sunrise")};
-				if (config.automatic.behSunrise === "open") {context.setposHeight = shadingSetposOpen}
-				else if (config.automatic.behSunrise === "shade") {context.setposHeight = config.set.shadingSetposShade}
-				else if (config.automatic.behSunrise === "close") {context.setposHeight = shadingSetposClose};
-			} else if (what === "sunset" && !context.autoLocked) {
-				if (config.debug) {that.log("Now it's sunset")};
-				if (config.automatic.behSunset === "open") {context.setposHeight = shadingSetposOpen}
-				else if (config.automatic.behSunset === "shade") {context.setposHeight = config.set.shadingSetposShade}
-				else if (config.automatic.behSunset === "close") {context.setposHeight = shadingSetposClose};
+				if (!context.autoLocked) {
+					if (config.debug) {that.log("Now it's sunrise")};
+					if (config.automatic.openIfSunrise) {context.setposHeight = shadingSetposOpen}
+					else if (config.automatic.shadeIfSunrise) {context.setposHeight = config.set.shadingSetposShade}
+					else if (config.automatic.closeIfSunrise) {context.setposHeight = shadingSetposClose};
+					if (checkAutoMoveAllowedFunc()) {sendCommandFunc(null,null,null,context.setposHeight)}
+				}
+			} else if (what === "sunset") {
+				if (config.auto.autoIfSunset) {context.autoLocked = false};
+				if (config.debug) {that.log("Automatic enabled")}
+				if (!context.autoLocked) {
+					if (config.debug) {that.log("Now it's sunset")};
+					if (config.automatic.openIfSunset) {context.setposHeight = shadingSetposOpen}
+					else if (config.automatic.shadeIfSunset) {context.setposHeight = config.set.shadingSetposShade}
+					else if (config.automatic.closeIfSunset) {context.setposHeight = shadingSetposClose};
+					if (checkAutoMoveAllowedFunc()) {sendCommandFunc(null,null,null,context.setposHeight)}
+				}
 			}
-			if (checkAutoMoveAllowedFunc()) {sendCommandFunc(null,null,null,context.setposHeight)}
 		}
 
 
@@ -204,19 +209,23 @@ module.exports = function(RED) {
 		/** This is the loop function which will be processed only if automatic is enabled. */
 		function mainloopFunc(){
 			actDate = new Date();		// Set to actual time
+			suncalcDate = new Date().setHours(12,0,0);
 			
 			if (dateStringPrev) {								// We have a previous date already backed up
 				const prevDate = new Date(dateStringPrev);		// Convert string to date object
-				that.log("prevDay: " + prevDate.getDate() + ", actDay: " + actDate.getDate());
 				if (prevDate.getDate() != actDate.getDate()) {	// A new day has arrived
-					that.log("A new day has arrived! Here are the sunTimes:");
-					sunTimes = suncalcFunc(actDate.setHours(12,0,0));		// Get new suncalc values and simulate noon
-					console.log(sunTimes);
+					sunTimes = suncalcFunc(suncalcDate);		// Get new suncalc values and simulate noon
+					if (config.debug) {
+						that.log("A new day has arrived! Here comes sunTimes:");
+						console.log(sunTimes);
+					}
 				};
 			} else {											// This must be the first cycle
-				that.log("This is the first cycle. Here are the sunTimes: ")
-				sunTimes = suncalcFunc(actDate.setHours(12,0,0));			// Get new suncalc values and simulate noon
-				console.log(sunTimes);
+				sunTimes = suncalcFunc(suncalcDate);			// Get new suncalc values and simulate noon
+				if (config.debug) {
+					that.log("This is the first cycle. Here comes sunTimes: ")
+					console.log(sunTimes);
+				}
 			}
 
 			if (!isValidDate(sunTimes.sunrise) || !isValidDate(sunTimes.sunset)) {return -1}		// TODO break, something is wrong;
@@ -226,9 +235,9 @@ module.exports = function(RED) {
 			/** Sunset is in the future */
 			sunsetAhead = sunTimes.sunset > actDate;
 
-			if (config.debug) {
-				that.log("Date: " + actDate.toLocaleString() + ", Sunrise: " + sunTimes.sunrise.toLocaleString() + ", Sunset: " + sunTimes.sunset.toLocaleString() + "\n");
-			}
+			// if (config.debug) {
+			// 	that.log("Date: " + actDate.toLocaleString() + ", Sunrise: " + sunTimes.sunrise.toLocaleString() + ", Sunset: " + sunTimes.sunset.toLocaleString());
+			// }
 
 			if (sunriseAhead === false && sunriseAheadPrev === true) {			// Now it's sunrise
 				prepareAutoposFunc("sunrise");
@@ -252,13 +261,32 @@ module.exports = function(RED) {
 
 		// FIRST RUN ACTIONS ====>
 
+		// Filling empty string fields with defaults
+		config.set.inmsgButtonTopicOpen = originalConfig.set.inmsgButtonTopicOpen || "openbutton";
+		config.set.inmsgButtonTopicClose = originalConfig.set.inmsgButtonTopicClose || "closebutton";
+		config.automatic.inmsgTopicAutoReenable = originalConfig.automatic.inmsgTopicAutoReenable || "auto";
+		config.automatic.inmsgTopicActPosHeight = originalConfig.automatic.inmsgTopicActPosHeight || "heightfeedback";
+		config.automatic.inmsgWinswitchTopic = originalConfig.automatic.inmsgWinswitchTopic || "switch";
+
 		// Converting typed inputs
 		if (config.automatic.inmsgWinswitchPayloadOpenedType === 'num') {config.automatic.inmsgWinswitchPayloadOpened = Number(originalConfig.automatic.inmsgWinswitchPayloadOpened)}
 		else if (config.automatic.inmsgWinswitchPayloadOpenedType === 'bool') {config.automatic.inmsgWinswitchPayloadOpened = originalConfig.automatic.inmsgWinswitchPayloadOpened === 'true'}
+
 		if (config.automatic.inmsgWinswitchPayloadTiltedType === 'num') {config.automatic.inmsgWinswitchPayloadTilted = Number(originalConfig.automatic.inmsgWinswitchPayloadTilted)}
 		else if (config.automatic.inmsgWinswitchPayloadTiltedType === 'bool') {config.automatic.inmsgWinswitchPayloadTilted = originalConfig.automatic.inmsgWinswitchPayloadTilted === 'true'}
+		
 		if (config.automatic.inmsgWinswitchPayloadClosedType === 'num') {config.automatic.inmsgWinswitchPayloadClosed = Number(originalConfig.automatic.inmsgWinswitchPayloadClosed)}
 		else if (config.automatic.inmsgWinswitchPayloadClosedType === 'bool') {config.automatic.inmsgWinswitchPayloadClosed = originalConfig.automatic.inmsgWinswitchPayloadClosed === 'true'}
+		
+		if (config.set.payloadOpenCmdType === 'num') {config.set.payloadOpenCmd = Number(originalConfig.set.payloadOpenCmd)}
+		else if (config.set.payloadOpenCmdType === 'bool') {config.set.payloadOpenCmd = originalConfig.set.payloadOpenCmd === 'true'}
+
+		if (config.set.payloadCloseCmdType === 'num') {config.set.payloadCloseCmd = Number(originalConfig.set.payloadCloseCmd)}
+		else if (config.set.payloadCloseCmdType === 'bool') {config.set.payloadCloseCmd = originalConfig.set.payloadCloseCmd === 'true'}
+		
+		if (config.set.payloadStopCmdType === 'num') {config.set.payloadStopCmd = Number(originalConfig.set.payloadStopCmd)}
+		else if (config.set.payloadStopCmdType === 'bool') {config.set.payloadStopCmd = originalConfig.set.payloadStopCmd === 'true'}
+
 		config.set.shadingSetposShade = Number(originalConfig.set.shadingSetposShade);
 		
 		// Show config and context on console
@@ -311,12 +339,15 @@ module.exports = function(RED) {
 				var driveHeightEvent = msg.topic === config.automatic.inmsgTopicActPosHeight;
 			}
 
+			console.log("DEBUG: topic = " + msg.topic);
+			console.log("DEBUG: inmsgWinswitchTopic = " + config.automatic.inmsgWinswitchTopic);
+
 
 
 			if (buttonEvent) {
 
 				// Sending debug message
-				if (config.debug && !context.autoLocked) {that.log("Automatic disabled")}
+				if (config.debug && !context.autoLocked) {that.log("Automatic disabled")}		// TODO irgendwo automatic enabled senden
 				context.autoLocked = true;
 
 				// Button open pressed
@@ -328,7 +359,7 @@ module.exports = function(RED) {
 						
 						// DOUBLE CLICK ACTIONS ==>
 						clearTimeout(context.buttonOpenTimeoutHandle); context.buttonOpenTimeoutHandle = null;
-						sendCommandFunc(null,null,null,shadingSetposOpen);
+						sendCommandFunc(null,null,null,shadingSetposOpen);		// TODO stimmt das??
 						// <== DOUBLE CLICK ACTIONS
 
 					} else {
@@ -336,10 +367,10 @@ module.exports = function(RED) {
 							clearTimeout(context.buttonOpenTimeoutHandle); context.buttonOpenTimeoutHandle = null;
 							if (context.stateButtonOpen) {
 
-								// SINGLE CLICK ACTIONS ==>
-								sendCommandFunc(originalConfig.set.payloadOpenCmd,null,null,null);
+								// LONG CLICK ACTIONS ==>
+								sendCommandFunc(config.set.payloadOpenCmd,null,null,null);
 								context.stateButtonRunning = true;
-								// <== SINGLE CLICK ACTIONS
+								// <== LONG CLICK ACTIONS
 								
 							}
 						}, dblClickTime);
@@ -362,10 +393,10 @@ module.exports = function(RED) {
 							clearTimeout(context.buttonCloseTimeoutHandle); context.buttonCloseTimeoutHandle = null;
 							if (context.stateButtonClose) {
 								
-								// SINGLE CLICK ACTIONS ==>
-								sendCommandFunc(null,originalConfig.set.payloadCloseCmd,null,null);
+								// LONG CLICK ACTIONS ==>
+								sendCommandFunc(null,config.set.payloadCloseCmd,null,null);
 								context.stateButtonRunning = true;
-								// <== SINGLE CLICK ACTIONS
+								// <== LONG CLICK ACTIONS
 								
 							}
 						}, dblClickTime);
@@ -376,7 +407,7 @@ module.exports = function(RED) {
 					
 					// BUTTONS RELEASED ACTIONS ==>
 					context.stateButtonRunning = false;
-					sendCommandFunc(null,null,originalConfig.set.payloadStopCmd,null);
+					sendCommandFunc(null,null,config.set.payloadStopCmd,null);
 					// <== BUTTONS RELEASED ACTIONS
 				}
 			}
@@ -385,6 +416,7 @@ module.exports = function(RED) {
 
 			else if (windowEvent) {
 				
+				console.log("DEBUG: window event")
 				let oldState = context.windowStateStr;
 
 				// Storing context values
@@ -420,7 +452,9 @@ module.exports = function(RED) {
 
 			else if (driveHeightEvent) {
 				if (msg.payload >= 0 && msg.payload <= 100 && typeof msg.payload === "number") {
+					let prevPos = context.actposHeight;
 					context.actposHeight = msg.payload;
+					that.log("New shading position detected: " + prevPos + " -> " + context.actposHeight)
 				} else {
 					that.warn("W001: Actual drive position must be number between 0 and 100, but received '" + msg.payload + "'.")
 				}
@@ -456,7 +490,6 @@ module.exports = function(RED) {
 					originalConfig: originalConfig,
 					config: config,
 					context: context,
-					hardlock: hardlock,
 					sunTimes: sunTimes
 				}
 				console.log(debug);
