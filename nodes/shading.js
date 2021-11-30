@@ -80,16 +80,17 @@ module.exports = function(RED) {
 		let sunsetAhead;
 		/** Hard lock */
 		context.hardlock = null;
-		if (config.automatic.hardlock && config.automatic.hardlockType) {
-			if (config.automatic.hardlockType === "flow") {context.hardlock = flowContext.get(config.automatic.hardlock)}
-			else if (config.automatic.hardlockType === "global") {context.hardlock = globalContext.get(config.automatic.hardlock)}
-			if (typeof context.hardlock === "undefined") {
-				that.warn("W003: Undefined hard lock variable at '" + config.automatic.hardlockType + "." + config.automatic.hardlock + "'. Assuming false until set.")
-			} else if (typeof context.hardlock !== "boolean") {
-				that.warn("W004: Hard lock variable at '" + config.automatic.hardlockType + "." + config.automatic.hardlock + "' defined but not a boolean. Assuming false until set.")
+		if (config.autoActive) {
+			if (config.automatic.hardlock && config.automatic.hardlockType) {
+				if (config.automatic.hardlockType === "flow") {context.hardlock = flowContext.get(config.automatic.hardlock)}
+				else if (config.automatic.hardlockType === "global") {context.hardlock = globalContext.get(config.automatic.hardlock)}
+				if (typeof context.hardlock === "undefined") {
+					that.warn("W003: Undefined hard lock variable at '" + config.automatic.hardlockType + "." + config.automatic.hardlock + "'. Assuming false until set.")
+				} else if (typeof context.hardlock !== "boolean") {
+					that.warn("W004: Hard lock variable at '" + config.automatic.hardlockType + "." + config.automatic.hardlock + "' defined but not a boolean. Assuming false until set.")
+				}
 			}
 		}
-
 		// Loading external modules
 		var suncalc = require("suncalc");	// https://www.npmjs.com/package/suncalc#reference
 
@@ -134,53 +135,28 @@ module.exports = function(RED) {
 		 * This function MUST be called each time an automatic movement should processed.
 		 * @returns {Boolean} true if allowed, false if not.
 		 */
-		function checkAutoMoveAllowedFunc() {
-			if (context.hardlock) {
-				return false
+		function autoMove() {
+			let send = false;
+			if (context.hardlock || context.autoLocked) {
+				return
 			} else if (context.setposHeight < context.actposHeight) {		// Lowering
 				if (context.windowState === 3) {
-					return true												// Window closed
+					send = true												// Window closed
 				} else if (context.windowState === 2 && config.automatic.allowLoweringWhenTilted) {
-					return true												// Window tilted
+					send = true												// Window tilted
 				} else if (context.windowState === 1 && config.automatic.allowLoweringWhenOpened) {
-					return true												// Window open
+					send = true												// Window open
 				}
 			} else if (context.setposHeight >= context.actposHeight) {		// Rising
-				return true
+				send = true
 			} else {
-				return false
+				return
+			}
+			if (send) {
+				sendCommandFunc(null,null,null,context.setposHeight)
 			}
 		}
 		
-
-		/**
-		 * Performing actions depending on sunrise or sunset or any of it. 
-		 * @param {String} what Must be either "sunrise" or "sunset"
-		 */
-		function prepareAutoposFunc(what) {
-			if (what === "sunrise") {
-				if (config.auto.autoIfSunrise) {context.autoLocked = false};
-				if (config.debug) {that.log("Automatic enabled")}
-				if (!context.autoLocked) {
-					if (config.debug) {that.log("Now it's sunrise")};
-					if (config.automatic.openIfSunrise) {context.setposHeight = shadingSetposOpen}
-					else if (config.automatic.shadeIfSunrise) {context.setposHeight = config.set.shadingSetposShade}
-					else if (config.automatic.closeIfSunrise) {context.setposHeight = shadingSetposClose};
-					if (checkAutoMoveAllowedFunc()) {sendCommandFunc(null,null,null,context.setposHeight)}
-				}
-			} else if (what === "sunset") {
-				if (config.auto.autoIfSunset) {context.autoLocked = false};
-				if (config.debug) {that.log("Automatic enabled")}
-				if (!context.autoLocked) {
-					if (config.debug) {that.log("Now it's sunset")};
-					if (config.automatic.openIfSunset) {context.setposHeight = shadingSetposOpen}
-					else if (config.automatic.shadeIfSunset) {context.setposHeight = config.set.shadingSetposShade}
-					else if (config.automatic.closeIfSunset) {context.setposHeight = shadingSetposClose};
-					if (checkAutoMoveAllowedFunc()) {sendCommandFunc(null,null,null,context.setposHeight)}
-				}
-			}
-		}
-
 
 		/** Checks if the parameter is a valid date type
 		 * https://stackoverflow.com/questions/1353684/detecting-an-invalid-date-date-instance-in-javascript
@@ -240,9 +216,25 @@ module.exports = function(RED) {
 			// }
 
 			if (sunriseAhead === false && sunriseAheadPrev === true) {			// Now it's sunrise
-				prepareAutoposFunc("sunrise");
+				if (config.debug) {that.log("Now it's sunrise")};
+				if (config.automatic.autoIfSunrise && context.autoLocked) {
+					if (config.debug) {that.log("Automatic re-enabled")};
+					context.autoLocked = false;
+				};
+				if (config.automatic.openIfSunrise) {context.setposHeight = shadingSetposOpen}
+				else if (config.automatic.shadeIfSunrise) {context.setposHeight = config.set.shadingSetposShade}
+				else if (config.automatic.closeIfSunrise) {context.setposHeight = shadingSetposClose};
+				autoMove();
 			} else if (sunsetAhead === false && sunsetAheadPrev === true) {		// Now it's sunset
-				prepareAutoposFunc("sunset");
+				if (config.debug) {that.log("Now it's sunset")};
+				if (config.automatic.autoIfSunset && context.autoLocked) {
+					if (config.debug) {that.log("Automatic re-enabled")}
+					context.autoLocked = false;
+				};
+				if (config.automatic.openIfSunset) {context.setposHeight = shadingSetposOpen}
+				else if (config.automatic.shadeIfSunset) {context.setposHeight = config.set.shadingSetposShade}
+				else if (config.automatic.closeIfSunset) {context.setposHeight = shadingSetposClose};
+				autoMove();
 			}
 			
 			// Backing up
@@ -264,26 +256,25 @@ module.exports = function(RED) {
 		// Filling empty string fields with defaults
 		config.set.inmsgButtonTopicOpen = originalConfig.set.inmsgButtonTopicOpen || "openbutton";
 		config.set.inmsgButtonTopicClose = originalConfig.set.inmsgButtonTopicClose || "closebutton";
-		config.automatic.inmsgTopicAutoReenable = originalConfig.automatic.inmsgTopicAutoReenable || "auto";
-		config.automatic.inmsgTopicActPosHeight = originalConfig.automatic.inmsgTopicActPosHeight || "heightfeedback";
-		config.automatic.inmsgWinswitchTopic = originalConfig.automatic.inmsgWinswitchTopic || "switch";
-
+		if (config.autoActive) {
+			config.automatic.inmsgTopicAutoReenable = originalConfig.automatic.inmsgTopicAutoReenable || "auto";
+			config.automatic.inmsgTopicActPosHeight = originalConfig.automatic.inmsgTopicActPosHeight || "heightfeedback";
+			config.automatic.inmsgWinswitchTopic = originalConfig.automatic.inmsgWinswitchTopic || "switch";
+		}
+		
 		// Converting typed inputs
-		if (config.automatic.inmsgWinswitchPayloadOpenedType === 'num') {config.automatic.inmsgWinswitchPayloadOpened = Number(originalConfig.automatic.inmsgWinswitchPayloadOpened)}
-		else if (config.automatic.inmsgWinswitchPayloadOpenedType === 'bool') {config.automatic.inmsgWinswitchPayloadOpened = originalConfig.automatic.inmsgWinswitchPayloadOpened === 'true'}
-
-		if (config.automatic.inmsgWinswitchPayloadTiltedType === 'num') {config.automatic.inmsgWinswitchPayloadTilted = Number(originalConfig.automatic.inmsgWinswitchPayloadTilted)}
-		else if (config.automatic.inmsgWinswitchPayloadTiltedType === 'bool') {config.automatic.inmsgWinswitchPayloadTilted = originalConfig.automatic.inmsgWinswitchPayloadTilted === 'true'}
-		
-		if (config.automatic.inmsgWinswitchPayloadClosedType === 'num') {config.automatic.inmsgWinswitchPayloadClosed = Number(originalConfig.automatic.inmsgWinswitchPayloadClosed)}
-		else if (config.automatic.inmsgWinswitchPayloadClosedType === 'bool') {config.automatic.inmsgWinswitchPayloadClosed = originalConfig.automatic.inmsgWinswitchPayloadClosed === 'true'}
-		
+		if (config.autoActive) {
+			if (config.automatic.inmsgWinswitchPayloadOpenedType === 'num') {config.automatic.inmsgWinswitchPayloadOpened = Number(originalConfig.automatic.inmsgWinswitchPayloadOpened)}
+			else if (config.automatic.inmsgWinswitchPayloadOpenedType === 'bool') {config.automatic.inmsgWinswitchPayloadOpened = originalConfig.automatic.inmsgWinswitchPayloadOpened === 'true'}
+			if (config.automatic.inmsgWinswitchPayloadTiltedType === 'num') {config.automatic.inmsgWinswitchPayloadTilted = Number(originalConfig.automatic.inmsgWinswitchPayloadTilted)}
+			else if (config.automatic.inmsgWinswitchPayloadTiltedType === 'bool') {config.automatic.inmsgWinswitchPayloadTilted = originalConfig.automatic.inmsgWinswitchPayloadTilted === 'true'}
+			if (config.automatic.inmsgWinswitchPayloadClosedType === 'num') {config.automatic.inmsgWinswitchPayloadClosed = Number(originalConfig.automatic.inmsgWinswitchPayloadClosed)}
+			else if (config.automatic.inmsgWinswitchPayloadClosedType === 'bool') {config.automatic.inmsgWinswitchPayloadClosed = originalConfig.automatic.inmsgWinswitchPayloadClosed === 'true'}
+		}
 		if (config.set.payloadOpenCmdType === 'num') {config.set.payloadOpenCmd = Number(originalConfig.set.payloadOpenCmd)}
 		else if (config.set.payloadOpenCmdType === 'bool') {config.set.payloadOpenCmd = originalConfig.set.payloadOpenCmd === 'true'}
-
 		if (config.set.payloadCloseCmdType === 'num') {config.set.payloadCloseCmd = Number(originalConfig.set.payloadCloseCmd)}
 		else if (config.set.payloadCloseCmdType === 'bool') {config.set.payloadCloseCmd = originalConfig.set.payloadCloseCmd === 'true'}
-		
 		if (config.set.payloadStopCmdType === 'num') {config.set.payloadStopCmd = Number(originalConfig.set.payloadStopCmd)}
 		else if (config.set.payloadStopCmdType === 'bool') {config.set.payloadStopCmd = originalConfig.set.payloadStopCmd === 'true'}
 
@@ -346,8 +337,8 @@ module.exports = function(RED) {
 
 			if (buttonEvent) {
 
-				// Sending debug message
-				if (config.debug && !context.autoLocked) {that.log("Automatic disabled")}		// TODO irgendwo automatic enabled senden
+				// Disable automatic
+				if (config.debug && !context.autoLocked) {that.log("Automatic disabled")}
 				context.autoLocked = true;
 
 				// Button open pressed

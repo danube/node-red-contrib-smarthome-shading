@@ -347,7 +347,7 @@
     RED.nodes.registerType ('shading configuration', {
         category: 'config',
         defaults: {
-            name: {value: "Basic configuration", required: true},
+            name: {value: "Shading main configuration"},
             shadingSetposShade: {value: 80, required: true},
             shadingSetposShadeType: {value: "initval"},
             inmsgButtonTopicOpen: {},
@@ -360,7 +360,7 @@
             payloadStopCmdType: {value: "initval"},
         },
         label: function() {
-            return this.name
+            return this.name || "Shading main configuration";
         },
         oneditprepare: function() {
             // value & type initialisation
@@ -407,7 +407,7 @@
     <h3>Basics</h3>
     <div class="form-row">
         <label for="node-config-input-name"><i class="fa fa-bookmark"></i> Name</label>
-        <input type="text" id="node-config-input-name" placeholder="Name of onfiguration set">
+        <input type="text" id="node-config-input-name" placeholder="Shading main configuration">
     </div>
     <h3>Blind configuration</h3>
     <div class="form-row">
