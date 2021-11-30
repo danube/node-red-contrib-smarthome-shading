@@ -257,9 +257,9 @@ module.exports = function(RED) {
 		config.set.inmsgButtonTopicOpen = originalConfig.set.inmsgButtonTopicOpen || "openbutton";
 		config.set.inmsgButtonTopicClose = originalConfig.set.inmsgButtonTopicClose || "closebutton";
 		if (config.autoActive) {
-			config.automatic.inmsgTopicAutoReenable = originalConfig.automatic.inmsgTopicAutoReenable || "auto";
 			config.automatic.inmsgTopicActPosHeight = originalConfig.automatic.inmsgTopicActPosHeight || "heightfeedback";
 			config.automatic.inmsgWinswitchTopic = originalConfig.automatic.inmsgWinswitchTopic || "switch";
+			config.automatic.autoTopic = config.automatic.autoTopic || "auto";
 		}
 		
 		// Converting typed inputs
@@ -325,15 +325,10 @@ module.exports = function(RED) {
 				/** Window switch event based on incoming message topic */
 				var windowEvent = msg.topic === config.automatic.inmsgWinswitchTopic;
 				/** Auto re-enable event based on incoming message topic */
-				var autoReenableEvent = msg.topic === config.automatic.inmsgTopicAutoReenable;
+				var autoReenableEvent = config.automatic.autoIfMsgTopic && msg.topic === config.automatic.autoTopic;
 				/** Height drive position event based on incoming message topic */
 				var driveHeightEvent = msg.topic === config.automatic.inmsgTopicActPosHeight;
 			}
-
-			console.log("DEBUG: topic = " + msg.topic);
-			console.log("DEBUG: inmsgWinswitchTopic = " + config.automatic.inmsgWinswitchTopic);
-
-
 
 			if (buttonEvent) {
 

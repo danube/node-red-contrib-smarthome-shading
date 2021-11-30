@@ -61,7 +61,6 @@
             orientation: {required: true},
             windowSunAngleEntry: {value: -75, required: true},  // TODO check for -90 - +90°
             windowSunAngleExit: {value: 75, required: true},
-            inmsgTopicAutoReenable: {},
             inmsgTopicActPosHeight: {},
             allowLoweringWhenTilted: {},
             allowLoweringWhenOpened: {},
@@ -74,15 +73,13 @@
             inmsgWinswitchPayloadClosedType: {},
             hardlock: {},
             hardlockType: {},
-            behOpen: {value: "initval"},
-            behTilt: {value: "initval"},
-            behClose: {value: "initval"},
             autoIfSunrise: {},
             autoIfSunset: {},
             autoIfWinOpenToTilt: {},
             autoIfWinOpenToClosed: {},
             autoIfWinClosed: {},
             autoIfMsgTopic: {},
+            autoTopic: {value: "auto"},
             openIfWinOpen: {},
             openIfDayTempLow: {},
             openIfSunrise: {},
@@ -123,54 +120,19 @@
                 typeField: $("#node-config-input-hardlockType"),
                 types: ["flow","global",optionNothing]
             })
-            if (this.behOpen === "initval") {
-                $("#node-config-input-behOpen").val("nothing")
-            }
-            $("#node-config-input-behOpen").typedInput({
-                types: [
-                    {
-                        value: "behOpen",
-                        options: [
-                            {value: "nothing", label: "Nothing"},
-                            {value: "open", label: "Open"},
-                            {value: "shade", label: "Shade"},
-                            {value: "close", label: "Close"}
-                        ]
-                    }
-                ]
+
+            // hide autoTopic area
+            $("#node-config-input-autoIfMsgTopic").on('change', function() {
+                if ($("#node-config-input-autoIfMsgTopic")[0].checked) {
+                    $('#autoTopic').show('fast');
+                } else {
+                    $('#autoTopic').hide('fast');
+                }
             })
-            if (this.behTilt === "initval") {
-                $("#node-config-input-behTilt").val("nothing")
-            }
-            $("#node-config-input-behTilt").typedInput({
-                types: [
-                    {
-                        value: "behTilt",
-                        options: [
-                            {value: "nothing", label: "Nothing"},
-                            {value: "open", label: "Open"},
-                            {value: "shade", label: "Shade"},
-                            {value: "close", label: "Close"}
-                        ]
-                    }
-                ]
-            })
-            if (this.behClose === "initval") {
-                $("#node-config-input-behClose").val("nothing")
-            }
-            $("#node-config-input-behClose").typedInput({
-                types: [
-                    {
-                        value: "behClose",
-                        options: [
-                            {value: "nothing", label: "Nothing"},
-                            {value: "open", label: "Open"},
-                            {value: "shade", label: "Shade"},
-                            {value: "close", label: "Close"}
-                        ]
-                    }
-                ]
-            })
+
+
+
+
 
         }
     })
@@ -189,7 +151,7 @@
             width: 250px
         }
         .red-ui-editor .checkbox-row {
-            margin-bottom: 0px
+            margin-bottom: 0px;
         }
         .red-ui-editor .checkbox-row input {
             margin-left: 20px;
@@ -198,7 +160,7 @@
             width: auto !important;
         }
         .red-ui-editor h3 {
-            margin-top: 50px
+            margin-top: 20px
         }
     </style>
     <div class="form-row">
@@ -223,26 +185,15 @@
     </div>
 
     <div class="form-row">
-        <label for="node-config-input-inmsgTopicAutoReenable"><i class="fa fa-tasks"></i> Auto re-enable topic</label>
-        <input type="text" id="node-config-input-inmsgTopicAutoReenable" placeholder="Leave blank to use 'auto'">
-    </div>
-    <div class="form-row">
         <label for="node-config-input-inmsgTopicActPosHeight"><i class="fa fa-tasks"></i> Actual height position topic</label>  <!-- TODO find better description -->
         <input type="text" id="node-config-input-inmsgTopicActPosHeight" placeholder="Leave blank to use 'heightfeedback'">
-    </div>
-    <div class="form-row">
-        <label><i class="fa fa-bars"></i> Allow lowering when tilted</label>
-        <input type="checkbox" id="node-config-input-allowLoweringWhenTilted" checked="checked" style="display:inline-block; width:auto;">
-    </div>
-    <div class="form-row">
-        <label><i class="fa fa-bars"></i> Allow lowering when opened</label>
-        <input type="checkbox" id="node-config-input-allowLoweringWhenOpened" style="display:inline-block; width:auto;">
     </div>
     <div class="form-row">
         <label for="node-config-input-hardlock"><i class="fa fa-tag"></i> Hard lock</label>
         <input type="hidden" id="node-config-input-hardlockType">
         <input type="text" id="node-config-input-hardlock">
     </div>
+    <hr>
     <h3>Window switch</h3>
     <div class="form-row">
         <label for="node-config-input-inmsgWinswitchTopic"><i class="fa fa-tasks"></i> Topic</label>
@@ -263,79 +214,72 @@
         <input type="hidden" id="node-config-input-inmsgWinswitchPayloadClosedType">
         <input type="text" id="node-config-input-inmsgWinswitchPayloadClosed">
     </div>
+    <hr>
+    <h3>Security configuration</h3>
+    <div class="form-row checkbox-row">
+        <input type="checkbox" id="node-config-input-allowLoweringWhenTilted"> <label style="width: 300px" for="node-config-input-allowLoweringWhenTilted">Lowering allowed if window is tilted</label>
+    </div>
+    <div class="form-row checkbox-row">
+        <input type="checkbox" id="node-config-input-allowLoweringWhenOpened"> <label style="width: 300px" for="node-config-input-allowLoweringWhenOpened">Lowering allowed if window is opened</label>
+    </div>
+    <hr>
     <h3>Events configuration</h3>
-    
     <h4>Re-enable automatic conditions</h4>
     <div class="form-row checkbox-row">
-        <input type="checkbox" id="node-config-input-autoIfSunrise"> <label style="width: auto" for="node-config-input-autoIfSunrise">Sunrise</label>
+        <input type="checkbox" id="node-config-input-autoIfSunrise"> <label style="width: 300px" for="node-config-input-autoIfSunrise">Sunrise</label>
     </div>
     <div class="form-row checkbox-row">
-        <input type="checkbox" id="node-config-input-autoIfSunset"> <label style="width: auto" for="node-config-input-autoIfSunset">Sunset</label>
+        <input type="checkbox" id="node-config-input-autoIfSunset"> <label style="width: 300px" for="node-config-input-autoIfSunset">Sunset</label>
     </div>
     <div class="form-row checkbox-row">
-        <input type="checkbox" id="node-config-input-autoIfWinOpenToTilt"> <label style="width: auto" for="node-config-input-autoIfWinOpenToTilt">Window open -> tilted</label>
+        <input type="checkbox" id="node-config-input-autoIfWinOpenToTilt"> <label style="width: 300px" for="node-config-input-autoIfWinOpenToTilt">Window changes from 'open' to 'tilted'</label>
     </div>
     <div class="form-row checkbox-row">
-        <input type="checkbox" id="node-config-input-autoIfWinOpenToClosed"> <label style="width: auto" for="node-config-input-autoIfWinOpenToClosed">Window open -> closed</label>
+        <input type="checkbox" id="node-config-input-autoIfWinOpenToClosed"> <label style="width: 300px" for="node-config-input-autoIfWinOpenToClosed">Window changes from 'open' to 'closed'</label>
     </div>
     <div class="form-row checkbox-row">
-        <input type="checkbox" id="node-config-input-autoIfWinClosed"> <label style="width: auto" for="node-config-input-autoIfWinClosed">Window closed</label>
+        <input type="checkbox" id="node-config-input-autoIfWinClosed"> <label style="width: 300px" for="node-config-input-autoIfWinClosed">Window changes from any state to 'closed'</label>
     </div>
     <div class="form-row checkbox-row">
-        <input type="checkbox" id="node-config-input-autoIfMsgTopic"> <label style="width: auto" for="node-config-input-autoIfMsgTopic">Message with topic XXX</label>
+        <input type="checkbox" id="node-config-input-autoIfMsgTopic"> <label style="width: 300px" for="node-config-input-autoIfMsgTopic">Message with topic</label>
     </div>
-    
+    <div id="autoTopic" style="padding-left: 20px">
+        <div class="form-row checkbox-row" style="width: 300px;">
+            <input type="text" id="node-config-input-autoTopic" placeholder="auto">
+        </div>
+    </div>
     <h4>Open conditions</h4>
     <div class="form-row checkbox-row">
-        <input type="checkbox" id="node-config-input-openIfWinOpen"> <label style="width: auto" for="node-config-input-openIfWinOpen">Window opens</label>
+        <input type="checkbox" id="node-config-input-openIfWinOpen"> <label style="width: 300px" for="node-config-input-openIfWinOpen">Window changes from any state to 'open'</label>
     </div>
     <div class="form-row checkbox-row">
-        <input type="checkbox" id="node-config-input-openIfDayTempLow"> <label style="width: auto" for="node-config-input-openIfDayTempLow">Room temperature below limit (at daytime)</label>
+        <input type="checkbox" id="node-config-input-openIfDayTempLow"> <label style="width: 300px" for="node-config-input-openIfDayTempLow">Room temperature below limit (at daytime)</label>
     </div>
     <div class="form-row checkbox-row">
-        <input type="checkbox" id="node-config-input-openIfSunrise"> <label style="width: auto" for="node-config-input-openIfSunrise">Sunrise</label>
+        <input type="checkbox" id="node-config-input-openIfSunrise"> <label style="width: 300px" for="node-config-input-openIfSunrise">Sunrise</label>
     </div>
     <div class="form-row checkbox-row">
-        <input type="checkbox" id="node-config-input-openIfSunset"> <label style="width: auto" for="node-config-input-openIfSunset">Sunset</label>
+        <input type="checkbox" id="node-config-input-openIfSunset"> <label style="width: 300px" for="node-config-input-openIfSunset">Sunset</label>
     </div>
-    
     <h4>Shade conditions</h4>
     <div class="form-row checkbox-row">
-        <input type="checkbox" id="node-config-input-shadeIfClosedWinOpen"> <label style="width: auto" for="node-config-input-shadeIfClosedWinOpen">Closed and window open</label>
+        <input type="checkbox" id="node-config-input-shadeIfClosedWinOpen"> <label style="width: 300px" for="node-config-input-shadeIfClosedWinOpen">Window changes from any state to 'open' while shading is closed</label>
     </div>
     <div class="form-row checkbox-row">
-        <input type="checkbox" id="node-config-input-shadeIfDayTempHigh"> <label style="width: auto" for="node-config-input-shadeIfDayTempHigh">At day if room temp is high</label>
+        <input type="checkbox" id="node-config-input-shadeIfDayTempHigh"> <label style="width: 300px" for="node-config-input-shadeIfDayTempHigh">At day if room temp is high</label>
     </div>
     <div class="form-row checkbox-row">
-        <input type="checkbox" id="node-config-input-shadeIfSunrise"> <label style="width: auto" for="node-config-input-shadeIfSunrise">Sunrise</label>
+        <input type="checkbox" id="node-config-input-shadeIfSunrise"> <label style="width: 300px" for="node-config-input-shadeIfSunrise">Sunrise</label>
     </div>
     <div class="form-row checkbox-row">
-        <input type="checkbox" id="node-config-input-shadeIfSunset"> <label style="width: auto" for="node-config-input-shadeIfSunset">Sunset</label>
+        <input type="checkbox" id="node-config-input-shadeIfSunset"> <label style="width: 300px" for="node-config-input-shadeIfSunset">Sunset</label>
     </div>
-    
     <h4>Close conditions</h4>
     <div class="form-row checkbox-row">
-        <input type="checkbox" id="node-config-input-closeIfSunrise"> <label style="width: auto" for="node-config-input-closeIfSunrise">Sunrise</label>
+        <input type="checkbox" id="node-config-input-closeIfSunrise"> <label style="width: 300px" for="node-config-input-closeIfSunrise">Sunrise</label>
     </div>
     <div class="form-row checkbox-row">
-        <input type="checkbox" id="node-config-input-closeIfSunset"> <label style="width: auto" for="node-config-input-closeIfSunset">Sunset</label>
-    </div>
-
-
-
-
-
-    <div class="form-row">
-        <label for="node-config-input-behOpen"><i class="fa fa-sliders"></i> Win open action</label>
-        <input type="text" id="node-config-input-behOpen">
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-behTilt"><i class="fa fa-sliders"></i> Win tilt action</label>
-        <input type="text" id="node-config-input-behTilt">
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-behClose"><i class="fa fa-sliders"></i> Win close action</label>
-        <input type="text" id="node-config-input-behClose">
+        <input type="checkbox" id="node-config-input-closeIfSunset"> <label style="width: 300px" for="node-config-input-closeIfSunset">Sunset</label>
     </div>
 </script>
 
