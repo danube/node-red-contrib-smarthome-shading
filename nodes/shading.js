@@ -127,32 +127,51 @@ module.exports = function(RED) {
 				msgD = {topic: "setpointcommand", payload: d};
 				if (config.debug) {msgD = {topic: msgD.topic, payload: msgD.payload}}
 			};
-			that.send([msgA, msgB, msgC, msgD]);
+			that.send([msgA, msgB, msgC, msgD])
+			that.log("New output values have been written.")
+			console.log([msgA, msgB, msgC, msgD])
 		}
 
 
 		/** Checks if automatic movement is allowed and sends setpos values.
 		 * This function MUST be called each time an automatic movement should processed.
-		 * @returns {Boolean} true if allowed, false if not.
+		 * @param {String} event Event triggering the function
 		 */
-		function autoMove() {
-			let send = false;
-			if (context.hardlock || context.autoLocked) {
-				return
-			} else if (context.setposHeight < context.actposHeight) {		// Lowering
-				if (context.windowState === 3) {
-					send = true												// Window closed
-				} else if (context.windowState === 2 && config.automatic.allowLoweringWhenTilted) {
-					send = true												// Window tilted
-				} else if (context.windowState === 1 && config.automatic.allowLoweringWhenOpened) {
-					send = true												// Window open
+		function autoMoveFunc(event) {
+			if (config.debug) {that.log("Evaluating '" + event + "' event...")}
+			if (event === "sunrise") {
+				if (config.automatic.openIfSunrise) {context.setposHeight = shadingSetposOpen}
+				else if (config.automatic.shadeIfSunrise) {context.setposHeight = config.set.shadingSetposShade}
+				else if (config.automatic.closeIfSunrise) {context.setposHeight = shadingSetposClose}
+				else {
+					if (config.debug) {that.log("Nothing configured to happen at this event.")}
+					return
 				}
-			} else if (context.setposHeight >= context.actposHeight) {		// Rising
-				send = true
-			} else {
-				return
+			} else if (event === "sunset") {
+				if (config.automatic.openIfSunset) {context.setposHeight = shadingSetposOpen}
+				else if (config.automatic.shadeIfSunset) {context.setposHeight = config.set.shadingSetposShade}
+				else if (config.automatic.closeIfSunset) {context.setposHeight = shadingSetposClose}
+				else {
+					if (config.debug) {that.log("Nothing configured to happen at this event.")}
+					return
+				}
 			}
-			if (send) {
+			if (config.debug) {that.log("New setposHeight is '" + context.setposHeight + "'")}
+
+			if (context.hardlock) {																	// Hardlock
+				if (config.debug) {that.log("Locked by hardlock, nothing will happen.")}
+			} else if (context.autoLocked) {														// Softlock
+				if (config.debug) {that.log("Locked by application, nothing will happen.")}
+			} else if (!context.actposHeight && context.setposHeight === 0) {						// Actual height position unknown but setpos is 0
+				that.warn("Unknown actual position, but rising may be allowed.")
+				sendCommandFunc(null,null,null,context.setposHeight)
+			} else if (!context.actposHeight) {														// Actual height position unknown
+				that.warn("Unknown actual position. Nothing will happen.")
+			} else if (context.setposHeight < context.actposHeight) {																					// LOWERING
+				if (context.windowState === 1 && config.automatic.allowLoweringWhenOpened) {sendCommandFunc(null,null,null,context.setposHeight)}		// Window open
+				else if (context.windowState === 2 && config.automatic.allowLoweringWhenTilted) {sendCommandFunc(null,null,null,context.setposHeight)}	// Window tilted
+				else if (context.windowState === 3) {sendCommandFunc(null,null,null,context.setposHeight)}												// Window closed
+			} else if (context.setposHeight >= context.actposHeight) {																				// RISING
 				sendCommandFunc(null,null,null,context.setposHeight)
 			}
 		}
@@ -162,6 +181,7 @@ module.exports = function(RED) {
 		 * https://stackoverflow.com/questions/1353684/detecting-an-invalid-date-date-instance-in-javascript
 		 */
 		function isValidDate(d) {return d instanceof Date && !isNaN(d)}
+
 
 		/** Gets suncalc times
 		 * @property {Date} dawn dawn (morning nautical twilight ends, morning civil twilight starts)
@@ -179,12 +199,16 @@ module.exports = function(RED) {
 		 * @property {Date} sunset sunset (sun disappears below the horizon, evening civil twilight starts)
 		 * @property {Date} sunsetStart sunset starts (bottom edge of the sun touches the horizon)
 		*/
-		function suncalcFunc(date) {return suncalc.getTimes(date, config.location.lat, config.location.lon)}
+		function suncalcFunc(date) {
+			return suncalc.getTimes(date, config.location.lat, config.location.lon)
+		}
 	
 
+
 		/** This is the loop function which will be processed only if automatic is enabled. */
-		function mainloopFunc(){
-			actDate = new Date();		// Set to actual time
+		function mainLoopFunc(){
+
+			actDate = new Date();								// Set to actual time
 			suncalcDate = new Date().setHours(12,0,0);
 			
 			if (dateStringPrev) {								// We have a previous date already backed up
@@ -195,48 +219,43 @@ module.exports = function(RED) {
 						that.log("A new day has arrived! Here comes sunTimes:");
 						console.log(sunTimes);
 					}
-				};
+				}
 			} else {											// This must be the first cycle
 				sunTimes = suncalcFunc(suncalcDate);			// Get new suncalc values and simulate noon
 				if (config.debug) {
 					that.log("This is the first cycle. Here comes sunTimes: ")
-					console.log(sunTimes);
+					console.log(sunTimes)
+				}
+				if (actDate >= sunTimes.sunrise && actDate < sunTimes.sunset) {
+					autoMoveFunc("sunrise")
+				} else {
+					autoMoveFunc("sunset")
 				}
 			}
 
-			if (!isValidDate(sunTimes.sunrise) || !isValidDate(sunTimes.sunset)) {return -1}		// TODO break, something is wrong;
-			
-			/** Sunrise is in the future */
-			sunriseAhead = sunTimes.sunrise > actDate;
-			/** Sunset is in the future */
-			sunsetAhead = sunTimes.sunset > actDate;
-
-			// if (config.debug) {
-			// 	that.log("Date: " + actDate.toLocaleString() + ", Sunrise: " + sunTimes.sunrise.toLocaleString() + ", Sunset: " + sunTimes.sunset.toLocaleString());
-			// }
-
-			if (sunriseAhead === false && sunriseAheadPrev === true) {			// Now it's sunrise
-				if (config.debug) {that.log("Now it's sunrise")};
-				if (config.automatic.autoIfSunrise && context.autoLocked) {
-					if (config.debug) {that.log("Automatic re-enabled")};
-					context.autoLocked = false;
-				};
-				if (config.automatic.openIfSunrise) {context.setposHeight = shadingSetposOpen}
-				else if (config.automatic.shadeIfSunrise) {context.setposHeight = config.set.shadingSetposShade}
-				else if (config.automatic.closeIfSunrise) {context.setposHeight = shadingSetposClose};
-				autoMove();
-			} else if (sunsetAhead === false && sunsetAheadPrev === true) {		// Now it's sunset
-				if (config.debug) {that.log("Now it's sunset")};
-				if (config.automatic.autoIfSunset && context.autoLocked) {
-					if (config.debug) {that.log("Automatic re-enabled")}
-					context.autoLocked = false;
-				};
-				if (config.automatic.openIfSunset) {context.setposHeight = shadingSetposOpen}
-				else if (config.automatic.shadeIfSunset) {context.setposHeight = config.set.shadingSetposShade}
-				else if (config.automatic.closeIfSunset) {context.setposHeight = shadingSetposClose};
-				autoMove();
+			if (!isValidDate(sunTimes.sunrise) || !isValidDate(sunTimes.sunset)) {
+				that.err("E002: Something is seriously broken with the suntimes calculator. Please consult the developer!")
 			}
 			
+			sunriseAhead = sunTimes.sunrise > actDate		// Sunrise is in the future
+			sunsetAhead = sunTimes.sunset > actDate			// Sunset is in the future
+
+			if (sunriseAhead === false && sunriseAheadPrev === true) {			// SUNRISE
+				if (config.debug) {that.log("Now it's sunrise")}				// Send debug message
+				if (config.automatic.autoIfSunrise && context.autoLocked) {		// Check if lock needs to be released
+					context.autoLocked = false									// Release lock
+					if (config.debug) {that.log("Automatic re-enabled")}		// Send debug message
+					autoMoveFunc("sunrise")
+				}
+			} else if (sunsetAhead === false && sunsetAheadPrev === true) {		// SUNSET
+				if (config.debug) {that.log("Now it's sunset")}					// Send debug message
+				if (config.automatic.autoIfSunset && context.autoLocked) {		// Check if lock needs to be released
+					context.autoLocked = false									// Release lock
+					if (config.debug) {that.log("Automatic re-enabled")}		// Send debug message
+					autoMoveFunc("sunset")
+				}
+			}
+
 			// Backing up
 			dateStringPrev = actDate.toISOString();
 			sunriseAheadPrev = sunriseAhead;
@@ -290,9 +309,9 @@ module.exports = function(RED) {
 
 		// Main loop
 		if (config.autoActive) {
-			mainloopFunc();		// Trigger once as setInterval will fire first after timeout
+			mainLoopFunc();		// Trigger once as setInterval will fire first after timeout
 			clearInterval(handle);		// Clear eventual previous loop
-			handle = setInterval(mainloopFunc, loopIntervalTime);		// Continuous interval run
+			handle = setInterval(mainLoopFunc, loopIntervalTime);		// Continuous interval run
 		}
 		
 		// <==== FIRST RUN ACTIONS
