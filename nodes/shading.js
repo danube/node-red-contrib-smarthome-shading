@@ -329,6 +329,8 @@ module.exports = function(RED) {
 			if (msg.topic === config.set.inmsgButtonTopicOpen) {context.stateButtonOpen = msg.payload}
 			else if (msg.topic === config.set.inmsgButtonTopicClose) {context.stateButtonClose = msg.payload}; // TODO logical verification, like drive height position
 
+			/** Resend event */
+			var resendEvent = msg.topic === "resend";										// TODO in documentation
 			/** Button open/close event based on incoming message topic */
 			var buttonEvent = msg.topic === config.set.inmsgButtonTopicOpen || msg.topic === config.set.inmsgButtonTopicClose;
 			/** Button press event based on incoming message topic, if payload is TRUE */
@@ -463,9 +465,11 @@ module.exports = function(RED) {
 				} else {
 					that.warn("W001: Actual drive position must be number between 0 and 100, but received '" + msg.payload + "'.")
 				}
-			};
+			}
 
-
+			else if (resendEvent) {
+				
+			}
 
 
 

@@ -1,4 +1,4 @@
-# Manual for the shading node
+# Manual for "shading node"
 This interface provides you with only some very basic settings.
 
 <img src="node.png" height="270px" style="border:1px dashed grey">
