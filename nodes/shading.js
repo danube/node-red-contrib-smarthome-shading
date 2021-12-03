@@ -59,9 +59,19 @@ module.exports = function(RED) {
 		// Variable declaration
 		const loopIntervalTime = 5000;
 		const dblClickTime = 500;			// Waiting time for second button press		// TODO Zeit konfigurierbar machen
-		const shadingSetposOpen = 0;
-		const shadingSetposClose = 100;
-		
+
+		const shadingSetpos = {
+			open: 0,
+			shade: Number(originalConfig.set.shadingSetposShade),
+			close: 100
+		}
+
+		const window = {
+			opened: 1,
+			tilted: 2,
+			closed: 3
+		}
+
 		let sunTimes = null;
 		var err = false;
 		let loopCounter = 0;
@@ -74,21 +84,6 @@ module.exports = function(RED) {
 		let sunsetAheadPrev = null;
 		/** The actual time as date object */
 		let actDate = new Date();
-		/** */
-		let resendRequest = false;
-		/** Hard lock */
-		context.hardlock = null;
-		if (config.autoActive) {
-			if (config.automatic.hardlock && config.automatic.hardlockType) {
-				if (config.automatic.hardlockType === "flow") {context.hardlock = flowContext.get(config.automatic.hardlock)}
-				else if (config.automatic.hardlockType === "global") {context.hardlock = globalContext.get(config.automatic.hardlock)}
-				if (typeof context.hardlock === "undefined") {
-					that.warn("W003: Undefined hard lock variable at '" + config.automatic.hardlockType + "." + config.automatic.hardlock + "'. Assuming false until set.")
-				} else if (typeof context.hardlock !== "boolean") {
-					that.warn("W004: Hard lock variable at '" + config.automatic.hardlockType + "." + config.automatic.hardlock + "' defined but not a boolean. Assuming false until set.")
-				}
-			}
-		}
 		// Loading external modules
 		var suncalc = require("suncalc");	// https://www.npmjs.com/package/suncalc#reference
 
@@ -133,33 +128,71 @@ module.exports = function(RED) {
 
 		/** Checks if automatic movement is allowed and sends setpos values.
 		 * This function MUST be called each time an automatic movement should processed.
+		 * @param {Boolean} sendNow If true, the setpoint value will be sent. If false, the setpoint will be sent only if it changes.
+		 * @param {Boolean} ignoreHardlock If true, the setpoint will be sent even if hardlock is active.
 		 */
-		function autoMoveFunc() {
-			if (context.setposHeightPrev == context.setposHeight && !resendRequest) {return}
+		function autoMoveFunc(sendNow, ignoreHardlock) {
+			if (context.setposHeightPrev == context.setposHeight && !sendNow) {return}
 			else if (config.debug) {that.log("New setposHeight is '" + context.setposHeight + "'")}
 
-			resendRequest = false;
+			if (config.autoActive) {
+				if (config.automatic.hardlockType === "flow") {context.hardlock = flowContext.get(config.automatic.hardlock)}
+				else if (config.automatic.hardlockType === "global") {context.hardlock = globalContext.get(config.automatic.hardlock)}
+				else if (config.automatic.hardlockType === "dis") {context.hardlock = false}
+				else {that.err("E003: Undefined hardlock type")}
+				if (typeof context.hardlock === "undefined") {
+					that.warn("W003: Undefined hard lock variable at '" + config.automatic.hardlockType + "." + config.automatic.hardlock + "'. Assuming false until set.")
+					context.hardlock = false
+				} else if (typeof context.hardlock !== "boolean") {
+					that.warn("W004: Hard lock variable at '" + config.automatic.hardlockType + "." + config.automatic.hardlock + "' defined but not a boolean. Assuming false until set.")
+					context.hardlock = false
+				}
+			} else {
+				context.hardlock = false
+			}
+	
+			if (ignoreHardlock) {if (config.debug) {that.log("Hardlock will be ignored, as you configured.")}}
 
-			if (context.hardlock) {																	// Hardlock
+
+			if (context.hardlock && !ignoreHardlock) {												// Hardlock
 				if (config.debug) {that.log("Locked by hardlock, nothing will happen.")}
-				return
+
 			} else if (context.autoLocked) {														// Softlock
 				if (config.debug) {that.log("Locked by application, nothing will happen.")}
-				return
+				
+
+
 			} else if (!context.actposHeight && context.setposHeight === 0) {						// Actual height position unknown but setpos is 0
 				that.warn("Unknown actual position, but rising may be allowed.")
 				sendCommandFunc(null,null,null,context.setposHeight)
+
+				
+
 			} else if (!context.actposHeight) {														// Actual height position unknown
 				that.warn("Unknown actual position. Nothing will happen.")
-			} else if (context.setposHeight < context.actposHeight) {																					// LOWERING
-				if (!context.windowState || context.windowState < 1 || context.windowState > 3) {
+			
+			
+			
+			} else if (context.setposHeight < context.actposHeight) {								// Lowering
+				
+				// check plausibility of window switch position
+				if (config.automatic.winswitchEnable && (!context.windowState || context.windowState < 1 || context.windowState > 3)) {
 					that.warn("Unknown or invalid window State (open/tilted/closed). Nothing will happen.")
 				}
-				else if (context.windowState === 1 && config.automatic.allowLoweringWhenOpened) {sendCommandFunc(null,null,null,context.setposHeight)}		// Window open
-				else if (context.windowState === 2 && config.automatic.allowLoweringWhenTilted) {sendCommandFunc(null,null,null,context.setposHeight)}	// Window tilted
-				else if (context.windowState === 3) {sendCommandFunc(null,null,null,context.setposHeight)}												// Window closed
-			} else if (context.setposHeight >= context.actposHeight) {																				// RISING
-				sendCommandFunc(null,null,null,context.setposHeight)
+
+				/** Allow lowering after checking security conditions */
+				let allowLowering = 
+					(context.windowState === window.opened && config.automatic.allowLoweringWhenOpened)
+					|| (context.windowState === window.tilted && config.automatic.allowLoweringWhenTilted)
+					|| context.windowState === window.closed
+					|| config.automatic.winswitchEnable
+
+				if (allowLowering) {
+					sendCommandFunc(null,null,null,context.setposHeight)
+				} else {
+					if (config.debug) {that.log("Lowering requested but not allowed. Nothing will happen.")}
+				}
+
 			}
 
 			context.setposHeightPrev = context.setposHeight
@@ -221,14 +254,14 @@ module.exports = function(RED) {
 				that.err("E002: Something is seriously broken with the suntimes calculator. Please consult the developer!")
 			}
 
-			if (actDate >= sunTimes.sunrise && actDate < sunTimes.sunset) {		// Sun up
-				if (config.automatic.openIfSunrise) {context.setposHeight = shadingSetposOpen}
+			if (actDate >= sunTimes.sunrise && actDate < sunTimes.sunset) {		// Daytime
+				if (config.automatic.openIfSunrise) {context.setposHeight = shadingSetpos.open}
 				else if (config.automatic.shadeIfSunrise) {context.setposHeight = config.set.shadingSetposShade}
-				else if (config.automatic.closeIfSunrise) {context.setposHeight = shadingSetposClose}
-			} else {															// Sun down
-				if (config.automatic.openIfSunset) {context.setposHeight = shadingSetposOpen}
+				else if (config.automatic.closeIfSunrise) {context.setposHeight = shadingSetpos.close}
+			} else {															// Nighttime
+				if (config.automatic.openIfSunset) {context.setposHeight = shadingSetpos.open}
 				else if (config.automatic.shadeIfSunset) {context.setposHeight = config.set.shadingSetposShade}
-				else if (config.automatic.closeIfSunset) {context.setposHeight = shadingSetposClose}
+				else if (config.automatic.closeIfSunset) {context.setposHeight = shadingSetpos.close}
 			}
 
 			/** Sunrise is in the future */
@@ -236,13 +269,14 @@ module.exports = function(RED) {
 			/** Sunset is in the future */
 			let sunsetAhead = sunTimes.sunset > actDate			// Sunset is in the future
 
-			if (sunriseAhead === false && sunriseAheadPrev === true) {			// SUNRISE EVENT
+			// Unlock automatic
+			if (sunriseAhead === false && sunriseAheadPrev === true) {			// Sunrise
 				if (config.debug) {that.log("Now it's sunrise")}				// Send debug message
 				if (config.automatic.autoIfSunrise && context.autoLocked) {		// Check if lock needs to be released
 					context.autoLocked = false									// Release lock
 					if (config.debug) {that.log("Automatic re-enabled")}		// Send debug message
 				}
-			} else if (sunsetAhead === false && sunsetAheadPrev === true) {		// SUNSET EVENT
+			} else if (sunsetAhead === false && sunsetAheadPrev === true) {		// Sunset
 				if (config.debug) {that.log("Now it's sunset")}					// Send debug message
 				if (config.automatic.autoIfSunset && context.autoLocked) {		// Check if lock needs to be released
 					context.autoLocked = false									// Release lock
@@ -269,16 +303,18 @@ module.exports = function(RED) {
 		// FIRST RUN ACTIONS ====>
 
 		// Filling empty string fields with defaults
-		config.set.inmsgButtonTopicOpen = originalConfig.set.inmsgButtonTopicOpen || "openbutton";
-		config.set.inmsgButtonTopicClose = originalConfig.set.inmsgButtonTopicClose || "closebutton";
+		config.set.inmsgButtonTopicOpen = originalConfig.set.inmsgButtonTopicOpen || "openbutton"
+		config.set.inmsgButtonTopicClose = originalConfig.set.inmsgButtonTopicClose || "closebutton"
 		if (config.autoActive) {
-			config.automatic.inmsgTopicActPosHeight = originalConfig.automatic.inmsgTopicActPosHeight || "heightfeedback";
-			config.automatic.inmsgWinswitchTopic = originalConfig.automatic.inmsgWinswitchTopic || "switch";
-			config.automatic.autoTopic = config.automatic.autoTopic || "auto";
+			config.automatic.inmsgTopicActPosHeight = originalConfig.automatic.inmsgTopicActPosHeight || "heightfeedback"
+			config.automatic.autoTopic = config.automatic.autoTopic || "auto"
+			if (config.automatic.winswitchEnable) {
+				config.automatic.inmsgWinswitchTopic = originalConfig.automatic.inmsgWinswitchTopic || "switch"
+			}
 		}
 		
 		// Converting typed inputs
-		if (config.autoActive) {
+		if (config.autoActive && config.automatic.winswitchEnable) {
 			if (config.automatic.inmsgWinswitchPayloadOpenedType === 'num') {config.automatic.inmsgWinswitchPayloadOpened = Number(originalConfig.automatic.inmsgWinswitchPayloadOpened)}
 			else if (config.automatic.inmsgWinswitchPayloadOpenedType === 'bool') {config.automatic.inmsgWinswitchPayloadOpened = originalConfig.automatic.inmsgWinswitchPayloadOpened === 'true'}
 			if (config.automatic.inmsgWinswitchPayloadTiltedType === 'num') {config.automatic.inmsgWinswitchPayloadTilted = Number(originalConfig.automatic.inmsgWinswitchPayloadTilted)}
@@ -293,14 +329,14 @@ module.exports = function(RED) {
 		if (config.set.payloadStopCmdType === 'num') {config.set.payloadStopCmd = Number(originalConfig.set.payloadStopCmd)}
 		else if (config.set.payloadStopCmdType === 'bool') {config.set.payloadStopCmd = originalConfig.set.payloadStopCmd === 'true'}
 
-		config.set.shadingSetposShade = Number(originalConfig.set.shadingSetposShade);
+		config.set.shadingSetposShade = shadingSetpos.shade
 		
 		// Show config and context on console
 		if (config.debug) {
-			console.log("Debugging is enabled in the node properties. Here comes config:");
-			console.log(config);
-			console.log("Debugging is enabled in the node properties. Here comes context:");
-			console.log(context);
+			console.log("Debugging is enabled in the node properties. Here comes config:")
+			console.log(config)
+			console.log("Debugging is enabled in the node properties. Here comes context:")
+			console.log(context)
 		}
 
 		// Main loop
@@ -310,6 +346,13 @@ module.exports = function(RED) {
 			handle = setInterval(mainLoopFunc, loopIntervalTime);		// Continuous interval run
 		}
 		
+		// Initially set node status
+		if (!config.automatic.winswitchEnable) {
+			that.status({})
+		} else {
+			that.status({fill: "blue", shape: "ring", text: context.windowStateStr})
+		}
+
 		// <==== FIRST RUN ACTIONS
 
 
@@ -340,11 +383,11 @@ module.exports = function(RED) {
 			
 			if (config.autoActive) {
 				/** Window switch event based on incoming message topic */
-				var windowEvent = msg.topic === config.automatic.inmsgWinswitchTopic;
+				var windowEvent = config.automatic.winswitchEnable && msg.topic === config.automatic.inmsgWinswitchTopic
 				/** Auto re-enable event based on incoming message topic */
-				var autoReenableEvent = config.automatic.autoIfMsgTopic && msg.topic === config.automatic.autoTopic;
+				var autoReenableEvent = config.automatic.autoIfMsgTopic && msg.topic === config.automatic.autoTopic
 				/** Height drive position event based on incoming message topic */
-				var driveHeightEvent = msg.topic === config.automatic.inmsgTopicActPosHeight;
+				var driveHeightEvent = msg.topic === config.automatic.inmsgTopicActPosHeight
 			}
 
 			if (buttonEvent) {
@@ -362,7 +405,7 @@ module.exports = function(RED) {
 						
 						// DOUBLE CLICK ACTIONS ==>
 						clearTimeout(context.buttonOpenTimeoutHandle); context.buttonOpenTimeoutHandle = null;
-						sendCommandFunc(null,null,null,shadingSetposOpen);
+						sendCommandFunc(null,null,null,shadingSetpos.open);
 						// <== DOUBLE CLICK ACTIONS
 
 					} else {
@@ -388,7 +431,7 @@ module.exports = function(RED) {
 						
 						// DOUBLE CLICK ACTIONS ==>
 						clearTimeout(context.buttonCloseTimeoutHandle); context.buttonCloseTimeoutHandle = null;
-						sendCommandFunc(null,null,null,shadingSetposClose);
+						sendCommandFunc(null,null,null,shadingSetpos.close);
 						// <== DOUBLE CLICK ACTIONS
 						
 					} else {
@@ -418,43 +461,73 @@ module.exports = function(RED) {
 
 
 			else if (windowEvent) {
-				
-				console.log("DEBUG: window event")
-				let oldState = context.windowStateStr;
+				let oldState = context.windowState;
+				let oldStateStr = context.windowStateStr;
 
 				// Storing context values
 				if (msg.payload === config.automatic.inmsgWinswitchPayloadOpened) {
-					context.windowState = 1
-					context.windowStateStr = "open"
+					context.windowState = window.opened
+					context.windowStateStr = "opened"
 				} else if (msg.payload === config.automatic.inmsgWinswitchPayloadTilted) {
-					context.windowState = 2
+					context.windowState = window.tilted
 					context.windowStateStr = "tilted"
 				} else if (msg.payload === config.automatic.inmsgWinswitchPayloadClosed) {
-					context.windowState = 3
-					context.windowStateStr = "close"
+					context.windowState = window.closed
+					context.windowStateStr = "closed"
 				} else {
 					context.windowState = null
 					context.windowStateStr = "unknown"
-				};
+				}
 
-				if (config.debug) {that.log("Window switch event detected: " + oldState + " -> "  + context.windowStateStr)}
+				// Sending node status
+				that.status({fill: "blue", shape: "ring", text: context.windowStateStr})
 
-				// Process
-				// TODO Define window event process
+				// Sending debug message
+				if (config.debug) {that.log("Window switch event detected: " + oldStateStr + " -> "  + context.windowStateStr)}
+
+				// Re-enable automatic
+				let reenable = (
+					(config.automatic.autoIfWinOpenToTilt && oldState == window.opened && context.windowState == window.tilted)
+					|| (config.automatic.autoIfWinClosed && context.windowState == window.closed)
+				)
+				if (reenable) {
+					if (config.debug) {that.log("Re-enabeling automatic due to window switch event")}
+					context.autoLocked = false
+					autoMoveFunc(true)
+				}
+
+				// Move up when window opens
+				if (context.windowState == window.opened && config.automatic.openIfWinOpen) {
+					context.setposHeight = shadingSetpos.open
+					autoMoveFunc(true)
+				}
+
+				// Shade when window opens and shading is closed
+				if (context.windowState == window.opened && config.automatic.shadeIfWinOpen && context.actposHeight > shadingSetpos.shade) {		// TODO workaround wenn es keine actposHeight gibt
+					context.setposHeight = shadingSetpos.shade
+					if (config.automatic.shadeIfWinOpenOverrideHardlock) {
+						autoMoveFunc(true,true)
+						that.log("DEBUG: 111")
+					} else {
+						autoMoveFunc(true)
+						that.log("DEBUG: 222")
+					}
+				}
+				
 			}
+
 
 
 
 			else if (autoReenableEvent) {
-				if (config.debug) {that.log("Saw request to re-enable automatic")}
+				if (config.debug) {that.log("Re-enabeling automatic due to manual request")}
 				context.autoLocked = false
-				resendRequest = true
-				autoMoveFunc()
+				autoMoveFunc(true)
 			}
 
 
 
-			else if (driveHeightEvent) {
+			else if (driveHeightEvent) {				// TODO Was wenn es das nicht gibt??
 				if (msg.payload >= 0 && msg.payload <= 100 && typeof msg.payload === "number") {
 					let prevPos = context.actposHeight;
 					context.actposHeight = msg.payload;
@@ -466,8 +539,7 @@ module.exports = function(RED) {
 
 			else if (resendEvent) {
 				if (config.debug) {that.log("Saw request to resend values")}
-				resendRequest = true
-				autoMoveFunc()
+				autoMoveFunc(true)
 			}
 
 
