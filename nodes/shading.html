@@ -36,6 +36,7 @@
             text-decoration-style: dotted
         }
     </style>
+    <div class="form-tips"><b>Tip:</b> Check out <a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/location.md" target="_blank">this manual</a> or click any heading, to receive detailled infromation.</div>
     <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/location.md#basics" target="_blank">Basics</a></h3>
     <div class="form-row">
         <label for="node-config-input-name"><i class="fa fa-bookmark"></i> Name</span></label>
@@ -63,9 +64,6 @@
         defaults: {
             name: {},
             config: {type: "shading location"},
-            orientation: {required: true},
-            windowSunAngleEntry: {value: -75, required: true},  // TODO check for -90 - +90°
-            windowSunAngleExit: {value: 75, required: true},
             inmsgTopicActPosHeight: {},
             allowLoweringWhenTilted: {},
             allowLoweringWhenOpened: {},
@@ -96,7 +94,7 @@
             closeIfSunset: {},
         },
         label: function() {
-            return this.name || this.orientation + "°";       // TODO: automatisch zusammenstellen: shading location.name + orientation
+            return this.name || "Automatic configuration"
         },
         oneditprepare: function() {
 
@@ -162,12 +160,8 @@
 
 <script type="text/html" data-template-name="shading automatic">
     <style>
-        .red-ui-editor .form-row #node-config-input-windowSunAngleEntry,
-        .red-ui-editor .form-row #node-config-input-windowSunAngleExit {
-            width: 100px
-        }
         .red-ui-editor .form-row label {
-            width: 150px
+            width: 170px
         }
         .red-ui-editor .form-row input {
             width: 250px
@@ -189,6 +183,7 @@
             text-decoration-style: dotted
         }
     </style>
+    <div class="form-tips"><b>Tip:</b> Check out <a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/automatic.md" target="_blank">this manual</a> or click any heading, to receive detailled infromation.</div>
     <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/automatic.md#basics" target="_blank">Basics</a></h3>
     <div class="form-row">
         <label for="node-config-input-name"><i class="fa fa-bookmark"></i> Name</label>
@@ -199,20 +194,7 @@
         <input type="text" id="node-config-input-config" style="width: 250px;">     <!-- TODO find width css trick -->
     </div>
     <div class="form-row">
-        <label for="node-config-input-orientation"><i class="fa fa-location-arrow"></i> Orientation</label>
-        <input type="number" id="node-config-input-orientation" style="width:100px" placeholder="0 - 359" min="0" max="359"> °
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-windowSunAngleEntry"><i class="fa fa-location-arrow"></i> Sun entry angle</label>
-        <input type="number" id="node-config-input-windowSunAngleEntry" placeholder="-90 - 0" min="-90" max="0"> °
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-windowSunAngleExit"><i class="fa fa-location-arrow"></i> Sun exit angle</label>
-        <input type="number" id="node-config-input-windowSunAngleExit" placeholder="0 - 90" min="0" max="90"> °
-    </div>
-
-    <div class="form-row">
-        <label for="node-config-input-inmsgTopicActPosHeight"><i class="fa fa-tasks"></i> Actual height position topic</label>  <!-- TODO find better description -->
+        <label for="node-config-input-inmsgTopicActPosHeight"><i class="fa fa-tasks"></i> Height feedback topic</label>  <!-- TODO find better description -->
         <input type="text" id="node-config-input-inmsgTopicActPosHeight" placeholder="Leave blank to use 'heightfeedback'">
     </div>
     <div class="form-row">
@@ -380,6 +362,7 @@
             text-decoration-style: dotted
         }
     </style>
+    <div class="form-tips"><b>Tip:</b> Check out <a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md" target="_blank">this manual</a> or click any heading, to receive detailled infromation.</div>
     <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md#basics" target="_blank">Basics</a></h3>
     <div class="form-row">
         <label for="node-config-input-name"><i class="fa fa-bookmark"></i> Name</label>
