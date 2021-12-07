@@ -186,12 +186,12 @@ module.exports = function(RED) {
 					(context.windowState === window.opened && config.automatic.allowLoweringWhenOpened)
 					|| (context.windowState === window.tilted && config.automatic.allowLoweringWhenTilted)
 					|| context.windowState === window.closed
-					|| config.automatic.winswitchEnable
+					|| !config.automatic.winswitchEnable
 
 				if (allowLowering) {
 					sendCommandFunc(null,null,null,context.setposHeight)
 				} else {
-					if (config.debug) {that.log("Lowering requested but not allowed. Nothing will happen.")}
+					if (config.debug) {that.log("Lowering not allowed. Check window switch. Nothing will happen.")}
 				}
 
 			}
