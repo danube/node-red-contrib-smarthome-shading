@@ -173,7 +173,7 @@ module.exports = function(RED) {
 			
 			
 			
-			} else if (context.setposHeight < context.actposHeight) {								// Lowering
+			} else if (context.setposHeight > context.actposHeight) {								// Lowering
 				
 				// check plausibility of window switch position
 				if (config.automatic.winswitchEnable && (!context.windowState || context.windowState < 1 || context.windowState > 3)) {
