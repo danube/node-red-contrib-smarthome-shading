@@ -162,14 +162,15 @@ module.exports = function(RED) {
 				
 
 
-			} else if (!context.actposHeight && context.setposHeight === 0) {						// Actual height position unknown but setpos is 0
+			} else if (typeof context.actposHeight == "undefined" && context.setposHeight === 0) {						// Actual height position unknown but setpos is 0
 				that.warn("Unknown actual position, but rising may be allowed.")
 				sendCommandFunc(null,null,null,context.setposHeight)
 
 				
 
-			} else if (!context.actposHeight) {														// Actual height position unknown
+			} else if (typeof context.actposHeight == "undefined") {								// Actual height position unknown
 				that.warn("Unknown actual position. Nothing will happen.")
+
 			
 			
 			
