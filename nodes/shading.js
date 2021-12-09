@@ -504,16 +504,16 @@ module.exports = function(RED) {
 				}
 
 				// Shade when window opens and shading is closed
-				if (context.windowState == window.opened && config.automatic.shadeIfWinOpen && context.actposHeight > shadingSetpos.shade) {		// TODO workaround wenn es keine actposHeight gibt
-					context.setposHeight = shadingSetpos.shade
-					if (config.automatic.shadeIfWinOpenOverrideHardlock) {
-						autoMoveFunc(true,true)
-						that.log("DEBUG: 111")
-					} else {
-						autoMoveFunc(true)
-						that.log("DEBUG: 222")
-					}
-				}
+				// if (context.windowState == window.opened && config.automatic.shadeIfWinOpen && context.actposHeight > shadingSetpos.shade) {		// TODO workaround wenn es keine actposHeight gibt
+				// 	context.setposHeight = shadingSetpos.shade
+				// 	if (config.automatic.shadeIfWinOpenOverrideHardlock) {
+				// 		autoMoveFunc(true,true)
+				// 		that.log("DEBUG: 111")
+				// 	} else {
+				// 		autoMoveFunc(true)
+				// 		that.log("DEBUG: 222")
+				// 	}
+				// }
 				
 			}
 

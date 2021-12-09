@@ -1,6 +1,6 @@
 {
     "name": "node-red-contrib-smarthome-shading",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "This is the shading node as standalone, which is part of 'node-red-contrib-smarthome'. It containes nodes for Node-RED.",
     "dependencies": {
       "suncalc": "1.8.*"

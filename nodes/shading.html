@@ -71,10 +71,11 @@
             inmsgWinswitchTopic: {},
             inmsgWinswitchPayloadOpened: {value: 1},
             inmsgWinswitchPayloadOpenedType: {},
-            inmsgWinswitchPayloadTilted: {value: 2},
-            inmsgWinswitchPayloadTiltedType: {},
             inmsgWinswitchPayloadClosed: {value: 3},
             inmsgWinswitchPayloadClosedType: {},
+            winswitchTiltedEnable: {},
+            inmsgWinswitchPayloadTilted: {value: 2},
+            inmsgWinswitchPayloadTiltedType: {},
             hardlock: {},
             hardlockType: {},
             autoIfSunrise: {},
@@ -125,32 +126,143 @@
 
             // Hide autoTopic area
             $("#node-config-input-autoIfMsgTopic").on('change', function() {
-                if ($("#node-config-input-autoIfMsgTopic")[0].checked) {
-                    $('#autoTopic').show('fast');
+                if ($("#node-config-input-autoIfMsgTopic").prop("checked")) {
+                    $('#autoTopic').show('fast')
                 } else {
-                    $('#autoTopic').hide('fast');
+                    $('#autoTopic').hide('fast')
                 }
             })
 
             // Hide Window switch class
             $("#node-config-input-winswitchEnable").on('change', function() {
-                if ($("#node-config-input-winswitchEnable")[0].checked) {
+                if ($("#node-config-input-winswitchEnable").prop("checked")) {
                     $('.winswitch').show('fast')
+                    if (!$("#node-config-input-winswitchTiltedEnable").prop("checked")) {
+                        $(".tiltswitch").hide("fast")
+                    }
                 } else {
                     $('.winswitch').hide('fast')
                     $('.winswitch-checkbox').prop("checked", false)
+                    $('#node-config-input-winswitchTiltedEnable').prop("checked", false)
                 }
             })
 
+
+            // Hide tilt switch class and relevant options
+            $("#node-config-input-winswitchTiltedEnable").on("change", function() {
+                if ($("#node-config-input-winswitchTiltedEnable").prop("checked")) {
+                    $(".tiltswitch").show("fast")
+                } else {
+                    $(".tiltswitch").hide("fast")
+                }
+            })
+
+
+
             // Hide hardlock override checkbox when shadeIfWinOpen option is disabled
             $("#node-config-input-shadeIfWinOpen").on('change', function() {
-                if ($("#node-config-input-shadeIfWinOpen")[0].checked) {
+                if ($("#node-config-input-shadeIfWinOpen").prop("checked")) {
                     $('#shadeIfWinOpenOverrideHardlock-checkbox').show('fast')
                 } else {
                     $('#shadeIfWinOpenOverrideHardlock-checkbox').hide('fast')
                     $('#node-config-input-shadeIfWinOpenOverrideHardlock').prop("checked", false)
                 }
             })
+            
+
+            
+            
+            
+            
+
+            
+            // Disable incompatible options - open conditions, sunrise
+            $("#node-config-input-openIfSunrise").on('change', function() {
+                if ($(this).prop("checked")) {
+                    if ($("#node-config-input-shadeIfSunrise").prop("checked")) {
+                        $('#node-config-input-shadeIfSunrise').prop("checked", false)
+                        $("#shadeIfSunrise-div").effect("highlight")
+                    }
+                    if ($("#node-config-input-closeIfSunrise").prop("checked")) {
+                        $('#node-config-input-closeIfSunrise').prop("checked", false)
+                        $("#closeIfSunrise-div").effect("highlight")
+                    }
+                }
+            })
+            // Disable incompatible options - open conditions, sunset
+            $("#node-config-input-openIfSunset").on('change', function() {
+                if ($(this).prop("checked")) {
+                    if ($("#node-config-input-shadeIfSunset").prop("checked")) {
+                        $('#node-config-input-shadeIfSunset').prop("checked", false)
+                        $("#shadeIfSunset-div").effect("highlight")
+                    }
+                    if ($("#node-config-input-closeIfSunset").prop("checked")) {
+                        $('#node-config-input-closeIfSunset').prop("checked", false)
+                        $("#closeIfSunset-div").effect("highlight")
+                    }
+                }
+            })
+            
+            // Disable incompatible options - shade conditions, sunrise
+            $("#node-config-input-shadeIfSunrise").on('change', function() {
+                if ($(this).prop("checked")) {
+                    if ($("#node-config-input-openIfSunrise").prop("checked")) {
+                        $('#node-config-input-openIfSunrise').prop("checked", false)
+                        $("#openIfSunrise-div").effect("highlight")
+                    }
+                    if ($("#node-config-input-closeIfSunrise").prop("checked")) {
+                        $('#node-config-input-closeIfSunrise').prop("checked", false)
+                        $("#closeIfSunrise-div").effect("highlight")
+                    }
+                }
+            })
+            // Disable incompatible options - shade conditions, sunset
+            $("#node-config-input-shadeIfSunset").on('change', function() {
+                if ($(this).prop("checked")) {
+                    if ($("#node-config-input-openIfSunset").prop("checked")) {
+                        $('#node-config-input-openIfSunset').prop("checked", false)
+                        $("#openIfSunset-div").effect("highlight")
+                    }
+                    if ($("#node-config-input-closeIfSunset").prop("checked")) {
+                        $('#node-config-input-closeIfSunset').prop("checked", false)
+                        $("#closeIfSunset-div").effect("highlight")
+                    }
+                }
+            })
+
+            // Disable incompatible options - close conditions, sunrise
+            $("#node-config-input-closeIfSunrise").on('change', function() {
+                if ($(this).prop("checked")) {
+                    if ($("#node-config-input-openIfSunrise").prop("checked")) {
+                        $('#node-config-input-openIfSunrise').prop("checked", false)
+                        $("#openIfSunrise-div").effect("highlight")
+                    }
+                    if ($("#node-config-input-shadeIfSunrise").prop("checked")) {
+                        $('#node-config-input-shadeIfSunrise').prop("checked", false)
+                        $("#shadeIfSunrise-div").effect("highlight")
+                    }
+                }
+            })
+            // Disable incompatible options - close conditions, sunset
+            $("#node-config-input-closeIfSunset").on('change', function() {
+                if ($(this).prop("checked")) {
+                    if ($("#node-config-input-openIfSunset").prop("checked")) {
+                        $('#node-config-input-openIfSunset').prop("checked", false)
+                        $("#openIfSunset-div").effect("highlight")
+                    }
+                    if ($("#node-config-input-shadeIfSunset").prop("checked")) {
+                        $('#node-config-input-shadeIfSunset').prop("checked", false)
+                        $("#shadeIfSunset-div").effect("highlight")
+                    }
+                }
+            })
+
+
+
+
+
+
+
 
 
 
@@ -208,36 +320,42 @@
         <label><i class="fa fa-power-off"></i> Enable</label>
         <input type="checkbox" id="node-config-input-winswitchEnable" style="display:inline-block; width:auto;">
     </div>
-    <div class="form-row winswitch">
-        <label for="node-config-input-inmsgWinswitchTopic"><i class="fa fa-tasks"></i> Topic</label>
-        <input type="text" id="node-config-input-inmsgWinswitchTopic" placeholder="Leave blank to use 'switch'">
-    </div>
-    <div class="form-row winswitch">
-        <label for="node-config-input-inmsgWinswitchPayloadOpened"><i class="fa fa-tag"></i> Payload Opened</label>
-        <input type="hidden" id="node-config-input-inmsgWinswitchPayloadOpenedType">
-        <input type="text" id="node-config-input-inmsgWinswitchPayloadOpened">
-    </div>
-    <div class="form-row winswitch">
-        <label for="node-config-input-inmsgWinswitchPayloadTilted"><i class="fa fa-tag"></i> Payload Tilted</label>
-        <input type="hidden" id="node-config-input-inmsgWinswitchPayloadTiltedType">
-        <input type="text" id="node-config-input-inmsgWinswitchPayloadTilted">
-    </div>
-    <div class="form-row winswitch">
-        <label for="node-config-input-inmsgWinswitchPayloadClosed"><i class="fa fa-tag"></i> Payload Closed</label>
-        <input type="hidden" id="node-config-input-inmsgWinswitchPayloadClosedType">
-        <input type="text" id="node-config-input-inmsgWinswitchPayloadClosed">
-    </div>
-    <hr>
     <div class="winswitch">
-        <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/automatic.md#security-configuration" target="_blank">Security configuration</a></h3>
-        <div class="form-row checkbox-row">
-            <input type="checkbox" id="node-config-input-allowLoweringWhenTilted" class="winswitch-checkbox"> <label style="width: 300px" for="node-config-input-allowLoweringWhenTilted">Lowering allowed if window is tilted</label>
+        <div class="form-row">
+            <label for="node-config-input-inmsgWinswitchTopic"><i class="fa fa-tasks"></i> Topic</label>
+            <input type="text" id="node-config-input-inmsgWinswitchTopic" placeholder="Leave blank to use 'switch'">
         </div>
-        <div class="form-row checkbox-row">
-            <input type="checkbox" id="node-config-input-allowLoweringWhenOpened" class="winswitch-checkbox"> <label style="width: 300px" for="node-config-input-allowLoweringWhenOpened">Lowering allowed if window is opened</label>
+        <div class="form-row">
+            <label for="node-config-input-inmsgWinswitchPayloadOpened"><i class="fa fa-tag"></i> Payload Opened</label>
+            <input type="hidden" id="node-config-input-inmsgWinswitchPayloadOpenedType">
+            <input type="text" id="node-config-input-inmsgWinswitchPayloadOpened">
+        </div>
+        <div class="form-row">
+            <label for="node-config-input-inmsgWinswitchPayloadClosed"><i class="fa fa-tag"></i> Payload Closed</label>
+            <input type="hidden" id="node-config-input-inmsgWinswitchPayloadClosedType">
+            <input type="text" id="node-config-input-inmsgWinswitchPayloadClosed">
+        </div>
+        <div class="form-row">
+            <label><i class="fa fa-power-off"></i> Tilted sensor</label>
+            <input type="checkbox" id="node-config-input-winswitchTiltedEnable" style="display:inline-block; width:auto;">
+        </div>
+        <div class="form-row tiltswitch">
+            <label for="node-config-input-inmsgWinswitchPayloadTilted"><i class="fa fa-tag"></i> Payload Tilted</label>
+            <input type="hidden" id="node-config-input-inmsgWinswitchPayloadTiltedType">
+            <input type="text" id="node-config-input-inmsgWinswitchPayloadTilted">
         </div>
         <hr>
+        <div>
+            <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/automatic.md#security-configuration" target="_blank">Security configuration</a></h3>
+            <div class="form-row checkbox-row tiltswitch">
+                <input type="checkbox" id="node-config-input-allowLoweringWhenTilted" class="winswitch-checkbox"> <label style="width: 300px" for="node-config-input-allowLoweringWhenTilted">Lowering allowed if window is tilted</label>
+            </div>
+            <div class="form-row checkbox-row">
+                <input type="checkbox" id="node-config-input-allowLoweringWhenOpened" class="winswitch-checkbox"> <label style="width: 300px" for="node-config-input-allowLoweringWhenOpened">Lowering allowed if window is opened</label>
+            </div>
+        </div>
     </div>
+    <hr>
     <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/automatic.md#events-configuration" target="_blank">Events configuration</a></h3>
     <h4>Re-enable automatic conditions</h4>
     <div class="form-row checkbox-row">
@@ -246,7 +364,7 @@
     <div class="form-row checkbox-row">
         <input type="checkbox" id="node-config-input-autoIfSunset"> <label style="width: 300px" for="node-config-input-autoIfSunset">Sunset</label>
     </div>
-    <div class="form-row checkbox-row winswitch">
+    <div class="form-row checkbox-row winswitch tiltswitch">
         <input type="checkbox" id="node-config-input-autoIfWinOpenToTilt" class="winswitch-checkbox"> <label style="width: 300px" for="node-config-input-autoIfWinOpenToTilt">Window changes from 'open' to 'tilted'</label>
     </div>
     <div class="form-row checkbox-row winswitch">
@@ -264,31 +382,30 @@
     <div class="form-row checkbox-row winswitch">
         <input type="checkbox" id="node-config-input-openIfWinOpen" class="winswitch-checkbox"> <label style="width: 300px" for="node-config-input-openIfWinOpen">Window changes from any state to 'open'</label>
     </div>
-    <div class="form-row checkbox-row">
+    <div class="form-row checkbox-row" id="openIfSunrise-div">
         <input type="checkbox" id="node-config-input-openIfSunrise"> <label style="width: 300px" for="node-config-input-openIfSunrise">Sunrise</label>
     </div>
-    <div class="form-row checkbox-row">
+    <div class="form-row checkbox-row" id="openIfSunset-div">
         <input type="checkbox" id="node-config-input-openIfSunset"> <label style="width: 300px" for="node-config-input-openIfSunset">Sunset</label>
     </div>
     <h4>Shade conditions</h4>
-    <div class="form-row checkbox-row winswitch">
+    <!-- <div class="form-row checkbox-row winswitch">
         <input type="checkbox" id="node-config-input-shadeIfWinOpen" class="winswitch-checkbox"> <label style="width: 300px" for="node-config-input-shadeIfWinOpen">Window changes from any state to 'open' while shading is closed</label>
     </div>
-
     <div class="form-row checkbox-row winswitch" id="shadeIfWinOpenOverrideHardlock-checkbox">
         <input type="checkbox" id="node-config-input-shadeIfWinOpenOverrideHardlock" class="winswitch-checkbox" style="margin-left: 40px;"> <label style="width: 300px" for="node-config-input-shadeIfWinOpenOverrideHardlock">Override hardlock</label>
-    </div>
-    <div class="form-row checkbox-row">
+    </div> -->
+    <div class="form-row checkbox-row" id="shadeIfSunrise-div">
         <input type="checkbox" id="node-config-input-shadeIfSunrise"> <label style="width: 300px" for="node-config-input-shadeIfSunrise">Sunrise</label>
     </div>
-    <div class="form-row checkbox-row">
+    <div class="form-row checkbox-row" id="shadeIfSunset-div">
         <input type="checkbox" id="node-config-input-shadeIfSunset"> <label style="width: 300px" for="node-config-input-shadeIfSunset">Sunset</label>
     </div>
     <h4>Close conditions</h4>
-    <div class="form-row checkbox-row">
+    <div class="form-row checkbox-row" id="closeIfSunrise-div">
         <input type="checkbox" id="node-config-input-closeIfSunrise"> <label style="width: 300px" for="node-config-input-closeIfSunrise">Sunrise</label>
     </div>
-    <div class="form-row checkbox-row">
+    <div class="form-row checkbox-row" id="closeIfSunset-div">
         <input type="checkbox" id="node-config-input-closeIfSunset"> <label style="width: 300px" for="node-config-input-closeIfSunset">Sunset</label>
     </div>
 </script>
