@@ -331,10 +331,10 @@ module.exports = function(RED) {
 		}
 		
 		// Initially set node status
-		if (!config.automatic.winswitchEnable) {
-			that.status({})
-		} else {
+		if (config.autoActive && config.automatic.winswitchEnable) {
 			that.status({fill: "blue", shape: "ring", text: context.windowStateStr})
+		} else {
+			that.status({})
 		}
 
 		// <==== FIRST RUN ACTIONS
