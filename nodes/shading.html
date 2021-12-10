@@ -65,6 +65,7 @@
             name: {},
             config: {type: "shading location"},
             inmsgTopicActPosHeight: {},
+            inmsgTopicActPosHeightType: {},
             allowLoweringWhenTilted: {},
             allowLoweringWhenOpened: {},
             winswitchEnable: {value: false},
@@ -98,6 +99,8 @@
             return this.name || "Automatic configuration"
         },
         oneditprepare: function() {
+            
+            var optionNothing = {value: "dis", label: "Disabled", hasValue: false}
 
             $("#node-config-input-inmsgWinswitchPayloadOpened").typedInput({
                 default: "num",
@@ -117,11 +120,16 @@
                 types: ["bool","num","str"]
             })
             
-            var optionNothing = {value: "dis", label: "Disabled", hasValue: false};
             $("#node-config-input-hardlock").typedInput({
                 default: "dis",
                 typeField: $("#node-config-input-hardlockType"),
                 types: ["flow","global",optionNothing]
+            })
+
+            $("#node-config-input-inmsgTopicActPosHeight").typedInput({
+                default: "dis",
+                typeField: $("#node-config-input-inmsgTopicActPosHeightType"),
+                types: ["str",optionNothing]
             })
 
             // Hide autoTopic area
@@ -307,7 +315,8 @@
     </div>
     <div class="form-row">
         <label for="node-config-input-inmsgTopicActPosHeight"><i class="fa fa-tasks"></i> Height feedback topic</label>  <!-- TODO find better description -->
-        <input type="text" id="node-config-input-inmsgTopicActPosHeight" placeholder="Leave blank to use 'heightfeedback'">
+        <input type="hidden" id="node-config-input-inmsgTopicActPosHeightType">
+        <input type="text" id="node-config-input-inmsgTopicActPosHeight">
     </div>
     <div class="form-row">
         <label for="node-config-input-hardlock"><i class="fa fa-tag"></i> Hard lock</label>
@@ -419,10 +428,12 @@
         category: 'config',
         defaults: {
             name: {value: "Shading main configuration"},
-            shadingSetposShade: {value: 80, required: true},        // TODO Sollte das nicht in die automatic rein???
+            shadingSetposShade: {value: 80, required: true},        // TODO Sollte das nicht in die automatic rein??? // TODO required funzt nicht
             shadingSetposShadeType: {value: "initval"},
             inmsgButtonTopicOpen: {},
             inmsgButtonTopicClose: {},
+            inmsgButtonDblclickTime: {},        // TODO required und value > 0 < 1000
+            inmsgButtonDblclickTimeType: {},
             payloadOpenCmd: {value: false},
             payloadOpenCmdType: {value: "initval"},
             payloadCloseCmd: {},
@@ -442,6 +453,11 @@
             $("#node-config-input-shadingSetposShade").typedInput({
                 default: "num",
                 typeField: $("#node-config-input-shadingSetposShadeType"),
+                types: ["num"]
+            })
+            $("#node-config-input-inmsgButtonDblclickTime").typedInput({
+                default: "num",
+                typeField: $("#node-config-input-inmsgButtonDblclickTimeType"),
                 types: ["num"]
             })
             $("#node-config-input-payloadOpenCmd").typedInput({
@@ -471,7 +487,8 @@
         .red-ui-editor .form-row input {
             width: 250px
         }
-        .red-ui-editor .form-row #node-config-input-shadingSetposShade {
+        .red-ui-editor .form-row #node-config-input-shadingSetposShade,
+        .red-ui-editor .form-row #node-config-input-inmsgButtonDblclickTime {
             width: 100px
         }
         .red-ui-editor a, .red-ui-editor a:hover {
@@ -489,7 +506,7 @@
     <div class="form-row">
         <label for="node-config-input-shadingSetposShade"><i class="fa fa-window-maximize"></i> Shade position</label>
         <input type="hidden" id="node-config-input-shadingSetposShadeType">
-        <input type="text" id="node-config-input-shadingSetposShade">
+        <input type="text" id="node-config-input-shadingSetposShade"> %
     </div>
     <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md#pushbutton-configuration" target="_blank">Pushbutton configuration</a></h3>
     <div class="form-row">
@@ -499,6 +516,11 @@
     <div class="form-row">
         <label for="node-config-input-inmsgButtonTopicClose"><i class="fa fa-tasks"></i> Topic Close</label>
         <input type="text" id="node-config-input-inmsgButtonTopicClose" placeholder="Leave blank to use 'closebutton'">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-inmsgButtonDblclickTime"><i class="fa fa-tasks"></i> Doubleclick time</label>
+        <input type="hidden" id="node-config-input-inmsgButtonDblclickTimeType">
+        <input type="text" id="node-config-input-inmsgButtonDblclickTime"> ms
     </div>
     <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md#command-output-configuration" target="_blank">Command output configuration</a></h3>
     <div class="form-row">

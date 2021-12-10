@@ -58,7 +58,6 @@ module.exports = function(RED) {
 
 		// Variable declaration
 		const loopIntervalTime = 5000;
-		const dblClickTime = 500;			// Waiting time for second button press		// TODO Zeit konfigurierbar machen
 
 		const shadingSetpos = {
 			open: 0,
@@ -157,6 +156,8 @@ module.exports = function(RED) {
 				if (config.debug) {that.log("Locked by hardlock, nothing will happen.")}
 			} else if (context.autoLocked) {														// Softlock -> nothing will happen
 				if (config.debug) {that.log("Locked by application, nothing will happen.")}
+			} else if (config.automatic.inmsgTopicActPosHeightType === "dis") {						// No shading position feedback -> always move
+				sendCommandFunc(null,null,null,context.setposHeight)
 			} else if (typeof context.actposHeight == "undefined" && context.setposHeight === 0) {	// Actual height position unknown but setpos is 0 -> move up
 				that.warn("Unknown actual position, but rising may be allowed.")
 				sendCommandFunc(null,null,null,context.setposHeight)
@@ -290,7 +291,6 @@ module.exports = function(RED) {
 		config.set.inmsgButtonTopicOpen = originalConfig.set.inmsgButtonTopicOpen || "openbutton"
 		config.set.inmsgButtonTopicClose = originalConfig.set.inmsgButtonTopicClose || "closebutton"
 		if (config.autoActive) {
-			config.automatic.inmsgTopicActPosHeight = originalConfig.automatic.inmsgTopicActPosHeight || "heightfeedback"
 			config.automatic.autoTopic = config.automatic.autoTopic || "auto"
 			if (config.automatic.winswitchEnable) {
 				config.automatic.inmsgWinswitchTopic = originalConfig.automatic.inmsgWinswitchTopic || "switch"
@@ -312,6 +312,7 @@ module.exports = function(RED) {
 		else if (config.set.payloadCloseCmdType === 'bool') {config.set.payloadCloseCmd = originalConfig.set.payloadCloseCmd === 'true'}
 		if (config.set.payloadStopCmdType === 'num') {config.set.payloadStopCmd = Number(originalConfig.set.payloadStopCmd)}
 		else if (config.set.payloadStopCmdType === 'bool') {config.set.payloadStopCmd = originalConfig.set.payloadStopCmd === 'true'}
+		config.set.inmsgButtonDblclickTime = Number(originalConfig.set.inmsgButtonDblclickTime) | 500;
 
 		config.set.shadingSetposShade = shadingSetpos.shade
 		
@@ -348,6 +349,8 @@ module.exports = function(RED) {
 
 		this.on('input', function(msg,send,done) {
 			
+			
+						
 			/** Storing peripheral states */
 			if (msg.topic === config.set.inmsgButtonTopicOpen) {context.stateButtonOpen = msg.payload}
 			else if (msg.topic === config.set.inmsgButtonTopicClose) {context.stateButtonClose = msg.payload}; // TODO logical verification, like drive height position
@@ -371,7 +374,7 @@ module.exports = function(RED) {
 				/** Auto re-enable event based on incoming message topic */
 				var autoReenableEvent = config.automatic.autoIfMsgTopic && msg.topic === config.automatic.autoTopic
 				/** Height drive position event based on incoming message topic */
-				var driveHeightEvent = msg.topic === config.automatic.inmsgTopicActPosHeight
+				var driveHeightEvent = config.automatic.inmsgTopicActPosHeightType != "dis" && msg.topic === config.automatic.inmsgTopicActPosHeight
 			}
 
 			if (buttonEvent) {
@@ -403,7 +406,7 @@ module.exports = function(RED) {
 								// <== LONG CLICK ACTIONS
 								
 							}
-						}, dblClickTime);
+						}, config.set.inmsgButtonDblclickTime);
 					}
 					
 				// Button close pressed
@@ -429,7 +432,7 @@ module.exports = function(RED) {
 								// <== LONG CLICK ACTIONS
 								
 							}
-						}, dblClickTime);
+						}, config.set.inmsgButtonDblclickTime);
 					}
 					
 				// Any button released
