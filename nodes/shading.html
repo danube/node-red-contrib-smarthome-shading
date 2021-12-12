@@ -25,12 +25,6 @@
 
 <script type="text/html" data-template-name="shading location">
     <style>
-        .red-ui-editor .form-row label {
-            width: 150px
-        }
-        .red-ui-editor .form-row input {
-            width: 250px
-        }
         .red-ui-editor a, .red-ui-editor a:hover {
             text-decoration: underline;
             text-decoration-style: dotted
@@ -429,11 +423,9 @@
         defaults: {
             name: {value: "Shading main configuration"},
             shadingSetposShade: {value: 80, required: true},        // TODO Sollte das nicht in die automatic rein??? // TODO required funzt nicht
-            shadingSetposShadeType: {value: "initval"},
             inmsgButtonTopicOpen: {},
             inmsgButtonTopicClose: {},
-            inmsgButtonDblclickTime: {},        // TODO required und value > 0 < 1000
-            inmsgButtonDblclickTimeType: {},
+            inmsgButtonDblclickTime: {value: 500, required: true},
             payloadOpenCmd: {value: false},
             payloadOpenCmdType: {value: "initval"},
             payloadCloseCmd: {},
@@ -445,21 +437,6 @@
             return this.name || "Shading main configuration";
         },
         oneditprepare: function() {
-            // value & type initialisation
-            if (this.shadingSetposShadeType === "initval") {
-                $("#node-config-input-shadingSetposShadeType").val("num")
-            }
-            // defining input types
-            $("#node-config-input-shadingSetposShade").typedInput({
-                default: "num",
-                typeField: $("#node-config-input-shadingSetposShadeType"),
-                types: ["num"]
-            })
-            $("#node-config-input-inmsgButtonDblclickTime").typedInput({
-                default: "num",
-                typeField: $("#node-config-input-inmsgButtonDblclickTimeType"),
-                types: ["num"]
-            })
             $("#node-config-input-payloadOpenCmd").typedInput({
                 default: "bool",
                 typeField: $("#node-config-input-payloadOpenCmdType"),
@@ -505,8 +482,7 @@
     <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md#blind-configuration" target="_blank">Blind configuration</a></h3>
     <div class="form-row">
         <label for="node-config-input-shadingSetposShade"><i class="fa fa-window-maximize"></i> Shade position</label>
-        <input type="hidden" id="node-config-input-shadingSetposShadeType">
-        <input type="text" id="node-config-input-shadingSetposShade"> %
+        <input type="number" step="1" min="0" max="100" id="node-config-input-shadingSetposShade"> %
     </div>
     <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md#pushbutton-configuration" target="_blank">Pushbutton configuration</a></h3>
     <div class="form-row">
@@ -518,25 +494,28 @@
         <input type="text" id="node-config-input-inmsgButtonTopicClose" placeholder="Leave blank to use 'closebutton'">
     </div>
     <div class="form-row">
-        <label for="node-config-input-inmsgButtonDblclickTime"><i class="fa fa-tasks"></i> Doubleclick time</label>
-        <input type="hidden" id="node-config-input-inmsgButtonDblclickTimeType">
-        <input type="text" id="node-config-input-inmsgButtonDblclickTime"> ms
+        <label for="node-config-input-inmsgButtonDblclickTime"><i class="fa fa-tasks"></i> Doubleclick</label>
+        <input type="number" step="100" min="100" max="5000" id="node-config-input-inmsgButtonDblclickTime"> ms
     </div>
-    <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md#command-output-configuration" target="_blank">Command output configuration</a></h3>
+    <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md#output-configuration" target="_blank">Output configuration</a></h3>
     <div class="form-row">
-        <label for="node-config-input-payloadOpenCmd"><i class="fa fa-tag"></i> Payload Open</label>
+        <label for="node-config-input-payloadOpenCmd"><i class="fa fa-tag"></i> Open output</label>
         <input type="hidden" id="node-config-input-payloadOpenCmdType">
         <input type="text" id="node-config-input-payloadOpenCmd">
     </div>
     <div class="form-row">
-        <label for="node-config-input-payloadCloseCmd"><i class="fa fa-tag"></i> Payload Close</label>
+        <label for="node-config-input-payloadCloseCmd"><i class="fa fa-tag"></i> Close output</label>
         <input type="hidden" id="node-config-input-payloadCloseCmdType">
         <input type="text" id="node-config-input-payloadCloseCmd">
     </div>
     <div class="form-row">
-        <label for="node-config-input-payloadStopCmd"><i class="fa fa-tag"></i> Payload Stop</label>
+        <label for="node-config-input-payloadStopCmd"><i class="fa fa-tag"></i> Stop output</label>
         <input type="hidden" id="node-config-input-payloadStopCmdType">
         <input type="text" id="node-config-input-payloadStopCmd">
+    </div>
+    <div class="form-row">
+        <label><i class="fa fa-tag"></i> Command output</label>
+        From 0 (up/open) to 100 (down/closed)
     </div>
 </script>
 
@@ -551,7 +530,7 @@
         color: '#C0DEED',
         inputs: 1,
         outputs: 4,
-        outputLabels: ["Open command","Close command","Stop command", "Analog setpoint"],
+        outputLabels: ["Open","Close","Stop","Command"],
         icon: "font-awesome/fa-window-maximize",
         defaults: {
             name: {},
