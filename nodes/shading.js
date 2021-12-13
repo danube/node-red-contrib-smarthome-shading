@@ -104,21 +104,21 @@ module.exports = function(RED) {
 			
 			let msgA, msgB, msgC, msgD = null;
 			if (a != null) {
-				msgA = {topic: "opencommand", payload: a};
-				if (config.debug) {msgA = {topic: msgA.topic, payload: msgA.payload}}		// TODO debug dran hängen
-			};
+				msgA = {topic: "open", payload: a}
+				if (config.debug) {msgA = {topic: msgA.topic, payload: msgA.payload}}
+			} else msgA = null
 			if (b != null) {
-				msgB = {topic: "closecommand", payload: b};
+				msgB = {topic: "close", payload: b}
 				if (config.debug) {msgB = {topic: msgB.topic, payload: msgB.payload}}
-			};
+			} else msgB = null
 			if (c != null) {
-				msgC = {topic: "resetcommand", payload: c};
+				msgC = {topic: "stop", payload: c}
 				if (config.debug) {msgC = {topic: msgC.topic, payload: msgC.payload}}
-			};
+			} else msgC = null
 			if (d != null) {
-				msgD = {topic: "setpointcommand", payload: d};
+				msgD = {topic: "command", payload: d}
 				if (config.debug) {msgD = {topic: msgD.topic, payload: msgD.payload}}
-			};
+			} else msgD = null
 			that.send([msgA, msgB, msgC, msgD])
 			that.log("New output values have been written.")
 			console.log([msgA, msgB, msgC, msgD])
