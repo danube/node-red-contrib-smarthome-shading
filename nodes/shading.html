@@ -1,9 +1,6 @@
-<!-- TODOS
+<!-- TODO LIST
 
     * i18n
-    * Passende fa icons
-    * Open / Close setpos konfigurierbar machen
-    * lat/lon Eingabeformat, passt das so?
  -->
 
 
@@ -33,16 +30,16 @@
     <div class="form-tips"><b>Tip:</b> Check out <a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/location.md" target="_blank">this manual</a> or click any heading, to receive detailled infromation.</div>
     <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/location.md#basics" target="_blank">Basics</a></h3>
     <div class="form-row">
-        <label for="node-config-input-name"><i class="fa fa-bookmark"></i> Name</span></label>
+        <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</span></label>
         <input type="text" id="node-config-input-name" placeholder="Home, Apartment, Cabin, ...">
     </div>
     <div class="form-row">
         <label for="node-config-input-lat"><i class="fa fa-compass"></i> Latitude</label>
-        <input type="text" id="node-config-input-lat" placeholder="47.479" style="width: 150px;"> °
+        <input type="text" id="node-config-input-lat" placeholder="47.479123" style="width: 150px;"> °
     </div>
     <div class="form-row">
         <label for="node-config-input-lon"><i class="fa fa-compass"></i> Longitude</label>
-        <input type="text" id="node-config-input-lon" placeholder="9.663" style="width: 150px;"> °
+        <input type="text" id="node-config-input-lon" placeholder="9.663123" style="width: 150px;"> °
     </div>
 </script>
 
@@ -300,20 +297,20 @@
     <div class="form-tips"><b>Tip:</b> Check out <a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/automatic.md" target="_blank">this manual</a> or click any heading, to receive detailled infromation.</div>
     <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/automatic.md#basics" target="_blank">Basics</a></h3>
     <div class="form-row">
-        <label for="node-config-input-name"><i class="fa fa-bookmark"></i> Name</label>
+        <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-config-input-name" placeholder="East, Streetside, Garden, ...">
     </div>
     <div class="form-row">
         <label for="node-config-input-config"><i class="fa fa-compass"></i> Home location</label>
-        <input type="text" id="node-config-input-config" style="width: 250px;">     <!-- TODO find width css trick -->
+        <input type="text" id="node-config-input-config" style="width: 250px;">
     </div>
     <div class="form-row">
-        <label for="node-config-input-inmsgTopicActPosHeight"><i class="fa fa-tasks"></i> Height feedback topic</label>  <!-- TODO find better description -->
+        <label for="node-config-input-inmsgTopicActPosHeight"><i class="fa fa-envelope-open-o"></i> Height feedback topic</label>
         <input type="hidden" id="node-config-input-inmsgTopicActPosHeightType">
         <input type="text" id="node-config-input-inmsgTopicActPosHeight">
     </div>
     <div class="form-row">
-        <label for="node-config-input-hardlock"><i class="fa fa-tag"></i> Hard lock</label>
+        <label for="node-config-input-hardlock"><i class="fa fa-sliders"></i> Hard lock</label>
         <input type="hidden" id="node-config-input-hardlockType">
         <input type="text" id="node-config-input-hardlock">
     </div>
@@ -325,16 +322,16 @@
     </div>
     <div class="winswitch">
         <div class="form-row">
-            <label for="node-config-input-inmsgWinswitchTopic"><i class="fa fa-tasks"></i> Topic</label>
+            <label for="node-config-input-inmsgWinswitchTopic"><i class="fa fa-envelope-open-o"></i> Topic</label>
             <input type="text" id="node-config-input-inmsgWinswitchTopic" placeholder="Leave blank to use 'switch'">
         </div>
         <div class="form-row">
-            <label for="node-config-input-inmsgWinswitchPayloadOpened"><i class="fa fa-tag"></i> Payload Opened</label>
+            <label for="node-config-input-inmsgWinswitchPayloadOpened"><i class="fa fa-rocket"></i> Payload Opened</label>
             <input type="hidden" id="node-config-input-inmsgWinswitchPayloadOpenedType">
             <input type="text" id="node-config-input-inmsgWinswitchPayloadOpened">
         </div>
         <div class="form-row">
-            <label for="node-config-input-inmsgWinswitchPayloadClosed"><i class="fa fa-tag"></i> Payload Closed</label>
+            <label for="node-config-input-inmsgWinswitchPayloadClosed"><i class="fa fa-rocket"></i> Payload Closed</label>
             <input type="hidden" id="node-config-input-inmsgWinswitchPayloadClosedType">
             <input type="text" id="node-config-input-inmsgWinswitchPayloadClosed">
         </div>
@@ -343,7 +340,7 @@
             <input type="checkbox" id="node-config-input-winswitchTiltedEnable" style="display:inline-block; width:auto;">
         </div>
         <div class="form-row tiltswitch">
-            <label for="node-config-input-inmsgWinswitchPayloadTilted"><i class="fa fa-tag"></i> Payload Tilted</label>
+            <label for="node-config-input-inmsgWinswitchPayloadTilted"><i class="fa fa-rocket"></i> Payload Tilted</label>
             <input type="hidden" id="node-config-input-inmsgWinswitchPayloadTiltedType">
             <input type="text" id="node-config-input-inmsgWinswitchPayloadTilted">
         </div>
@@ -422,7 +419,7 @@
         category: 'config',
         defaults: {
             name: {value: "Shading main configuration"},
-            shadingSetposShade: {value: 80, required: true},        // TODO Sollte das nicht in die automatic rein??? // TODO required funzt nicht
+            shadingSetposShade: {value: 80, required: true},
             inmsgButtonTopicOpen: {},
             inmsgButtonTopicClose: {},
             inmsgButtonDblclickTime: {value: 500, required: true},
@@ -476,7 +473,7 @@
     <div class="form-tips"><b>Tip:</b> Check out <a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md" target="_blank">this manual</a> or click any heading, to receive detailled infromation.</div>
     <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md#basics" target="_blank">Basics</a></h3>
     <div class="form-row">
-        <label for="node-config-input-name"><i class="fa fa-bookmark"></i> Name</label>
+        <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-config-input-name" placeholder="Shading main configuration">
     </div>
     <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md#blind-configuration" target="_blank">Blind configuration</a></h3>
@@ -486,35 +483,35 @@
     </div>
     <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md#pushbutton-configuration" target="_blank">Pushbutton configuration</a></h3>
     <div class="form-row">
-        <label for="node-config-input-inmsgButtonTopicOpen"><i class="fa fa-tasks"></i> Topic Open</label>
+        <label for="node-config-input-inmsgButtonTopicOpen"><i class="fa fa-envelope-open-o"></i> Topic Open</label>
         <input type="text" id="node-config-input-inmsgButtonTopicOpen" placeholder="Leave blank to use 'openbutton'">
     </div>
     <div class="form-row">
-        <label for="node-config-input-inmsgButtonTopicClose"><i class="fa fa-tasks"></i> Topic Close</label>
+        <label for="node-config-input-inmsgButtonTopicClose"><i class="fa fa-envelope-open-o"></i> Topic Close</label>
         <input type="text" id="node-config-input-inmsgButtonTopicClose" placeholder="Leave blank to use 'closebutton'">
     </div>
     <div class="form-row">
-        <label for="node-config-input-inmsgButtonDblclickTime"><i class="fa fa-tasks"></i> Doubleclick</label>
+        <label for="node-config-input-inmsgButtonDblclickTime"><i class="fa fa-clock-o"></i> Doubleclick</label>
         <input type="number" step="100" min="100" max="5000" id="node-config-input-inmsgButtonDblclickTime"> ms
     </div>
     <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md#output-configuration" target="_blank">Output configuration</a></h3>
     <div class="form-row">
-        <label for="node-config-input-payloadOpenCmd"><i class="fa fa-tag"></i> Open output</label>
+        <label for="node-config-input-payloadOpenCmd"><i class="fa fa-rocket"></i> Open</label>
         <input type="hidden" id="node-config-input-payloadOpenCmdType">
         <input type="text" id="node-config-input-payloadOpenCmd">
     </div>
     <div class="form-row">
-        <label for="node-config-input-payloadCloseCmd"><i class="fa fa-tag"></i> Close output</label>
+        <label for="node-config-input-payloadCloseCmd"><i class="fa fa-rocket"></i> Close</label>
         <input type="hidden" id="node-config-input-payloadCloseCmdType">
         <input type="text" id="node-config-input-payloadCloseCmd">
     </div>
     <div class="form-row">
-        <label for="node-config-input-payloadStopCmd"><i class="fa fa-tag"></i> Stop output</label>
+        <label for="node-config-input-payloadStopCmd"><i class="fa fa-rocket"></i> Stop</label>
         <input type="hidden" id="node-config-input-payloadStopCmdType">
         <input type="text" id="node-config-input-payloadStopCmd">
     </div>
     <div class="form-row">
-        <label><i class="fa fa-tag"></i> Command output</label>
+        <label><i class="fa fa-rocket"></i> Command</label>
         From 0 (up/open) to 100 (down/closed)
     </div>
 </script>
@@ -545,14 +542,14 @@
         oneditprepare: function() {
             // hide feedback config area
             $("#node-input-autoActive").on('change', function() {
-                if ($("#node-input-autoActive")[0].checked) {
-                    $('.autoConfig').show('fast');
+                if ($("#node-input-autoActive").prop("checked")) {
+                    $('.autoConfig').show('fast')
                 } else {
-                    $('.autoConfig').hide('fast');
+                    $('.autoConfig').hide('fast')
                 }
             })
         }
-    });
+    })
 </script>
 
 <script type="text/html" data-template-name="shading">
