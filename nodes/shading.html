@@ -534,7 +534,7 @@
             configSet: {type: "shading configuration"},
             debug: {},
             autoActive: {},
-            configAutomatic: {type: "shading automatic", required: false} // TODO make required when auto is active
+            configAutomatic: {type: "shading automatic", validate: function() {return this.configAutomatic != "" || !this.autoActive}}
         },
         label: function() {
             return this.name || "Shading"
