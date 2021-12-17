@@ -1,64 +1,27 @@
-<!-- TODO LIST
-
-    * i18n
- -->
-
-
-<!-- BEGIN location configuration -->
-
- <script type="text/javascript">
-    RED.nodes.registerType("shading location", {
-        category: "config",
-        defaults: {
-            name: {},
-            lat: {value: "", required: true, validate:RED.validators.number()},
-            lon: {value: "", required: true, validate:RED.validators.number()},
-        },
-        label: function() {
-            return this.name || "Lat " + this.lat + "° / " + "Lon " + this.lon + "°"
-        }
-    })
-</script>
-
-<script type="text/html" data-template-name="shading location">
-    <style>
-        .red-ui-editor a, .red-ui-editor a:hover {
-            text-decoration: underline;
-            text-decoration-style: dotted
-        }
-    </style>
-    <div class="form-tips"><b>Tip:</b> Check out <a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/location.md" target="_blank">this manual</a> or click any heading, to receive detailled infromation.</div>
-    <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/location.md#basics" target="_blank">Basics</a></h3>
-    <div class="form-row">
-        <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</span></label>
-        <input type="text" id="node-config-input-name" placeholder="Home, Apartment, Cabin, ...">
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-lat"><i class="fa fa-compass"></i> Latitude</label>
-        <input type="text" id="node-config-input-lat" placeholder="47.479123" style="width: 150px;"> °
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-lon"><i class="fa fa-compass"></i> Longitude</label>
-        <input type="text" id="node-config-input-lon" placeholder="9.663123" style="width: 150px;"> °
-    </div>
-</script>
-
-<!-- END location configuration -->
-
-
-
-<!-- BEGIN automatic configuration -->
+<!-- BEGIN configuration -->
 
 <script type="text/javascript">
-    RED.nodes.registerType('shading automatic',{
+    RED.nodes.registerType ('shading configuration', {
         category: 'config',
         defaults: {
-            name: {},
-            config: {type: "shading location"},
+            name: {value: "Shading main configuration"},
+            shadingSetposShade: {value: 80, required: true},
+            inmsgButtonTopicOpen: {},
+            inmsgButtonTopicClose: {},
+            inmsgButtonDblclickTime: {value: 500, required: true},
+            payloadOpenCmd: {value: false},
+            payloadOpenCmdType: {value: "initval"},
+            payloadCloseCmd: {},
+            payloadCloseCmdType: {value: "initval"},
+            payloadStopCmd: {},
+            payloadStopCmdType: {value: "initval"},
+            autoActive: {},
+            lat: {value: "", validate: function() {return !this.autoActive || typeof this.lat === "number"}},
+            lon: {value: "", validate: function() {return !this.autoActive || typeof this.lon === "number"}},
             inmsgTopicActPosHeight: {},
             inmsgTopicActPosHeightType: {},
-            allowLoweringWhenTilted: {},
-            allowLoweringWhenOpened: {},
+            hardlock: {},
+            hardlockType: {},
             winswitchEnable: {value: false},
             inmsgWinswitchTopic: {},
             inmsgWinswitchPayloadOpened: {value: 1},
@@ -68,8 +31,8 @@
             winswitchTiltedEnable: {},
             inmsgWinswitchPayloadTilted: {value: 2},
             inmsgWinswitchPayloadTiltedType: {},
-            hardlock: {},
-            hardlockType: {},
+            allowLoweringWhenTilted: {},
+            allowLoweringWhenOpened: {},
             autoIfSunrise: {},
             autoIfSunset: {},
             autoIfWinOpenToTilt: {},
@@ -79,19 +42,44 @@
             openIfWinOpen: {},
             openIfSunrise: {},
             openIfSunset: {},
-            shadeIfWinOpen: {},
-            shadeIfWinOpenOverrideHardlock: {},
             shadeIfSunrise: {},
             shadeIfSunset: {},
             closeIfSunrise: {},
             closeIfSunset: {},
         },
         label: function() {
-            return this.name || "Automatic configuration"
+            return this.name || "Shading main configuration";
         },
         oneditprepare: function() {
-            
+
             var optionNothing = {value: "dis", label: "Disabled", hasValue: false}
+
+            $("#node-config-input-payloadOpenCmd").typedInput({
+                default: "bool",
+                typeField: $("#node-config-input-payloadOpenCmdType"),
+                types: ["bool","num","str"]
+            })
+
+            $("#node-config-input-payloadCloseCmd").typedInput({
+                default: "bool",
+                typeField: $("#node-config-input-payloadCloseCmdType"),
+                types: ["bool","num","str"]
+            })
+
+            $("#node-config-input-payloadStopCmd").typedInput({
+                default: "bool",
+                typeField: $("#node-config-input-payloadStopCmdType"),
+                types: ["bool","num","str"]
+            })
+
+            // hide complete automatic area
+            $("#node-config-input-autoActive").on('change', function() {
+                if ($("#node-config-input-autoActive").prop("checked")) {
+                    $('#autoConfig').show('fast')
+                } else {
+                    $('#autoConfig').hide('fast')
+                }
+            })
 
             $("#node-config-input-inmsgWinswitchPayloadOpened").typedInput({
                 default: "num",
@@ -123,15 +111,6 @@
                 types: ["str",optionNothing]
             })
 
-            // Hide autoTopic area
-            $("#node-config-input-autoIfMsgTopic").on('change', function() {
-                if ($("#node-config-input-autoIfMsgTopic").prop("checked")) {
-                    $('#autoTopic').show('fast')
-                } else {
-                    $('#autoTopic').hide('fast')
-                }
-            })
-
             // Hide Window switch class
             $("#node-config-input-winswitchEnable").on('change', function() {
                 if ($("#node-config-input-winswitchEnable").prop("checked")) {
@@ -146,7 +125,6 @@
                 }
             })
 
-
             // Hide tilt switch class and relevant options
             $("#node-config-input-winswitchTiltedEnable").on("change", function() {
                 if ($("#node-config-input-winswitchTiltedEnable").prop("checked")) {
@@ -155,8 +133,6 @@
                     $(".tiltswitch").hide("fast")
                 }
             })
-
-
 
             // Hide hardlock override checkbox when shadeIfWinOpen option is disabled
             $("#node-config-input-shadeIfWinOpen").on('change', function() {
@@ -168,13 +144,15 @@
                 }
             })
             
+            // Hide autoTopic area
+            $("#node-config-input-autoIfMsgTopic").on('change', function() {
+                if ($("#node-config-input-autoIfMsgTopic").prop("checked")) {
+                    $('#autoTopic').show('fast')
+                } else {
+                    $('#autoTopic').hide('fast')
+                }
+            })
 
-            
-            
-            
-            
-
-            
             // Disable incompatible options - open conditions, sunrise
             $("#node-config-input-openIfSunrise").on('change', function() {
                 if ($(this).prop("checked")) {
@@ -188,6 +166,7 @@
                     }
                 }
             })
+
             // Disable incompatible options - open conditions, sunset
             $("#node-config-input-openIfSunset").on('change', function() {
                 if ($(this).prop("checked")) {
@@ -215,6 +194,7 @@
                     }
                 }
             })
+
             // Disable incompatible options - shade conditions, sunset
             $("#node-config-input-shadeIfSunset").on('change', function() {
                 if ($(this).prop("checked")) {
@@ -242,6 +222,7 @@
                     }
                 }
             })
+
             // Disable incompatible options - close conditions, sunset
             $("#node-config-input-closeIfSunset").on('change', function() {
                 if ($(this).prop("checked")) {
@@ -256,199 +237,6 @@
                 }
             })
 
-
-
-
-
-
-
-
-
-
-        }
-    })
-</script>
-
-<script type="text/html" data-template-name="shading automatic">
-    <style>
-        .red-ui-editor .form-row label {
-            width: 170px
-        }
-        .red-ui-editor .form-row input {
-            width: 250px
-        }
-        .red-ui-editor .checkbox-row {
-            margin-bottom: 0px;
-        }
-        .red-ui-editor .checkbox-row input {
-            margin-left: 20px;
-            margin-right: 5px;
-            vertical-align: top;
-            width: auto !important;
-        }
-        .red-ui-editor h3 {
-            margin-top: 20px
-        }
-        .red-ui-editor a, .red-ui-editor a:hover {
-            text-decoration: underline;
-            text-decoration-style: dotted
-        }
-    </style>
-    <div class="form-tips"><b>Tip:</b> Check out <a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/automatic.md" target="_blank">this manual</a> or click any heading, to receive detailled infromation.</div>
-    <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/automatic.md#basics" target="_blank">Basics</a></h3>
-    <div class="form-row">
-        <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
-        <input type="text" id="node-config-input-name" placeholder="East, Streetside, Garden, ...">
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-config"><i class="fa fa-compass"></i> Home location</label>
-        <input type="text" id="node-config-input-config" style="width: 250px;">
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-inmsgTopicActPosHeight"><i class="fa fa-envelope-open-o"></i> Height feedback topic</label>
-        <input type="hidden" id="node-config-input-inmsgTopicActPosHeightType">
-        <input type="text" id="node-config-input-inmsgTopicActPosHeight">
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-hardlock"><i class="fa fa-sliders"></i> Hard lock</label>
-        <input type="hidden" id="node-config-input-hardlockType">
-        <input type="text" id="node-config-input-hardlock">
-    </div>
-    <hr>
-    <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/automatic.md#window-switch" target="_blank">Window switch</a></h3>
-    <div class="form-row">
-        <label><i class="fa fa-power-off"></i> Enable</label>
-        <input type="checkbox" id="node-config-input-winswitchEnable" style="display:inline-block; width:auto;">
-    </div>
-    <div class="winswitch">
-        <div class="form-row">
-            <label for="node-config-input-inmsgWinswitchTopic"><i class="fa fa-envelope-open-o"></i> Topic</label>
-            <input type="text" id="node-config-input-inmsgWinswitchTopic" placeholder="Leave blank to use 'switch'">
-        </div>
-        <div class="form-row">
-            <label for="node-config-input-inmsgWinswitchPayloadOpened"><i class="fa fa-rocket"></i> Payload Opened</label>
-            <input type="hidden" id="node-config-input-inmsgWinswitchPayloadOpenedType">
-            <input type="text" id="node-config-input-inmsgWinswitchPayloadOpened">
-        </div>
-        <div class="form-row">
-            <label for="node-config-input-inmsgWinswitchPayloadClosed"><i class="fa fa-rocket"></i> Payload Closed</label>
-            <input type="hidden" id="node-config-input-inmsgWinswitchPayloadClosedType">
-            <input type="text" id="node-config-input-inmsgWinswitchPayloadClosed">
-        </div>
-        <div class="form-row">
-            <label><i class="fa fa-power-off"></i> Tilted sensor</label>
-            <input type="checkbox" id="node-config-input-winswitchTiltedEnable" style="display:inline-block; width:auto;">
-        </div>
-        <div class="form-row tiltswitch">
-            <label for="node-config-input-inmsgWinswitchPayloadTilted"><i class="fa fa-rocket"></i> Payload Tilted</label>
-            <input type="hidden" id="node-config-input-inmsgWinswitchPayloadTiltedType">
-            <input type="text" id="node-config-input-inmsgWinswitchPayloadTilted">
-        </div>
-        <hr>
-        <div>
-            <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/automatic.md#security-configuration" target="_blank">Security configuration</a></h3>
-            <div class="form-row checkbox-row tiltswitch">
-                <input type="checkbox" id="node-config-input-allowLoweringWhenTilted" class="winswitch-checkbox"> <label style="width: 300px" for="node-config-input-allowLoweringWhenTilted">Lowering allowed if window is tilted</label>
-            </div>
-            <div class="form-row checkbox-row">
-                <input type="checkbox" id="node-config-input-allowLoweringWhenOpened" class="winswitch-checkbox"> <label style="width: 300px" for="node-config-input-allowLoweringWhenOpened">Lowering allowed if window is opened</label>
-            </div>
-        </div>
-    </div>
-    <hr>
-    <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/automatic.md#events-configuration" target="_blank">Events configuration</a></h3>
-    <h4>Re-enable automatic conditions</h4>
-    <div class="form-row checkbox-row">
-        <input type="checkbox" id="node-config-input-autoIfSunrise"> <label style="width: 300px" for="node-config-input-autoIfSunrise">Sunrise</label>
-    </div>
-    <div class="form-row checkbox-row">
-        <input type="checkbox" id="node-config-input-autoIfSunset"> <label style="width: 300px" for="node-config-input-autoIfSunset">Sunset</label>
-    </div>
-    <div class="form-row checkbox-row winswitch tiltswitch">
-        <input type="checkbox" id="node-config-input-autoIfWinOpenToTilt" class="winswitch-checkbox"> <label style="width: 300px" for="node-config-input-autoIfWinOpenToTilt">Window changes from 'open' to 'tilted'</label>
-    </div>
-    <div class="form-row checkbox-row winswitch">
-        <input type="checkbox" id="node-config-input-autoIfWinClosed" class="winswitch-checkbox"> <label style="width: 300px" for="node-config-input-autoIfWinClosed">Window changes from any state to 'closed'</label>
-    </div>
-    <div class="form-row checkbox-row">
-        <input type="checkbox" id="node-config-input-autoIfMsgTopic"> <label style="width: 300px" for="node-config-input-autoIfMsgTopic">Message with topic</label>
-    </div>
-    <div id="autoTopic" style="padding-left: 20px">
-        <div class="form-row checkbox-row" style="width: 300px;">
-            <input type="text" id="node-config-input-autoTopic" placeholder="auto">
-        </div>
-    </div>
-    <h4>Open conditions</h4>
-    <div class="form-row checkbox-row winswitch">
-        <input type="checkbox" id="node-config-input-openIfWinOpen" class="winswitch-checkbox"> <label style="width: 300px" for="node-config-input-openIfWinOpen">Window changes from any state to 'open'</label>
-    </div>
-    <div class="form-row checkbox-row" id="openIfSunrise-div">
-        <input type="checkbox" id="node-config-input-openIfSunrise"> <label style="width: 300px" for="node-config-input-openIfSunrise">Sunrise</label>
-    </div>
-    <div class="form-row checkbox-row" id="openIfSunset-div">
-        <input type="checkbox" id="node-config-input-openIfSunset"> <label style="width: 300px" for="node-config-input-openIfSunset">Sunset</label>
-    </div>
-    <h4>Shade conditions</h4>
-    <!-- <div class="form-row checkbox-row winswitch">
-        <input type="checkbox" id="node-config-input-shadeIfWinOpen" class="winswitch-checkbox"> <label style="width: 300px" for="node-config-input-shadeIfWinOpen">Window changes from any state to 'open' while shading is closed</label>
-    </div>
-    <div class="form-row checkbox-row winswitch" id="shadeIfWinOpenOverrideHardlock-checkbox">
-        <input type="checkbox" id="node-config-input-shadeIfWinOpenOverrideHardlock" class="winswitch-checkbox" style="margin-left: 40px;"> <label style="width: 300px" for="node-config-input-shadeIfWinOpenOverrideHardlock">Override hardlock</label>
-    </div> -->
-    <div class="form-row checkbox-row" id="shadeIfSunrise-div">
-        <input type="checkbox" id="node-config-input-shadeIfSunrise"> <label style="width: 300px" for="node-config-input-shadeIfSunrise">Sunrise</label>
-    </div>
-    <div class="form-row checkbox-row" id="shadeIfSunset-div">
-        <input type="checkbox" id="node-config-input-shadeIfSunset"> <label style="width: 300px" for="node-config-input-shadeIfSunset">Sunset</label>
-    </div>
-    <h4>Close conditions</h4>
-    <div class="form-row checkbox-row" id="closeIfSunrise-div">
-        <input type="checkbox" id="node-config-input-closeIfSunrise"> <label style="width: 300px" for="node-config-input-closeIfSunrise">Sunrise</label>
-    </div>
-    <div class="form-row checkbox-row" id="closeIfSunset-div">
-        <input type="checkbox" id="node-config-input-closeIfSunset"> <label style="width: 300px" for="node-config-input-closeIfSunset">Sunset</label>
-    </div>
-</script>
-
-<!-- END automatic configuration -->
-
-
-<!-- BEGIN basic configuration -->
-<script type="text/javascript">
-    RED.nodes.registerType ('shading configuration', {
-        category: 'config',
-        defaults: {
-            name: {value: "Shading main configuration"},
-            shadingSetposShade: {value: 80, required: true},
-            inmsgButtonTopicOpen: {},
-            inmsgButtonTopicClose: {},
-            inmsgButtonDblclickTime: {value: 500, required: true},
-            payloadOpenCmd: {value: false},
-            payloadOpenCmdType: {value: "initval"},
-            payloadCloseCmd: {},
-            payloadCloseCmdType: {value: "initval"},
-            payloadStopCmd: {},
-            payloadStopCmdType: {value: "initval"},
-        },
-        label: function() {
-            return this.name || "Shading main configuration";
-        },
-        oneditprepare: function() {
-            $("#node-config-input-payloadOpenCmd").typedInput({
-                default: "bool",
-                typeField: $("#node-config-input-payloadOpenCmdType"),
-                types: ["bool","num","str"]
-            })
-            $("#node-config-input-payloadCloseCmd").typedInput({
-                default: "bool",
-                typeField: $("#node-config-input-payloadCloseCmdType"),
-                types: ["bool","num","str"]
-            })
-            $("#node-config-input-payloadStopCmd").typedInput({
-                default: "bool",
-                typeField: $("#node-config-input-payloadStopCmdType"),
-                types: ["bool","num","str"]
-            })
         }
     })
 </script>
@@ -456,7 +244,7 @@
 <script type="text/html" data-template-name="shading configuration">
     <style>
         .red-ui-editor .form-row label {
-            width: 150px
+            width: 170px
         }
         .red-ui-editor .form-row input {
             width: 250px
@@ -469,9 +257,21 @@
             text-decoration: underline;
             text-decoration-style: dotted
         }
+
+        .red-ui-editor .checkbox-row {
+            margin-bottom: 0px;
+        }
+        .red-ui-editor .checkbox-row input {
+            margin-left: 20px;
+            margin-right: 5px;
+            vertical-align: top;
+            width: auto !important;
+        }
+        .red-ui-editor h3 {
+            margin-top: 20px
+        }
     </style>
     <div class="form-tips"><b>Tip:</b> Check out <a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md" target="_blank">this manual</a> or click any heading, to receive detailled infromation.</div>
-    <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md#basics" target="_blank">Basics</a></h3>
     <div class="form-row">
         <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-config-input-name" placeholder="Shading main configuration">
@@ -514,12 +314,131 @@
         <label><i class="fa fa-rocket"></i> Command</label>
         From 0 (up/open) to 100 (down/closed)
     </div>
+    <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md#automatic" target="_blank">Automatic</a></h3>
+    <div class="form-row">
+        <label><i class="fa fa-power-off"></i> Enable</label>
+        <input type="checkbox" id="node-config-input-autoActive" style="display:inline-block; width:auto;">
+    </div>
+    <div id="autoConfig">
+        <div class="form-row">
+            <label for="node-config-input-lat"><i class="fa fa-compass"></i> Latitude</label>
+            <input type="text" id="node-config-input-lat" placeholder="47.479123" style="width: 150px;"> °
+        </div>
+        <div class="form-row">
+            <label for="node-config-input-lon"><i class="fa fa-compass"></i> Longitude</label>
+            <input type="text" id="node-config-input-lon" placeholder="9.663123" style="width: 150px;"> °
+        </div>
+        <div class="form-row">
+            <label for="node-config-input-inmsgTopicActPosHeight"><i class="fa fa-envelope-open-o"></i> Height feedback topic</label>
+            <input type="hidden" id="node-config-input-inmsgTopicActPosHeightType">
+            <input type="text" id="node-config-input-inmsgTopicActPosHeight">
+        </div>
+        <div class="form-row">
+            <label for="node-config-input-hardlock"><i class="fa fa-sliders"></i> Hard lock</label>
+            <input type="hidden" id="node-config-input-hardlockType">
+            <input type="text" id="node-config-input-hardlock">
+        </div>
+        <hr>
+        <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/automatic.md#window-switch" target="_blank">Window switch</a></h3>
+        <div class="form-row">
+            <label><i class="fa fa-power-off"></i> Enable</label>
+            <input type="checkbox" id="node-config-input-winswitchEnable" style="display:inline-block; width:auto;">
+        </div>
+        <div class="winswitch">
+            <div class="form-row">
+                <label for="node-config-input-inmsgWinswitchTopic"><i class="fa fa-envelope-open-o"></i> Topic</label>
+                <input type="text" id="node-config-input-inmsgWinswitchTopic" placeholder="Leave blank to use 'switch'">
+            </div>
+            <div class="form-row">
+                <label for="node-config-input-inmsgWinswitchPayloadOpened"><i class="fa fa-rocket"></i> Payload Opened</label>
+                <input type="hidden" id="node-config-input-inmsgWinswitchPayloadOpenedType">
+                <input type="text" id="node-config-input-inmsgWinswitchPayloadOpened">
+            </div>
+            <div class="form-row">
+                <label for="node-config-input-inmsgWinswitchPayloadClosed"><i class="fa fa-rocket"></i> Payload Closed</label>
+                <input type="hidden" id="node-config-input-inmsgWinswitchPayloadClosedType">
+                <input type="text" id="node-config-input-inmsgWinswitchPayloadClosed">
+            </div>
+            <div class="form-row">
+                <label><i class="fa fa-power-off"></i> Tilted sensor</label>
+                <input type="checkbox" id="node-config-input-winswitchTiltedEnable" style="display:inline-block; width:auto;">
+            </div>
+            <div class="form-row tiltswitch">
+                <label for="node-config-input-inmsgWinswitchPayloadTilted"><i class="fa fa-rocket"></i> Payload Tilted</label>
+                <input type="hidden" id="node-config-input-inmsgWinswitchPayloadTiltedType">
+                <input type="text" id="node-config-input-inmsgWinswitchPayloadTilted">
+            </div>
+            <hr>
+            <div>
+                <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/automatic.md#security-configuration" target="_blank">Security configuration</a></h3>
+                <div class="form-row checkbox-row tiltswitch">
+                    <input type="checkbox" id="node-config-input-allowLoweringWhenTilted" class="winswitch-checkbox"> <label style="width: 300px" for="node-config-input-allowLoweringWhenTilted">Lowering allowed if window is tilted</label>
+                </div>
+                <div class="form-row checkbox-row">
+                    <input type="checkbox" id="node-config-input-allowLoweringWhenOpened" class="winswitch-checkbox"> <label style="width: 300px" for="node-config-input-allowLoweringWhenOpened">Lowering allowed if window is opened</label>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/automatic.md#events-configuration" target="_blank">Events configuration</a></h3>
+        <h4>Re-enable automatic conditions</h4>
+        <div class="form-row checkbox-row">
+            <input type="checkbox" id="node-config-input-autoIfSunrise"> <label style="width: 300px" for="node-config-input-autoIfSunrise">Sunrise</label>
+        </div>
+        <div class="form-row checkbox-row">
+            <input type="checkbox" id="node-config-input-autoIfSunset"> <label style="width: 300px" for="node-config-input-autoIfSunset">Sunset</label>
+        </div>
+        <div class="form-row checkbox-row winswitch tiltswitch">
+            <input type="checkbox" id="node-config-input-autoIfWinOpenToTilt" class="winswitch-checkbox"> <label style="width: 300px" for="node-config-input-autoIfWinOpenToTilt">Window changes from 'open' to 'tilted'</label>
+        </div>
+        <div class="form-row checkbox-row winswitch">
+            <input type="checkbox" id="node-config-input-autoIfWinClosed" class="winswitch-checkbox"> <label style="width: 300px" for="node-config-input-autoIfWinClosed">Window changes from any state to 'closed'</label>
+        </div>
+        <div class="form-row checkbox-row">
+            <input type="checkbox" id="node-config-input-autoIfMsgTopic"> <label style="width: 300px" for="node-config-input-autoIfMsgTopic">Message with topic</label>
+        </div>
+        <div id="autoTopic" style="padding-left: 20px">
+            <div class="form-row checkbox-row" style="width: 300px;">
+                <input type="text" id="node-config-input-autoTopic" placeholder="auto">
+            </div>
+        </div>
+        <h4>Open conditions</h4>
+        <div class="form-row checkbox-row winswitch">
+            <input type="checkbox" id="node-config-input-openIfWinOpen" class="winswitch-checkbox"> <label style="width: 300px" for="node-config-input-openIfWinOpen">Window changes from any state to 'open'</label>
+        </div>
+        <div class="form-row checkbox-row" id="openIfSunrise-div">
+            <input type="checkbox" id="node-config-input-openIfSunrise"> <label style="width: 300px" for="node-config-input-openIfSunrise">Sunrise</label>
+        </div>
+        <div class="form-row checkbox-row" id="openIfSunset-div">
+            <input type="checkbox" id="node-config-input-openIfSunset"> <label style="width: 300px" for="node-config-input-openIfSunset">Sunset</label>
+        </div>
+        <h4>Shade conditions</h4>
+        <!-- <div class="form-row checkbox-row winswitch">
+            <input type="checkbox" id="node-config-input-shadeIfWinOpen" class="winswitch-checkbox"> <label style="width: 300px" for="node-config-input-shadeIfWinOpen">Window changes from any state to 'open' while shading is closed</label>
+        </div>
+        <div class="form-row checkbox-row winswitch" id="shadeIfWinOpenOverrideHardlock-checkbox">
+            <input type="checkbox" id="node-config-input-shadeIfWinOpenOverrideHardlock" class="winswitch-checkbox" style="margin-left: 40px;"> <label style="width: 300px" for="node-config-input-shadeIfWinOpenOverrideHardlock">Override hardlock</label>
+        </div> -->
+        <div class="form-row checkbox-row" id="shadeIfSunrise-div">
+            <input type="checkbox" id="node-config-input-shadeIfSunrise"> <label style="width: 300px" for="node-config-input-shadeIfSunrise">Sunrise</label>
+        </div>
+        <div class="form-row checkbox-row" id="shadeIfSunset-div">
+            <input type="checkbox" id="node-config-input-shadeIfSunset"> <label style="width: 300px" for="node-config-input-shadeIfSunset">Sunset</label>
+        </div>
+        <h4>Close conditions</h4>
+        <div class="form-row checkbox-row" id="closeIfSunrise-div">
+            <input type="checkbox" id="node-config-input-closeIfSunrise"> <label style="width: 300px" for="node-config-input-closeIfSunrise">Sunrise</label>
+        </div>
+        <div class="form-row checkbox-row" id="closeIfSunset-div">
+            <input type="checkbox" id="node-config-input-closeIfSunset"> <label style="width: 300px" for="node-config-input-closeIfSunset">Sunset</label>
+        </div>
+    </div>
 </script>
 
-<!-- END basic configuration -->
+<!-- END configuration -->
 
 
-<!-- BEGIN Main node -->
+<!-- BEGIN node -->
 
 <script type="text/javascript">
     RED.nodes.registerType('shading',{
@@ -533,37 +452,21 @@
             name: {},
             configSet: {type: "shading configuration"},
             debug: {},
-            autoActive: {},
-            configAutomatic: {type: "shading automatic", validate: function() {return this.configAutomatic != "" || !this.autoActive}}
         },
         label: function() {
             return this.name || "Shading"
         },
-        oneditprepare: function() {
-            // hide feedback config area
-            $("#node-input-autoActive").on('change', function() {
-                if ($("#node-input-autoActive").prop("checked")) {
-                    $('.autoConfig').show('fast')
-                } else {
-                    $('.autoConfig').hide('fast')
-                }
-            })
-        }
     })
 </script>
 
 <script type="text/html" data-template-name="shading">
     <style>
-        .red-ui-editor .form-row label {width: 130px}
-        /* .red-ui-editor .form-row input {width: 260px} */
-        .red-ui-editor a, .red-ui-editor a:hover {
-            text-decoration: underline;
-            text-decoration-style: dotted
+        .red-ui-editor .form-row label {
+            width: 130px
         }
     </style>
     <div class="form-tips"><b>Tip:</b> Check out <a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/node.md" target="_blank">this manual</a> or click any heading, to receive detailled infromation.</div>
-    <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/node.md#basics" target="_blank">Basics</a></h3>
-    <div class="form-row">
+    <div class="form-row" style="margin-top: 20px;">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Kitchen, Livingroom, ...">
     </div>
@@ -571,20 +474,10 @@
         <label for="node-input-configSet"><i class="fa fa-sliders"></i> Configuration</label>
         <input type="text" id="node-input-configSet">
     </div>
-    <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/node.md#automatic" target="_blank">Automatic</a></h3>
     <div class="form-row">
-        <label><i class="fa fa-power-off"></i> Enable</label>
-        <input type="checkbox" id="node-input-autoActive" style="display:inline-block; width:auto;">
-    </div>
-    <div class="form-row autoConfig">
-        <label for="node-input-configAutomatic"><i class="fa fa-sliders"></i> Configuration</label>
-        <input type="text" id="node-input-configAutomatic">
-    </div>
-    <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/node.md#debugging" target="_blank">Debugging</a></h3>
-    <div class="form-row">
-        <label><i class="fa fa-bug"></i> Enable</label>
+        <label><i class="fa fa-bug"></i> Debugging</label>
         <input type="checkbox" id="node-input-debug" style="display:inline-block; width:auto;">
     </div>
 </script>
 
-<!-- END Main node -->
+<!-- END node -->
