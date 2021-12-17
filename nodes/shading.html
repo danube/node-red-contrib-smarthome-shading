@@ -16,8 +16,8 @@
             payloadStopCmd: {},
             payloadStopCmdType: {value: "initval"},
             autoActive: {},
-            lat: {value: "", validate: function() {return !this.autoActive || typeof this.lat === "number"}},
-            lon: {value: "", validate: function() {return !this.autoActive || typeof this.lon === "number"}},
+            lat: {value: "", validate: function() {return !this.autoActive || this.lat != ""}},
+            lon: {value: "", validate: function() {return !this.autoActive || this.lon != ""}},
             inmsgTopicActPosHeight: {},
             inmsgTopicActPosHeightType: {},
             hardlock: {},
@@ -236,6 +236,29 @@
                     }
                 }
             })
+
+            // // Have red border as soon as invalid value is entered
+            // $("#node-config-input-lat").on("change", function(){
+            //     if ($("#node-config-input-lat").val()) {
+            //         console.log("EMPTY")
+            //         $("#node-config-input-lat").css("border-color", "#ccc")
+            //     } else {
+            //         console.log("FILLED")
+            //         $("#node-config-input-lat").css("border-color", "#d6615f")
+            //     }
+            // })
+
+            // $("#node-config-input-lon").on("change", function(){
+            //     if ($("#node-config-input-lon").val()) {
+            //         console.log("EMPTY")
+            //         $("#node-config-input-lon").css("border-color", "#ccc")
+            //     } else {
+            //         console.log("FILLED")
+            //         $("#node-config-input-lon").css("border-color", "#d6615f")
+            //     }
+            // })
+
+
 
         }
     })
