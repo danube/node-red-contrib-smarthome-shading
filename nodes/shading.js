@@ -3,18 +3,6 @@ module.exports = function(RED) {
 	// Definition of persistant variables
 	let handle = null;
 
-    function ShadingAutomaticNode(config) {
-		RED.nodes.createNode(this,config);
-		this.config = config;
-    }
-    RED.nodes.registerType("shading automatic",ShadingAutomaticNode);
-
-    function ShadingLocationNode(config) {
-		RED.nodes.createNode(this,config);
-		this.config = config;
-    }
-    RED.nodes.registerType("shading location",ShadingLocationNode);
-
     function ShadingConfigNode(config) {
         RED.nodes.createNode(this,config);
 		this.config = config;

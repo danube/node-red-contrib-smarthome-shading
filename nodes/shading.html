@@ -54,20 +54,26 @@
 
             var optionNothing = {value: "dis", label: "Disabled", hasValue: false}
 
+            if (this.payloadOpenCmdType === "initval") {
+                $("#node-config-input-payloadOpenCmdType").val("bool");
+            }   // TODO Diesen workaround auch überall anders noch nachziehen
             $("#node-config-input-payloadOpenCmd").typedInput({
-                default: "bool",
                 typeField: $("#node-config-input-payloadOpenCmdType"),
                 types: ["bool","num","str"]
             })
-
+            
+            if (this.payloadCloseCmdType === "initval") {
+                $("#node-config-input-payloadCloseCmdType").val("bool");
+            }
             $("#node-config-input-payloadCloseCmd").typedInput({
-                default: "bool",
                 typeField: $("#node-config-input-payloadCloseCmdType"),
                 types: ["bool","num","str"]
             })
-
+            
+            if (this.payloadStopCmdType === "initval") {
+                $("#node-config-input-payloadStopCmdType").val("bool");
+            }
             $("#node-config-input-payloadStopCmd").typedInput({
-                default: "bool",
                 typeField: $("#node-config-input-payloadStopCmdType"),
                 types: ["bool","num","str"]
             })
@@ -349,7 +355,7 @@
     <div id="autoConfig">
         <div class="form-row">
             <label for="node-config-input-lat"><i class="fa fa-compass"></i> Latitude</label>
-            <input type="text" id="node-config-input-lat" placeholder="47.479123" style="width: 150px;"> °
+            <input type="text" id="node-config-input-lat" placeholder="47.479123" style="width: 150px;"> ° <!-- TODO Nach Eingabe eines leeren Feldes bleibt die Feldumrandung rot -->
         </div>
         <div class="form-row">
             <label for="node-config-input-lon"><i class="fa fa-compass"></i> Longitude</label>
@@ -358,7 +364,7 @@
         <div class="form-row">
             <label for="node-config-input-inmsgTopicActPosHeight"><i class="fa fa-envelope-open-o"></i> Height feedback topic</label>
             <input type="hidden" id="node-config-input-inmsgTopicActPosHeightType">
-            <input type="text" id="node-config-input-inmsgTopicActPosHeight">
+            <input type="text" id="node-config-input-inmsgTopicActPosHeight"> <!-- TODO Placeholder, damit nix ausgefüllt werden muss wenn man von dis auf string umschaltet -->
         </div>
         <div class="form-row">
             <label for="node-config-input-hardlock"><i class="fa fa-sliders"></i> Hard lock</label>
@@ -491,9 +497,13 @@
         .red-ui-editor .form-row label {
             width: 130px
         }
+        .red-ui-editor .form-tips {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
     </style>
     <div class="form-tips"><b>Tip:</b> Check out <a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/node.md" target="_blank">this manual</a> or click any heading, to receive detailled infromation.</div>
-    <div class="form-row" style="margin-top: 20px;">
+    <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Kitchen, Livingroom, ...">
     </div>
