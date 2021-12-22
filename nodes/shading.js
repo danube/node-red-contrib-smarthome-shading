@@ -272,13 +272,13 @@ module.exports = function(RED) {
 		// FIRST RUN ACTIONS ====>
 
 		// Filling empty string fields with defaults
-		config.set.inmsgButtonTopicOpen = config.set.inmsgButtonTopicOpen || "openbutton"
-		config.set.inmsgButtonTopicClose = config.set.inmsgButtonTopicClose || "closebutton"
+		config.set.inmsgButtonTopicOpen = config.set.inmsgButtonTopicOpen || "buttonup"
+		config.set.inmsgButtonTopicClose = config.set.inmsgButtonTopicClose || "buttondown"
 		if (config.set.autoActive) {
 			config.set.autoTopic = config.set.autoTopic || "auto"
-			config.set.openTopic = config.set.openTopic || "open"
-			config.set.shadeTopic = config.set.shadeTopic || "shade"
-			config.set.closeTopic = config.set.closeTopic || "close"
+			config.set.openTopic = config.set.openTopic || "commandopen"
+			config.set.shadeTopic = config.set.shadeTopic || "commandshade"
+			config.set.closeTopic = config.set.closeTopic || "commandclose"
 			if (config.set.winswitchEnable) {
 				config.set.inmsgWinswitchTopic = config.set.inmsgWinswitchTopic || "switch"
 			}
@@ -363,11 +363,11 @@ module.exports = function(RED) {
 				/** Auto re-enable event based on incoming message topic */
 				var autoReenableEvent = config.set.autoIfMsgTopic && msg.topic === config.set.autoTopic
 				/** Open event based on incoming message topic */
-				var openEvent = config.set.openIfMsgTopic && msg.topic === config.set.openTopic
+				var openEvent = msg.topic === config.set.openTopic
 				/** Shade event based on incoming message topic */
-				var shadeEvent = config.set.shadeIfMsgTopic && msg.topic === config.set.shadeTopic
+				var shadeEvent = msg.topic === config.set.shadeTopic
 				/** Close event based on incoming message topic */
-				var closeEvent = config.set.closeIfMsgTopic && msg.topic === config.set.closeTopic
+				var closeEvent = msg.topic === config.set.closeTopic
 				/** Height drive position event based on incoming message topic */
 				var driveHeightEvent = config.set.inmsgTopicActPosHeightType != "dis" && msg.topic === config.set.inmsgTopicActPosHeight
 			}
@@ -535,7 +535,7 @@ module.exports = function(RED) {
 				autoMoveFunc(true)
 			}
 
-
+			if (config.debug) {that.log("Unknown message with topic '" + msg.topic + "'")}
 
 			// ONLY FOR DEBUGGING ====>
 			

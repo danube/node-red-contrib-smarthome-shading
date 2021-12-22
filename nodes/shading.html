@@ -9,6 +9,9 @@
             inmsgButtonTopicOpen: {},
             inmsgButtonTopicClose: {},
             inmsgButtonDblclickTime: {value: 500, required: true},
+            openTopic: {},
+            shadeTopic: {},
+            closeTopic: {},
             payloadOpenCmd: {value: false},
             payloadOpenCmdType: {value: "initval"},
             payloadCloseCmd: {},
@@ -42,16 +45,10 @@
             openIfWinOpen: {},
             openIfSunrise: {},
             openIfSunset: {},
-            openIfMsgTopic: {},
-            openTopic: {},
             shadeIfSunrise: {},
             shadeIfSunset: {},
-            shadeIfMsgTopic: {},
-            shadeTopic: {},
             closeIfSunrise: {},
             closeIfSunset: {},
-            closeIfMsgTopic: {},
-            closeTopic: {},
         },
         label: function() {
             return this.name || "Shading main configuration";
@@ -162,30 +159,6 @@
                     $('#autoTopic').show('fast')
                 } else {
                     $('#autoTopic').hide('fast')
-                }
-            })
-            // Hide openTopic area
-            $("#node-config-input-openIfMsgTopic").on('change', function() {
-                if ($("#node-config-input-openIfMsgTopic").prop("checked")) {
-                    $('#openTopic').show('fast')
-                } else {
-                    $('#openTopic').hide('fast')
-                }
-            })
-            // Hide shadeTopic area
-            $("#node-config-input-shadeIfMsgTopic").on('change', function() {
-                if ($("#node-config-input-shadeIfMsgTopic").prop("checked")) {
-                    $('#shadeTopic').show('fast')
-                } else {
-                    $('#shadeTopic').hide('fast')
-                }
-            })
-            // Hide closeTopic area
-            $("#node-config-input-closeIfMsgTopic").on('change', function() {
-                if ($("#node-config-input-closeIfMsgTopic").prop("checked")) {
-                    $('#closeTopic').show('fast')
-                } else {
-                    $('#closeTopic').hide('fast')
                 }
             })
 
@@ -339,24 +312,41 @@
         <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-config-input-name" placeholder="Shading main configuration">
     </div>
+    <hr>
     <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md#blind-configuration" target="_blank">Blind configuration</a></h3>
     <div class="form-row">
         <label for="node-config-input-shadingSetposShade"><i class="fa fa-window-maximize"></i> Shade position</label>
         <input type="number" step="1" min="0" max="100" id="node-config-input-shadingSetposShade"> %
     </div>
+    <hr>
     <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md#pushbutton-configuration" target="_blank">Pushbutton configuration</a></h3>
     <div class="form-row">
-        <label for="node-config-input-inmsgButtonTopicOpen"><i class="fa fa-envelope-open-o"></i> Topic Open</label>
-        <input type="text" id="node-config-input-inmsgButtonTopicOpen" placeholder="Leave blank to use 'openbutton'">
+        <label for="node-config-input-inmsgButtonTopicOpen"><i class="fa fa-envelope-open-o"></i> Topic: Move down</label>
+        <input type="text" id="node-config-input-inmsgButtonTopicOpen" placeholder="Leave blank to use 'buttonup'">
     </div>
     <div class="form-row">
-        <label for="node-config-input-inmsgButtonTopicClose"><i class="fa fa-envelope-open-o"></i> Topic Close</label>
-        <input type="text" id="node-config-input-inmsgButtonTopicClose" placeholder="Leave blank to use 'closebutton'">
+        <label for="node-config-input-inmsgButtonTopicClose"><i class="fa fa-envelope-open-o"></i> Topic: Move up</label>
+        <input type="text" id="node-config-input-inmsgButtonTopicClose" placeholder="Leave blank to use 'buttondown'">
     </div>
     <div class="form-row">
-        <label for="node-config-input-inmsgButtonDblclickTime"><i class="fa fa-clock-o"></i> Doubleclick</label>
+        <label for="node-config-input-inmsgButtonDblclickTime"><i class="fa fa-clock-o"></i> Doubleclick time</label>
         <input type="number" step="100" min="100" max="5000" id="node-config-input-inmsgButtonDblclickTime"> ms
     </div>
+    <hr>
+    <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md#command-configuration" target="_blank">Command configuration</a></h3>
+    <div class="form-row">
+        <label for="node-config-input-openTopic"><i class="fa fa-envelope-open-o"></i> Topic: Open</label>
+        <input type="text" id="node-config-input-openTopic" placeholder="Leave blank to use 'commandopen'">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-shadeTopic"><i class="fa fa-envelope-open-o"></i> Topic: Shade</label>
+        <input type="text" id="node-config-input-shadeTopic" placeholder="Leave blank to use 'commandshade'">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-closeTopic"><i class="fa fa-envelope-open-o"></i> Topic: Close</label>
+        <input type="text" id="node-config-input-closeTopic" placeholder="Leave blank to use 'commandclose'">
+    </div>
+    <hr>
     <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md#output-configuration" target="_blank">Output configuration</a></h3>
     <div class="form-row">
         <label for="node-config-input-payloadOpenCmd"><i class="fa fa-rocket"></i> Open</label>
@@ -377,6 +367,7 @@
         <label><i class="fa fa-rocket"></i> Command</label>
         From 0 (up/open) to 100 (down/closed)
     </div>
+    <hr>
     <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md#automatic" target="_blank">Automatic</a></h3>
     <div class="form-row">
         <label><i class="fa fa-power-off"></i> Enable</label>
@@ -475,14 +466,6 @@
         <div class="form-row checkbox-row" id="openIfSunset-div">
             <input type="checkbox" id="node-config-input-openIfSunset"> <label style="width: 300px" for="node-config-input-openIfSunset">Sunset</label>
         </div>
-        <div class="form-row checkbox-row">
-            <input type="checkbox" id="node-config-input-openIfMsgTopic"> <label style="width: 300px" for="node-config-input-openIfMsgTopic">Message with topic</label>
-        </div>
-        <div id="openTopic" style="padding-left: 20px">
-            <div class="form-row checkbox-row" style="width: 300px;">
-                <input type="text" id="node-config-input-openTopic" placeholder="'open' if blank">
-            </div>
-        </div>
         <h4>Shade conditions</h4>
         <!-- <div class="form-row checkbox-row winswitch">
             <input type="checkbox" id="node-config-input-shadeIfWinOpen" class="winswitch-checkbox"> <label style="width: 300px" for="node-config-input-shadeIfWinOpen">Window changes from any state to 'open' while shading is closed</label>
@@ -496,28 +479,12 @@
         <div class="form-row checkbox-row" id="shadeIfSunset-div">
             <input type="checkbox" id="node-config-input-shadeIfSunset"> <label style="width: 300px" for="node-config-input-shadeIfSunset">Sunset</label>
         </div>
-        <div class="form-row checkbox-row">
-            <input type="checkbox" id="node-config-input-shadeIfMsgTopic"> <label style="width: 300px" for="node-config-input-shadeIfMsgTopic">Message with topic</label>
-        </div>
-        <div id="shadeTopic" style="padding-left: 20px">
-            <div class="form-row checkbox-row" style="width: 300px;">
-                <input type="text" id="node-config-input-shadeTopic" placeholder="'shade' if blank">
-            </div>
-        </div>
         <h4>Close conditions</h4>
         <div class="form-row checkbox-row" id="closeIfSunrise-div">
             <input type="checkbox" id="node-config-input-closeIfSunrise"> <label style="width: 300px" for="node-config-input-closeIfSunrise">Sunrise</label>
         </div>
         <div class="form-row checkbox-row" id="closeIfSunset-div">
             <input type="checkbox" id="node-config-input-closeIfSunset"> <label style="width: 300px" for="node-config-input-closeIfSunset">Sunset</label>
-        </div>
-        <div class="form-row checkbox-row">
-            <input type="checkbox" id="node-config-input-closeIfMsgTopic"> <label style="width: 300px" for="node-config-input-closeIfMsgTopic">Message with topic</label>
-        </div>
-        <div id="closeTopic" style="padding-left: 20px">
-            <div class="form-row checkbox-row" style="width: 300px;">
-                <input type="text" id="node-config-input-closeTopic" placeholder="'close' if blank">
-            </div>
         </div>
     </div>
 </script>
