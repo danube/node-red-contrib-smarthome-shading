@@ -38,14 +38,20 @@
             autoIfWinOpenToTilt: {},
             autoIfWinClosed: {},
             autoIfMsgTopic: {},
-            autoTopic: {value: "auto"},
+            autoTopic: {},
             openIfWinOpen: {},
             openIfSunrise: {},
             openIfSunset: {},
+            openIfMsgTopic: {},
+            openTopic: {},
             shadeIfSunrise: {},
             shadeIfSunset: {},
+            shadeIfMsgTopic: {},
+            shadeTopic: {},
             closeIfSunrise: {},
             closeIfSunset: {},
+            closeIfMsgTopic: {},
+            closeTopic: {},
         },
         label: function() {
             return this.name || "Shading main configuration";
@@ -156,6 +162,30 @@
                     $('#autoTopic').show('fast')
                 } else {
                     $('#autoTopic').hide('fast')
+                }
+            })
+            // Hide openTopic area
+            $("#node-config-input-openIfMsgTopic").on('change', function() {
+                if ($("#node-config-input-openIfMsgTopic").prop("checked")) {
+                    $('#openTopic').show('fast')
+                } else {
+                    $('#openTopic').hide('fast')
+                }
+            })
+            // Hide shadeTopic area
+            $("#node-config-input-shadeIfMsgTopic").on('change', function() {
+                if ($("#node-config-input-shadeIfMsgTopic").prop("checked")) {
+                    $('#shadeTopic').show('fast')
+                } else {
+                    $('#shadeTopic').hide('fast')
+                }
+            })
+            // Hide closeTopic area
+            $("#node-config-input-closeIfMsgTopic").on('change', function() {
+                if ($("#node-config-input-closeIfMsgTopic").prop("checked")) {
+                    $('#closeTopic').show('fast')
+                } else {
+                    $('#closeTopic').hide('fast')
                 }
             })
 
@@ -432,7 +462,7 @@
         </div>
         <div id="autoTopic" style="padding-left: 20px">
             <div class="form-row checkbox-row" style="width: 300px;">
-                <input type="text" id="node-config-input-autoTopic" placeholder="auto">
+                <input type="text" id="node-config-input-autoTopic" placeholder="'auto' if blank">
             </div>
         </div>
         <h4>Open conditions</h4>
@@ -444,6 +474,14 @@
         </div>
         <div class="form-row checkbox-row" id="openIfSunset-div">
             <input type="checkbox" id="node-config-input-openIfSunset"> <label style="width: 300px" for="node-config-input-openIfSunset">Sunset</label>
+        </div>
+        <div class="form-row checkbox-row">
+            <input type="checkbox" id="node-config-input-openIfMsgTopic"> <label style="width: 300px" for="node-config-input-openIfMsgTopic">Message with topic</label>
+        </div>
+        <div id="openTopic" style="padding-left: 20px">
+            <div class="form-row checkbox-row" style="width: 300px;">
+                <input type="text" id="node-config-input-openTopic" placeholder="'open' if blank">
+            </div>
         </div>
         <h4>Shade conditions</h4>
         <!-- <div class="form-row checkbox-row winswitch">
@@ -458,12 +496,28 @@
         <div class="form-row checkbox-row" id="shadeIfSunset-div">
             <input type="checkbox" id="node-config-input-shadeIfSunset"> <label style="width: 300px" for="node-config-input-shadeIfSunset">Sunset</label>
         </div>
+        <div class="form-row checkbox-row">
+            <input type="checkbox" id="node-config-input-shadeIfMsgTopic"> <label style="width: 300px" for="node-config-input-shadeIfMsgTopic">Message with topic</label>
+        </div>
+        <div id="shadeTopic" style="padding-left: 20px">
+            <div class="form-row checkbox-row" style="width: 300px;">
+                <input type="text" id="node-config-input-shadeTopic" placeholder="'shade' if blank">
+            </div>
+        </div>
         <h4>Close conditions</h4>
         <div class="form-row checkbox-row" id="closeIfSunrise-div">
             <input type="checkbox" id="node-config-input-closeIfSunrise"> <label style="width: 300px" for="node-config-input-closeIfSunrise">Sunrise</label>
         </div>
         <div class="form-row checkbox-row" id="closeIfSunset-div">
             <input type="checkbox" id="node-config-input-closeIfSunset"> <label style="width: 300px" for="node-config-input-closeIfSunset">Sunset</label>
+        </div>
+        <div class="form-row checkbox-row">
+            <input type="checkbox" id="node-config-input-closeIfMsgTopic"> <label style="width: 300px" for="node-config-input-closeIfMsgTopic">Message with topic</label>
+        </div>
+        <div id="closeTopic" style="padding-left: 20px">
+            <div class="form-row checkbox-row" style="width: 300px;">
+                <input type="text" id="node-config-input-closeTopic" placeholder="'close' if blank">
+            </div>
         </div>
     </div>
 </script>

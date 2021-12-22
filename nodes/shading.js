@@ -276,6 +276,9 @@ module.exports = function(RED) {
 		config.set.inmsgButtonTopicClose = config.set.inmsgButtonTopicClose || "closebutton"
 		if (config.set.autoActive) {
 			config.set.autoTopic = config.set.autoTopic || "auto"
+			config.set.openTopic = config.set.openTopic || "open"
+			config.set.shadeTopic = config.set.shadeTopic || "shade"
+			config.set.closeTopic = config.set.closeTopic || "close"
 			if (config.set.winswitchEnable) {
 				config.set.inmsgWinswitchTopic = config.set.inmsgWinswitchTopic || "switch"
 			}
@@ -359,6 +362,12 @@ module.exports = function(RED) {
 				var windowEvent = config.set.winswitchEnable && msg.topic === config.set.inmsgWinswitchTopic
 				/** Auto re-enable event based on incoming message topic */
 				var autoReenableEvent = config.set.autoIfMsgTopic && msg.topic === config.set.autoTopic
+				/** Open event based on incoming message topic */
+				var openEvent = config.set.openIfMsgTopic && msg.topic === config.set.openTopic
+				/** Shade event based on incoming message topic */
+				var shadeEvent = config.set.shadeIfMsgTopic && msg.topic === config.set.shadeTopic
+				/** Close event based on incoming message topic */
+				var closeEvent = config.set.closeIfMsgTopic && msg.topic === config.set.closeTopic
 				/** Height drive position event based on incoming message topic */
 				var driveHeightEvent = config.set.inmsgTopicActPosHeightType != "dis" && msg.topic === config.set.inmsgTopicActPosHeight
 			}
@@ -431,8 +440,6 @@ module.exports = function(RED) {
 				}
 			}
 
-
-
 			else if (windowEvent) {
 				let oldState = context.windowState;
 				let oldStateStr = context.windowStateStr;
@@ -489,16 +496,29 @@ module.exports = function(RED) {
 				
 			}
 
-
-
-
 			else if (autoReenableEvent) {
 				if (config.debug) {that.log("Re-enabeling automatic due to manual request")}
 				context.autoLocked = false
 				autoMoveFunc(true)
 			}
-
-
+			
+			else if (openEvent){
+				if (config.debug) {that.log("Received command to open")}
+				context.setposHeight = shadingSetpos.open
+				autoMoveFunc(true)
+			}
+			
+			else if (shadeEvent){
+				if (config.debug) {that.log("Received command to shade")}
+				context.setposHeight = shadingSetpos.shade
+				autoMoveFunc(true)
+			}
+			
+			else if (closeEvent){
+				if (config.debug) {that.log("Received command to close")}
+				context.setposHeight = shadingSetpos.close
+				autoMoveFunc(true)
+			}
 
 			else if (driveHeightEvent) {				// TODO Was wenn es das nicht gibt??
 				if (msg.payload >= 0 && msg.payload <= 100 && typeof msg.payload === "number") {
