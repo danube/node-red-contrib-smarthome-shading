@@ -104,7 +104,7 @@ module.exports = function(RED) {
 				if (config.debug) {msgD = {topic: msgD.topic, payload: msgD.payload}}
 			} else msgD = null
 			that.send([msgA, msgB, msgC, msgD])
-			that.log("New output values have been written.")
+			if (config.debug) {that.log("New output values have been written.")}
 			console.log([msgA, msgB, msgC, msgD])
 		}
 
@@ -140,7 +140,7 @@ module.exports = function(RED) {
 				if (config.debug) {that.log("Locked by hardlock, nothing will happen.")}
 			} else if (context.autoLocked) {														// Softlock -> nothing will happen
 				if (config.debug) {that.log("Locked by application, nothing will happen.")}
-			} else if (config.set.inmsgTopicActPosHeightType === "dis") {						// No shading position feedback -> always move
+			} else if (config.set.inmsgTopicActPosHeightType === "dis") {							// No shading position feedback -> always move
 				sendCommandFunc(null,null,null,context.setposHeight)
 			} else if (typeof context.actposHeight == "undefined" && context.setposHeight === 0) {	// Actual height position unknown but setpos is 0 -> move up
 				that.warn("Unknown actual position, but rising may be allowed.")
@@ -152,10 +152,10 @@ module.exports = function(RED) {
 					that.warn("Unknown or invalid window State (open/tilted/closed). Nothing will happen.")		// TODO move this to another position, i.e. window switch event detection
 				}
 				let allowLowering = 																// Check security conditions
-					(context.windowState === window.opened && config.set.allowLoweringWhenOpened)
-					|| (context.windowState === window.tilted && config.set.allowLoweringWhenTilted)
-					|| context.windowState === window.closed
-					|| !config.set.winswitchEnable
+				(context.windowState === window.opened && config.set.allowLoweringWhenOpened)
+				|| (context.windowState === window.tilted && config.set.allowLoweringWhenTilted)
+				|| context.windowState === window.closed
+				|| !config.set.winswitchEnable
 				if (allowLowering) {
 					sendCommandFunc(null,null,null,context.setposHeight)
 				} else {
@@ -223,33 +223,29 @@ module.exports = function(RED) {
 				that.err("E002: Something is seriously broken with the suntimes calculator. Please consult the developer!")
 			}
 
-			if (actDate >= sunTimes.sunrise && actDate < sunTimes.sunset) {		// Daytime
-				if (config.set.openIfSunrise) {context.setposHeight = shadingSetpos.open}
-				else if (config.set.shadeIfSunrise) {context.setposHeight = config.set.shadingSetposShade}
-				else if (config.set.closeIfSunrise) {context.setposHeight = shadingSetpos.close}
-			} else {															// Nighttime
-				if (config.set.openIfSunset) {context.setposHeight = shadingSetpos.open}
-				else if (config.set.shadeIfSunset) {context.setposHeight = config.set.shadingSetposShade}
-				else if (config.set.closeIfSunset) {context.setposHeight = shadingSetpos.close}
-			}
-
 			/** Sunrise is in the future */
 			let sunriseAhead = sunTimes.sunrise > actDate		// Sunrise is in the future
 			/** Sunset is in the future */
 			let sunsetAhead = sunTimes.sunset > actDate			// Sunset is in the future
-
+			
 			// Unlock automatic
-			if (sunriseAhead === false && sunriseAheadPrev === true) {			// Sunrise
-				if (config.debug) {that.log("Now it's sunrise")}				// Send debug message
-				if (config.set.autoIfSunrise && context.autoLocked) {		// Check if lock needs to be released
-					context.autoLocked = false									// Release lock
-					if (config.debug) {that.log("Automatic re-enabled")}		// Send debug message
+			if (sunriseAhead === false && sunriseAheadPrev === true) {												// SUNRISE IS RIGTH NOW
+				if (config.debug) {that.log("Now it's sunrise")}													// -> Send debug message
+				if (config.set.autoIfSunrise && context.autoLocked) {												// -> Check if lock needs to be released
+					context.autoLocked = false																		// -> Release lock
+					if (config.debug) {that.log("Automatic re-enabled")}											// -> Send debug message
+					if (config.set.openIfSunrise) {context.setposHeight = shadingSetpos.open}						// -> open
+					else if (config.set.shadeIfSunrise) {context.setposHeight = config.set.shadingSetposShade}		// -> shade
+					else if (config.set.closeIfSunrise) {context.setposHeight = shadingSetpos.close}				// -> close
 				}
-			} else if (sunsetAhead === false && sunsetAheadPrev === true) {		// Sunset
-				if (config.debug) {that.log("Now it's sunset")}					// Send debug message
-				if (config.set.autoIfSunset && context.autoLocked) {		// Check if lock needs to be released
-					context.autoLocked = false									// Release lock
-					if (config.debug) {that.log("Automatic re-enabled")}		// Send debug message
+			} else if (sunsetAhead === false && sunsetAheadPrev === true) {											// SUNSET IS RIGHT NOW
+				if (config.debug) {that.log("Now it's sunset")}														// -> Send debug message
+				if (config.set.autoIfSunset && context.autoLocked) {												// -> Check if lock needs to be released
+					context.autoLocked = false																		// -> Release lock
+					if (config.debug) {that.log("Automatic re-enabled")}											// -> Send debug message
+					if (config.set.openIfSunset) {context.setposHeight = shadingSetpos.open}						// -> open
+					else if (config.set.shadeIfSunset) {context.setposHeight = config.set.shadingSetposShade}		// -> shade
+					else if (config.set.closeIfSunset) {context.setposHeight = shadingSetpos.close}					// -> close
 				}
 			}
 
@@ -405,14 +401,14 @@ module.exports = function(RED) {
 					}
 					
 				// Button close pressed
-				} else if (buttonPressCloseEvent) {
-					clearTimeout(context.buttonOpenTimeoutHandle); context.buttonOpenTimeoutHandle = null;
+			} else if (buttonPressCloseEvent) {
+				clearTimeout(context.buttonOpenTimeoutHandle); context.buttonOpenTimeoutHandle = null;
+				
+				// Single/double click detection
+				if (context.buttonCloseTimeoutHandle) {
 					
-					// Single/double click detection
-					if (context.buttonCloseTimeoutHandle) {
-						
-						// DOUBLE CLICK ACTIONS ==>
-						clearTimeout(context.buttonCloseTimeoutHandle); context.buttonCloseTimeoutHandle = null;
+					// DOUBLE CLICK ACTIONS ==>
+					clearTimeout(context.buttonCloseTimeoutHandle); context.buttonCloseTimeoutHandle = null;
 						sendCommandFunc(null,null,null,shadingSetpos.close);
 						// <== DOUBLE CLICK ACTIONS
 						
