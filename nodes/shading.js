@@ -15,13 +15,9 @@ module.exports = function(RED) {
 
 			
 		const that = this;
-		let config = originalConfig;
 
-		config.set = RED.nodes.getNode(originalConfig.configSet).config;
-		if (config.set.autoActive) {
-			config.automatic = RED.nodes.getNode(originalConfig.configAutomatic).config;
-			config.location = RED.nodes.getNode(RED.nodes.getNode(originalConfig.configAutomatic).config.config).config;
-		}
+		let config = originalConfig;
+		config.set = RED.nodes.getNode(config.configSet).config;
 		
 		let nodeContext = that.context();
 		let flowContext = that.context().flow;
@@ -49,7 +45,7 @@ module.exports = function(RED) {
 
 		const shadingSetpos = {
 			open: 0,
-			shade: Number(originalConfig.set.shadingSetposShade),
+			shade: Number(config.set.shadingSetposShade),
 			close: 100
 		}
 
@@ -276,31 +272,33 @@ module.exports = function(RED) {
 		// FIRST RUN ACTIONS ====>
 
 		// Filling empty string fields with defaults
-		config.set.inmsgButtonTopicOpen = originalConfig.set.inmsgButtonTopicOpen || "openbutton"
-		config.set.inmsgButtonTopicClose = originalConfig.set.inmsgButtonTopicClose || "closebutton"
+		config.set.inmsgButtonTopicOpen = config.set.inmsgButtonTopicOpen || "openbutton"
+		config.set.inmsgButtonTopicClose = config.set.inmsgButtonTopicClose || "closebutton"
 		if (config.set.autoActive) {
 			config.set.autoTopic = config.set.autoTopic || "auto"
 			if (config.set.winswitchEnable) {
-				config.set.inmsgWinswitchTopic = originalconfig.set.inmsgWinswitchTopic || "switch"
+				config.set.inmsgWinswitchTopic = config.set.inmsgWinswitchTopic || "switch"
 			}
 		}
 		
 		// Converting typed inputs
 		if (config.set.autoActive && config.set.winswitchEnable) {
-			if (config.set.inmsgWinswitchPayloadOpenedType === 'num') {config.set.inmsgWinswitchPayloadOpened = Number(originalconfig.set.inmsgWinswitchPayloadOpened)}
-			else if (config.set.inmsgWinswitchPayloadOpenedType === 'bool') {config.set.inmsgWinswitchPayloadOpened = originalconfig.set.inmsgWinswitchPayloadOpened === 'true'}
-			if (config.set.inmsgWinswitchPayloadTiltedType === 'num') {config.set.inmsgWinswitchPayloadTilted = Number(originalconfig.set.inmsgWinswitchPayloadTilted)}
-			else if (config.set.inmsgWinswitchPayloadTiltedType === 'bool') {config.set.inmsgWinswitchPayloadTilted = originalconfig.set.inmsgWinswitchPayloadTilted === 'true'}
-			if (config.set.inmsgWinswitchPayloadClosedType === 'num') {config.set.inmsgWinswitchPayloadClosed = Number(originalconfig.set.inmsgWinswitchPayloadClosed)}
-			else if (config.set.inmsgWinswitchPayloadClosedType === 'bool') {config.set.inmsgWinswitchPayloadClosed = originalconfig.set.inmsgWinswitchPayloadClosed === 'true'}
+			if (config.set.inmsgWinswitchPayloadOpenedType === 'num') {config.set.inmsgWinswitchPayloadOpened = Number(config.set.inmsgWinswitchPayloadOpened)}
+			else if (config.set.inmsgWinswitchPayloadOpenedType === 'bool') {config.set.inmsgWinswitchPayloadOpened = config.set.inmsgWinswitchPayloadOpened === 'true'}
+			if (config.set.inmsgWinswitchPayloadTiltedType === 'num') {config.set.inmsgWinswitchPayloadTilted = Number(config.set.inmsgWinswitchPayloadTilted)}
+			else if (config.set.inmsgWinswitchPayloadTiltedType === 'bool') {config.set.inmsgWinswitchPayloadTilted = config.set.inmsgWinswitchPayloadTilted === 'true'}
+			if (config.set.inmsgWinswitchPayloadClosedType === 'num') {config.set.inmsgWinswitchPayloadClosed = Number(config.set.inmsgWinswitchPayloadClosed)}
+			else if (config.set.inmsgWinswitchPayloadClosedType === 'bool') {config.set.inmsgWinswitchPayloadClosed = config.set.inmsgWinswitchPayloadClosed === 'true'}
+			config.set.lat = Number(config.set.lat)
+			config.set.lon = Number(config.set.lon)
 		}
-		if (config.set.payloadOpenCmdType === 'num') {config.set.payloadOpenCmd = Number(originalConfig.set.payloadOpenCmd)}
-		else if (config.set.payloadOpenCmdType === 'bool') {config.set.payloadOpenCmd = originalConfig.set.payloadOpenCmd === 'true'}
-		if (config.set.payloadCloseCmdType === 'num') {config.set.payloadCloseCmd = Number(originalConfig.set.payloadCloseCmd)}
-		else if (config.set.payloadCloseCmdType === 'bool') {config.set.payloadCloseCmd = originalConfig.set.payloadCloseCmd === 'true'}
-		if (config.set.payloadStopCmdType === 'num') {config.set.payloadStopCmd = Number(originalConfig.set.payloadStopCmd)}
-		else if (config.set.payloadStopCmdType === 'bool') {config.set.payloadStopCmd = originalConfig.set.payloadStopCmd === 'true'}
-		config.set.inmsgButtonDblclickTime = Number(originalConfig.set.inmsgButtonDblclickTime) | 500;
+		if (config.set.payloadOpenCmdType === 'num') {config.set.payloadOpenCmd = Number(config.set.payloadOpenCmd)}
+		else if (config.set.payloadOpenCmdType === 'bool') {config.set.payloadOpenCmd = config.set.payloadOpenCmd === 'true'}
+		if (config.set.payloadCloseCmdType === 'num') {config.set.payloadCloseCmd = Number(config.set.payloadCloseCmd)}
+		else if (config.set.payloadCloseCmdType === 'bool') {config.set.payloadCloseCmd = config.set.payloadCloseCmd === 'true'}
+		if (config.set.payloadStopCmdType === 'num') {config.set.payloadStopCmd = Number(config.set.payloadStopCmd)}
+		else if (config.set.payloadStopCmdType === 'bool') {config.set.payloadStopCmd = config.set.payloadStopCmd === 'true'}
+		config.set.inmsgButtonDblclickTime = Number(config.set.inmsgButtonDblclickTime) | 500;
 
 		config.set.shadingSetposShade = shadingSetpos.shade
 		
