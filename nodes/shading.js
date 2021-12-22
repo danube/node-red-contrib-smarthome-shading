@@ -104,8 +104,10 @@ module.exports = function(RED) {
 				if (config.debug) {msgD = {topic: msgD.topic, payload: msgD.payload}}
 			} else msgD = null
 			that.send([msgA, msgB, msgC, msgD])
-			if (config.debug) {that.log("New output values have been written.")}
-			console.log([msgA, msgB, msgC, msgD])
+			if (config.debug) {
+				that.log("New output values have been written.")
+				console.log([msgA, msgB, msgC, msgD])
+			}
 		}
 
 
@@ -136,6 +138,8 @@ module.exports = function(RED) {
 	
 			if (ignoreHardlock) {if (config.debug) {that.log("Hardlock will be ignored, as you configured.")}}
 
+			console.log("context.setposHeight: " + context.setposHeight + " | context.actposHeight: " + context.actposHeight)
+
 			if (context.hardlock && !ignoreHardlock) {												// Hardlock -> nothing will happen
 				if (config.debug) {that.log("Locked by hardlock, nothing will happen.")}
 			} else if (context.autoLocked) {														// Softlock -> nothing will happen
@@ -143,7 +147,7 @@ module.exports = function(RED) {
 			} else if (config.set.inmsgTopicActPosHeightType === "dis") {							// No shading position feedback -> always move
 				sendCommandFunc(null,null,null,context.setposHeight)
 			} else if (typeof context.actposHeight == "undefined" && context.setposHeight === 0) {	// Actual height position unknown but setpos is 0 -> move up
-				that.warn("Unknown actual position, but rising may be allowed.")
+				that.warn("Unknown actual position, but rising is allowed.")
 				sendCommandFunc(null,null,null,context.setposHeight)
 			} else if (typeof context.actposHeight == "undefined") {								// Actual height position unknown -> nothing will happen
 				that.warn("Unknown actual position. Nothing will happen.")
@@ -152,16 +156,16 @@ module.exports = function(RED) {
 					that.warn("Unknown or invalid window State (open/tilted/closed). Nothing will happen.")		// TODO move this to another position, i.e. window switch event detection
 				}
 				let allowLowering = 																// Check security conditions
-				(context.windowState === window.opened && config.set.allowLoweringWhenOpened)
-				|| (context.windowState === window.tilted && config.set.allowLoweringWhenTilted)
-				|| context.windowState === window.closed
-				|| !config.set.winswitchEnable
+					(context.windowState === window.opened && config.set.allowLoweringWhenOpened)
+					|| (context.windowState === window.tilted && config.set.allowLoweringWhenTilted)
+					|| context.windowState === window.closed
+					|| !config.set.winswitchEnable
 				if (allowLowering) {
 					sendCommandFunc(null,null,null,context.setposHeight)
 				} else {
 					if (config.debug) {that.log("Lowering not allowed. Check window switch. Nothing will happen.")}
 				}
-			} else if (context.setposHeight < context.actposHeight) {								// Rising
+			} else if (context.setposHeight <= context.actposHeight) {								// Rising or unchanged
 				sendCommandFunc(null,null,null,context.setposHeight)
 			}
 			context.setposHeightPrev = context.setposHeight
