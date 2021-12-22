@@ -1,3 +1,5 @@
+// TODO auto ist gelocked, wenn taster gedrückt werden. Dann fährt nichts mehr, auch nicht wenn ein command kommt. ist autolocked wirklich noch nötig?
+
 module.exports = function(RED) {
 
 	// Definition of persistant variables
