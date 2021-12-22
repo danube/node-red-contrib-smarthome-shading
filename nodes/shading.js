@@ -138,8 +138,6 @@ module.exports = function(RED) {
 	
 			if (ignoreHardlock) {if (config.debug) {that.log("Hardlock will be ignored, as you configured.")}}
 
-			console.log("context.setposHeight: " + context.setposHeight + " | context.actposHeight: " + context.actposHeight)
-
 			if (context.hardlock && !ignoreHardlock) {												// Hardlock -> nothing will happen
 				if (config.debug) {that.log("Locked by hardlock, nothing will happen.")}
 			} else if (context.autoLocked) {														// Softlock -> nothing will happen
@@ -535,7 +533,7 @@ module.exports = function(RED) {
 				autoMoveFunc(true)
 			}
 
-			if (config.debug) {that.log("Unknown message with topic '" + msg.topic + "'")}
+			else if (config.debug) {that.log("Unknown message with topic '" + msg.topic + "'")}
 
 			// ONLY FOR DEBUGGING ====>
 			
