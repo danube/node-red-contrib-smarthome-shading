@@ -567,6 +567,7 @@ module.exports = function(RED) {
 			else if (autoReenableEvent) {
 				if (config.debug) {that.log("Re-enabeling automatic due to manual request")}
 				context.autoLocked = false
+				context.stateButtonRunning = false
 				autoMoveFunc(true)
 			}
 			
@@ -603,7 +604,9 @@ module.exports = function(RED) {
 				autoMoveFunc(true)
 			}
 
-			else if (printConsoleDebugEvent) {printConsoleDebug("Debug requested, so here we go.")}
+			else if (printConsoleDebugEvent) {
+				printConsoleDebug("Debug requested, so here we go.")
+			}
 			
 			
 			// ONLY FOR DEBUGGING ====>
