@@ -522,7 +522,11 @@ module.exports = function(RED) {
 			else if (autoReenableEvent) {
 				if (config.debug) {that.log("Re-enabeling automatic due to manual request")}
 				context.autoLocked = false
+				console.log("DEBUG: first")
+				console.log(context)
 				autoMoveFunc(true)
+				console.log("DEBUG: second")
+				console.log(context)
 			}
 			
 			else if (openEvent){
@@ -564,19 +568,26 @@ module.exports = function(RED) {
 			// ONLY FOR DEBUGGING ====>
 			
 			else if (msg.frcSunrise) {
-				that.warn("Sunrise value overwritten")
 				sunTimes.sunrise = new Date(msg.frcSunrise)
+				that.warn("Sunrise value overwritten")
+				console.log("\n::::: SUNTIMES :::::")
+				console.log(sunTimes)
+				console.log("\n")
+
 			}
 			
 			else if (msg.frcSunset) {
-				that.warn("Sunset value overwritten")
 				sunTimes.sunset = new Date(msg.frcSunset)
+				that.warn("Sunset value overwritten")
+				console.log("\n::::: SUNTIMES :::::")
+				console.log(sunTimes)
+				console.log("\n")
 			}
 			
 			else if (msg.frcSunauto) {
-				that.warn("Sunrise and sunset values valid")
-				actDate = new Date()
-				suncalcFunc(actDate)
+				that.warn("Sunrise and sunset values reset")
+				dateStringPrev = null;
+				mainLoopFunc();
 			}
 			
 			else if (config.debug) {
