@@ -263,6 +263,15 @@ module.exports = function(RED) {
 		}
 
 
+		/** This function prints config and context on the console. Add "message" to prefix a message. */
+		function printConsoleDebug(message) {
+			if (message) {that.log(message)}
+			console.log("Debugging is enabled in the node properties. Here comes config:")
+			console.log(config)
+			console.log("Debugging is enabled in the node properties. Here comes context:")
+			console.log(context)
+		}
+
 		// <==== FUNCTIONS
 
 
@@ -306,12 +315,7 @@ module.exports = function(RED) {
 		config.set.shadingSetposShade = shadingSetpos.shade
 		
 		// Show config and context on console
-		if (config.debug) {
-			console.log("Debugging is enabled in the node properties. Here comes config:")
-			console.log(config)
-			console.log("Debugging is enabled in the node properties. Here comes context:")
-			console.log(context)
-		}
+		if (config.debug) {printConsoleDebug()}
 
 		// Main loop
 		if (config.set.autoActive) {
@@ -356,7 +360,9 @@ module.exports = function(RED) {
 			var buttonPressCloseEvent = msg.topic === config.set.inmsgButtonTopicClose && msg.payload === true;
 			/** Button release event based on incoming message topic, if payload is FALSE */
 			var buttonReleaseEvent = buttonEvent && msg.payload === false;
-			
+			/** Debug on console request */
+			var printConsoleDebugEvent = msg.debug;
+
 			if (config.set.autoActive) {
 				/** Window switch event based on incoming message topic */
 				var windowEvent = config.set.winswitchEnable && msg.topic === config.set.inmsgWinswitchTopic
@@ -535,6 +541,8 @@ module.exports = function(RED) {
 				autoMoveFunc(true)
 			}
 
+			else if (printConsoleDebugEvent) {printConsoleDebug("Debug requested, so here we go.")}
+			
 			else if (config.debug) {that.log("Unknown message with topic '" + msg.topic + "'")}
 
 			// ONLY FOR DEBUGGING ====>
