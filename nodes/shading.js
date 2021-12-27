@@ -119,9 +119,14 @@ module.exports = function(RED) {
 		 * @param {Boolean} ignoreHardlock If true, the setpoint will be sent even if hardlock is active.
 		 */
 		function autoMoveFunc(sendNow, ignoreHardlock) {
+			
+			// Check for new setposHeight and sendNow
 			if (context.setposHeightPrev == context.setposHeight && !sendNow) {return}
-			else if (config.debug) {that.log("New setposHeight is '" + context.setposHeight + "'")}
 
+			// Sending concole message
+			else if (config.debug) {that.log("setposHeight " + context.setposHeightPrev + " -> " + context.setposHeight)}
+
+			// Getting hardlock state
 			if (config.set.autoActive) {
 				if (config.set.hardlockType === "flow") {context.hardlock = flowContext.get(config.set.hardlock)}
 				else if (config.set.hardlockType === "global") {context.hardlock = globalContext.get(config.set.hardlock)}
@@ -137,7 +142,7 @@ module.exports = function(RED) {
 			} else {
 				context.hardlock = false
 			}
-	
+
 			if (ignoreHardlock) {if (config.debug) {that.log("Hardlock will be ignored, as you configured.")}}
 
 			if (context.hardlock && !ignoreHardlock) {												// Hardlock -> nothing will happen
@@ -232,24 +237,27 @@ module.exports = function(RED) {
 			/** Sunset is in the future */
 			let sunsetAhead = sunTimes.sunset > actDate			// Sunset is in the future
 			
-			// Unlock automatic
+			// Sunrise event
 			if (sunriseAhead === false && sunriseAheadPrev === true) {												// SUNRISE IS RIGTH NOW
 				if (config.debug) {that.log("Now it's sunrise")}													// -> Send debug message
+				if (config.set.openIfSunrise) {context.setposHeight = shadingSetpos.open}							// -> open
+				else if (config.set.shadeIfSunrise) {context.setposHeight = config.set.shadingSetposShade}			// -> shade
+				else if (config.set.closeIfSunrise) {context.setposHeight = shadingSetpos.close}					// -> close
 				if (config.set.autoIfSunrise && context.autoLocked) {												// -> Check if lock needs to be released
 					context.autoLocked = false																		// -> Release lock
 					if (config.debug) {that.log("Automatic re-enabled")}											// -> Send debug message
-					if (config.set.openIfSunrise) {context.setposHeight = shadingSetpos.open}						// -> open
-					else if (config.set.shadeIfSunrise) {context.setposHeight = config.set.shadingSetposShade}		// -> shade
-					else if (config.set.closeIfSunrise) {context.setposHeight = shadingSetpos.close}				// -> close
 				}
-			} else if (sunsetAhead === false && sunsetAheadPrev === true) {											// SUNSET IS RIGHT NOW
+			}
+
+			// Sunset event
+			else if (sunsetAhead === false && sunsetAheadPrev === true) {											// SUNSET IS RIGHT NOW
 				if (config.debug) {that.log("Now it's sunset")}														// -> Send debug message
+				if (config.set.openIfSunset) {context.setposHeight = shadingSetpos.open}							// -> open
+				else if (config.set.shadeIfSunset) {context.setposHeight = config.set.shadingSetposShade}			// -> shade
+				else if (config.set.closeIfSunset) {context.setposHeight = shadingSetpos.close}						// -> close
 				if (config.set.autoIfSunset && context.autoLocked) {												// -> Check if lock needs to be released
 					context.autoLocked = false																		// -> Release lock
 					if (config.debug) {that.log("Automatic re-enabled")}											// -> Send debug message
-					if (config.set.openIfSunset) {context.setposHeight = shadingSetpos.open}						// -> open
-					else if (config.set.shadeIfSunset) {context.setposHeight = config.set.shadingSetposShade}		// -> shade
-					else if (config.set.closeIfSunset) {context.setposHeight = shadingSetpos.close}					// -> close
 				}
 			}
 
