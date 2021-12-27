@@ -88,28 +88,42 @@ module.exports = function(RED) {
 		 */
 		function sendCommandFunc(a,b,c,d) {
 			
-			let msgA, msgB, msgC, msgD = null;
+			let msgA, msgB, msgC, msgD, msgE = null;
+
 			if (a != null) {
 				msgA = {topic: "open", payload: a}
 				if (config.debug) {msgA = {topic: msgA.topic, payload: msgA.payload}}
 			} else msgA = null
+
 			if (b != null) {
 				msgB = {topic: "close", payload: b}
 				if (config.debug) {msgB = {topic: msgB.topic, payload: msgB.payload}}
 			} else msgB = null
+
 			if (c != null) {
 				msgC = {topic: "stop", payload: c}
 				if (config.debug) {msgC = {topic: msgC.topic, payload: msgC.payload}}
 			} else msgC = null
+
 			if (d != null) {
 				msgD = {topic: "command", payload: d}
 				if (config.debug) {msgD = {topic: msgD.topic, payload: msgD.payload}}
 			} else msgD = null
-			that.send([msgA, msgB, msgC, msgD])
-			if (config.debug) {
-				that.log("New output values have been written.")
-				console.log([msgA, msgB, msgC, msgD])
+
+			msgE = {
+				topic: "status",
+				payload: {
+					automatic: config.set.autoActive && !context.autoLocked,
+				}
 			}
+
+			that.send([msgA, msgB, msgC, msgD, msgE])
+
+			if (config.debug) {
+				that.log("Here are new output values")
+				console.log([msgA, msgB, msgC, msgD, msgE])
+			}
+
 		}
 
 
@@ -248,8 +262,9 @@ module.exports = function(RED) {
 					context.autoLocked = false																		// -> Release lock
 					if (config.debug) {that.log("Automatic re-enabled")}											// -> Send debug message
 				}
+				updateNodeStatus()
 			}
-
+			
 			// Sunset event
 			else if (sunsetAhead === false && sunsetAheadPrev === true) {
 				if (config.debug) {that.log("Now it's sunset")}														// -> Send debug message
@@ -260,6 +275,7 @@ module.exports = function(RED) {
 					context.autoLocked = false																		// -> Release lock
 					if (config.debug) {that.log("Automatic re-enabled")}											// -> Send debug message
 				}
+				updateNodeStatus()
 			}
 
 			// Backing up
@@ -289,6 +305,41 @@ module.exports = function(RED) {
 			}
 		}
 
+
+		/** This function updates the node status. See https://nodered.org/docs/creating-nodes/status for more details. */
+		function updateNodeStatus() {
+
+			let fill = "grey"
+			let shape = "ring"
+			let text = "Automatic disabled"
+
+			if (config.set.autoActive) {
+				if (context.autoLocked) {
+					fill = "red"
+					text = "Auto inactive"
+				}
+				else {
+					fill = "green"
+					text = "Auto active"
+				}
+			}
+			
+			if (config.set.autoActive && config.set.winswitchEnable) {
+				if (context.windowState === 1) {
+					text = text + ", window open"
+				}
+				else if (context.windowState === 2) {
+					text = text + ", window tilted"
+				}
+				else if (context.windowState === 3) {
+					shape = "dot"
+					text = text + ", window closed"
+				}
+			}
+			
+			that.status({fill: fill, shape: shape, text: text})
+
+		}
 		// <==== FUNCTIONS
 
 
@@ -342,11 +393,10 @@ module.exports = function(RED) {
 		}
 		
 		// Initially set node status
-		if (config.set.autoActive && config.set.winswitchEnable) {
-			that.status({fill: "blue", shape: "ring", text: context.windowStateStr})
-		} else {
-			that.status({})
-		}
+		updateNodeStatus()
+
+		// Providing status
+		sendCommandFunc()
 
 		// <==== FIRST RUN ACTIONS
 
@@ -359,8 +409,6 @@ module.exports = function(RED) {
 
 		this.on('input', function(msg,send,done) {
 			
-			
-						
 			/** Storing peripheral states */
 			if (msg.topic === config.set.inmsgButtonTopicOpen) {context.stateButtonOpen = msg.payload}
 			else if (msg.topic === config.set.inmsgButtonTopicClose) {context.stateButtonClose = msg.payload}; // TODO logical verification, like drive height position
@@ -481,9 +529,6 @@ module.exports = function(RED) {
 					context.windowState = null
 					context.windowStateStr = "unknown"
 				}
-
-				// Sending node status
-				that.status({fill: "blue", shape: "ring", text: context.windowStateStr})
 
 				// Sending debug message
 				if (config.debug) {that.log("Window switch event detected: " + oldStateStr + " -> "  + context.windowStateStr)}
@@ -613,6 +658,12 @@ module.exports = function(RED) {
 			// 	console.log("\n");
 			// }
 			
+			// Updating node status
+			updateNodeStatus()
+
+			// Providing status
+			sendCommandFunc()
+
 		});
 
 
