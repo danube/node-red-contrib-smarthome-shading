@@ -522,11 +522,7 @@ module.exports = function(RED) {
 			else if (autoReenableEvent) {
 				if (config.debug) {that.log("Re-enabeling automatic due to manual request")}
 				context.autoLocked = false
-				console.log("DEBUG: first")
-				console.log(context)
 				autoMoveFunc(true)
-				console.log("DEBUG: second")
-				console.log(context)
 			}
 			
 			else if (openEvent){
