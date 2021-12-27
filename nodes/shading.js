@@ -223,8 +223,9 @@ module.exports = function(RED) {
 			} else {											// This must be the first cycle
 				sunTimes = suncalcFunc(suncalcDate);			// Get new suncalc values and simulate noon
 				if (config.debug) {
-					that.log("This is the first cycle. Here comes sunTimes: ")
+					console.log("\n::::: SUNTIMES :::::")
 					console.log(sunTimes)
+					console.log("\n")
 				}
 			}
 
@@ -238,7 +239,7 @@ module.exports = function(RED) {
 			let sunsetAhead = sunTimes.sunset > actDate			// Sunset is in the future
 			
 			// Sunrise event
-			if (sunriseAhead === false && sunriseAheadPrev === true) {												// SUNRISE IS RIGTH NOW
+			if (sunriseAhead === false && sunriseAheadPrev === true) {
 				if (config.debug) {that.log("Now it's sunrise")}													// -> Send debug message
 				if (config.set.openIfSunrise) {context.setposHeight = shadingSetpos.open}							// -> open
 				else if (config.set.shadeIfSunrise) {context.setposHeight = config.set.shadingSetposShade}			// -> shade
@@ -250,7 +251,7 @@ module.exports = function(RED) {
 			}
 
 			// Sunset event
-			else if (sunsetAhead === false && sunsetAheadPrev === true) {											// SUNSET IS RIGHT NOW
+			else if (sunsetAhead === false && sunsetAheadPrev === true) {
 				if (config.debug) {that.log("Now it's sunset")}														// -> Send debug message
 				if (config.set.openIfSunset) {context.setposHeight = shadingSetpos.open}							// -> open
 				else if (config.set.shadeIfSunset) {context.setposHeight = config.set.shadingSetposShade}			// -> shade
@@ -273,11 +274,19 @@ module.exports = function(RED) {
 
 		/** This function prints config and context on the console. Add "message" to prefix a message. */
 		function printConsoleDebug(message) {
-			if (message) {that.log(message)}
-			console.log("Debugging is enabled in the node properties. Here comes config:")
+			that.log("========== DEBUGGING START ==========")
+			if (message) {
+				console.log(message)
+			}
+			console.log("\n::::: CONFIG :::::")
 			console.log(config)
-			console.log("Debugging is enabled in the node properties. Here comes context:")
+			console.log("\n::::: CONTEXT :::::")
 			console.log(context)
+			if (sunTimes) {
+				console.log("\n::::: SUNTIMES :::::")
+				console.log(sunTimes)
+				console.log("\n")
+			}
 		}
 
 		// <==== FUNCTIONS
@@ -551,37 +560,27 @@ module.exports = function(RED) {
 
 			else if (printConsoleDebugEvent) {printConsoleDebug("Debug requested, so here we go.")}
 			
-			else if (config.debug) {that.log("Unknown message with topic '" + msg.topic + "'")}
-
+			
 			// ONLY FOR DEBUGGING ====>
 			
-			if (msg.frcSunrise) {
+			else if (msg.frcSunrise) {
 				that.warn("Sunrise value overwritten")
 				sunTimes.sunrise = new Date(msg.frcSunrise)
-			};
-
-			if (msg.frcSunset) {
+			}
+			
+			else if (msg.frcSunset) {
 				that.warn("Sunset value overwritten")
 				sunTimes.sunset = new Date(msg.frcSunset)
-			};
-
-			if (msg.frcSunauto) {
+			}
+			
+			else if (msg.frcSunauto) {
 				that.warn("Sunrise and sunset values valid")
 				actDate = new Date()
 				suncalcFunc(actDate)
-			};
-
-			if (msg.debug) {
-				actDate = new Date();
-				const debug = {
-					timeUTC: actDate.toISOString(),
-					timeLocale: actDate.toLocaleString(),
-					originalConfig: originalConfig,
-					config: config,
-					context: context,
-					sunTimes: sunTimes
-				}
-				console.log(debug);
+			}
+			
+			else if (config.debug) {
+				that.log("Unknown message with topic '" + msg.topic + "'")
 			}
 			
 			// <==== ONLY FOR DEBUGGING
