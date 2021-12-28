@@ -93,22 +93,22 @@ module.exports = function(RED) {
 
 			if (a != null) {
 				msgA = {topic: "open", payload: a}
-				if (config.debug) {msgA = {topic: msgA.topic, payload: msgA.payload}}
+				that.log("msgA has content")
 			} else msgA = null
-
+			
 			if (b != null) {
 				msgB = {topic: "close", payload: b}
-				if (config.debug) {msgB = {topic: msgB.topic, payload: msgB.payload}}
+				that.log("msgB has content")
 			} else msgB = null
-
+			
 			if (c != null) {
 				msgC = {topic: "stop", payload: c}
-				if (config.debug) {msgC = {topic: msgC.topic, payload: msgC.payload}}
+				that.log("msgC has content")
 			} else msgC = null
-
+			
 			if (d != null) {
 				msgD = {topic: "command", payload: d}
-				if (config.debug) {msgD = {topic: msgD.topic, payload: msgD.payload}}
+				that.log("msgD has content")
 			} else msgD = null
 
 			msgE = {
@@ -431,7 +431,7 @@ module.exports = function(RED) {
 
 			if (config.set.autoActive) {
 				/** Window switch event based on incoming message topic */
-				var windowEvent = config.set.winswitchEnable && msg.topic === config.set.inmsgWinswitchTopic
+				var windowSwitchEvent = config.set.winswitchEnable && msg.topic === config.set.inmsgWinswitchTopic
 				/** Auto re-enable event based on incoming message topic */
 				var autoReenableEvent = config.set.autoIfMsgTopic && msg.topic === config.set.autoTopic
 				/** Open event based on incoming message topic */
@@ -512,7 +512,8 @@ module.exports = function(RED) {
 				}
 			}
 
-			else if (windowEvent) {
+			else if (windowSwitchEvent) {
+				
 				let oldState = context.windowState;
 				let oldStateStr = context.windowStateStr;
 
@@ -531,6 +532,9 @@ module.exports = function(RED) {
 					context.windowStateStr = "unknown"
 				}
 
+				// Return if window switch state is unchanged (RBE filter)
+				if (oldState == context.windowState) {return}
+				
 				// Sending debug message
 				if (config.debug) {that.log("Window switch event detected: " + oldStateStr + " -> "  + context.windowStateStr)}
 
