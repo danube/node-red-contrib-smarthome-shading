@@ -140,7 +140,7 @@ module.exports = function(RED) {
 		function autoMoveFunc(sendNow, ignoreHardlock) {
 
 			if (!context.setposHeight) {								// setposHeight is NULL
-				that.error("E001: setposHeight not available (NULL)")
+				that.error("E001: setposHeight not available (" + context.setposHeight + ")")
 				return
 			}
 			else if (context.setposHeight < 0) {						// setposHeight is negative
