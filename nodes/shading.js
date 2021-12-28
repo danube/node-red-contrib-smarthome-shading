@@ -1,5 +1,7 @@
 // TODO auto ist gelocked, wenn taster gedrückt werden. Dann fährt nichts mehr, auch nicht wenn ein command kommt. ist autolocked wirklich noch nötig?
 // TODO Error, Warnung, Info Nummern prüfen
+// TODO console log DEBUG entfernen
+// TODO verstecke DEBUG Option
 
 module.exports = function(RED) {
 
@@ -139,8 +141,8 @@ module.exports = function(RED) {
 		 */
 		function autoMoveFunc(sendNow, ignoreHardlock) {
 
-			if (!context.setposHeight) {								// setposHeight is NULL
-				that.error("E001: setposHeight not available (" + context.setposHeight + ")")
+			if (typeof context.setposHeight != "number") {				// setposHeight is not a number
+				that.error("E001: setposHeight is not valid (" + context.setposHeight + ")")
 				return
 			}
 			else if (context.setposHeight < 0) {						// setposHeight is negative
@@ -153,10 +155,7 @@ module.exports = function(RED) {
 			} else {
 
 				// Check for new setposHeight and sendNow
-				if (context.setposHeightPrev == context.setposHeight && !sendNow) {
-					console.log("WAAAH RETURNING")
-					return
-				}
+				if (context.setposHeightPrev == context.setposHeight && !sendNow) {return}
 				
 				// Sending console message
 				else if (config.debug) {that.log("setposHeight: " + context.setposHeightPrev + " -> " + context.setposHeight)}
@@ -297,7 +296,8 @@ module.exports = function(RED) {
 				if (config.debug) {that.log("Now it's sunrise")}													// -> Send debug message
 				calcSetposHeight()
 				if (config.set.autoIfSunrise && context.autoLocked) {												// -> Check if lock needs to be released
-					context.autoLocked = false																		// -> Release lock
+					context.autoLocked = false
+					console.log("DEBUG: PANIC 1")
 					if (config.debug) {that.log("Automatic re-enabled")}											// -> Send debug message
 				}
 				updateNodeStatus()
@@ -309,6 +309,7 @@ module.exports = function(RED) {
 				calcSetposHeight()
 				if (config.set.autoIfSunset && context.autoLocked) {												// -> Check if lock needs to be released
 					context.autoLocked = false																		// -> Release lock
+					console.log("DEBUG: PANIC 2")
 					if (config.debug) {that.log("Automatic re-enabled")}											// -> Send debug message
 				}
 				updateNodeStatus()
@@ -348,30 +349,22 @@ module.exports = function(RED) {
 
 			let fill = "grey"
 			let shape = "ring"
-			let text = "Automatic disabled"
+			let text = ""
 
 			if (config.set.autoActive) {
-				if (context.autoLocked) {
-					fill = "red"
-					text = "Auto off"
+				text = context.setposHeight + "%"
+				if (sunInSky) {
+					text = text + " | ↓" + sunTimes.sunset.getHours() + ":" + sunTimes.sunset.getMinutes() + ":" + sunTimes.sunset.getSeconds()
+				} else {
+					text = text + " | ↑" + sunTimes.sunrise.getHours() + ":" + sunTimes.sunrise.getMinutes() + ":" + sunTimes.sunrise.getSeconds()
 				}
-				else {
-					fill = "green"
-					text = "Auto on"
-				}
+				if (context.autoLocked) {fill = "red"}
+				else {fill = "green"}
 			}
 			
-			if (config.set.autoActive && config.set.winswitchEnable) {
-				if (context.windowState === 1) {
-					text = text + ", window open"
-				}
-				else if (context.windowState === 2) {
-					text = text + ", window tilted"
-				}
-				else if (context.windowState === 3) {
-					shape = "dot"
-					text = text + ", window closed"
-				}
+			if (config.set.autoActive && config.set.winswitchEnable && context.windowStateStr) {
+				text = text + " | " + context.windowStateStr
+				if (context.windowState === window.closed) {shape = "dot"}
 			}
 			
 			that.status({fill: fill, shape: shape, text: text})
@@ -582,6 +575,7 @@ module.exports = function(RED) {
 				if (reenable) {
 					if (config.debug) {that.log("Re-enabeling automatic due to window switch event")}
 					context.autoLocked = false
+					console.log("DEBUG: PANIC HERE 3")																		// -> Release lock
 					autoMoveFunc(true)
 				}
 
@@ -608,6 +602,8 @@ module.exports = function(RED) {
 			else if (autoReenableEvent) {
 				if (config.debug) {that.log("Re-enabeling automatic due to manual request")}
 				context.autoLocked = false
+				console.log("DEBUG: PANIC HERE 4")
+				context.stateButtonRunning = false
 				autoMoveFunc(true)
 			}
 			
