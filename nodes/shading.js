@@ -1,4 +1,5 @@
 // TODO auto ist gelocked, wenn taster gedrückt werden. Dann fährt nichts mehr, auch nicht wenn ein command kommt. ist autolocked wirklich noch nötig?
+// TODO Error, Warnung, Info Nummern prüfen
 
 module.exports = function(RED) {
 
@@ -138,33 +139,26 @@ module.exports = function(RED) {
 		 */
 		function autoMoveFunc(sendNow, ignoreHardlock) {
 
-			// setposHeight is NULL
-			if (!context.setposHeight) {
-
+			if (!context.setposHeight) {								// setposHeight is NULL
+				that.error("E001: setposHeight not available (NULL)")
+				return
 			}
-				
-			// setposHeight is negative
-			else if (context.setposHeight < 0) {
-
+			else if (context.setposHeight < 0) {						// setposHeight is negative
+				that.error("E001: setposHeight is negative (" + context.setposHeight + ")")
+				return
 			}
-			
-			// setposHeight is above 100
-			else if (context.setposHeight > 100) {
+			else if (context.setposHeight > 100) {						// setposHeight is above 100
+				that.error("E001: setposHeight is above 100 (" + context.setposHeight + ")")
+				return
+			} else {
 
-			}
-
-			else {
-
-				// Check for valid setposHeight
-				if (!context.setposHeight || context.setposHeight < 0 || context.setposHeight > 100) {
-					that.error("E001: Invalid context.setposHeight value '" + context.setposHeight + "'. This is internal, please contact the developer.")
+				// Check for new setposHeight and sendNow
+				if (context.setposHeightPrev == context.setposHeight && !sendNow) {
+					console.log("WAAAH RETURNING")
 					return
 				}
 				
-				// Check for new setposHeight and sendNow
-				if (context.setposHeightPrev == context.setposHeight && !sendNow) {return}
-
-				// Sending concole message
+				// Sending console message
 				else if (config.debug) {that.log("setposHeight: " + context.setposHeightPrev + " -> " + context.setposHeight)}
 
 				// Getting hardlock state
