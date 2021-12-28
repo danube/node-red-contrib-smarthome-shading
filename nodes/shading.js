@@ -2,6 +2,9 @@
 // TODO Error, Warnung, Info Nummern prüfen
 // TODO console log DEBUG entfernen
 // TODO verstecke DEBUG Option
+// TODO schön die Uhrzeit beim node status formatieren (dzt. zb. 9:8 für 09:08)
+// TODO Schlafen Modus überlegen
+
 
 module.exports = function(RED) {
 
@@ -354,9 +357,9 @@ module.exports = function(RED) {
 			if (config.set.autoActive) {
 				text = context.setposHeight + "%"
 				if (sunInSky) {
-					text = text + " | ↓" + sunTimes.sunset.getHours() + ":" + sunTimes.sunset.getMinutes() + ":" + sunTimes.sunset.getSeconds()
+					text = text + " | 🌜 " + sunTimes.sunset.getHours() + ":" + sunTimes.sunset.getMinutes()
 				} else {
-					text = text + " | ↑" + sunTimes.sunrise.getHours() + ":" + sunTimes.sunrise.getMinutes() + ":" + sunTimes.sunrise.getSeconds()
+					text = text + " | 🌅 " + sunTimes.sunrise.getHours() + ":" + sunTimes.sunrise.getMinutes()
 				}
 				if (context.autoLocked) {fill = "red"}
 				else {fill = "green"}
@@ -422,11 +425,8 @@ module.exports = function(RED) {
 			handle = setInterval(mainLoopFunc, loopIntervalTime);		// Continuous interval run
 		}
 		
-		// Initially set node status
-		updateNodeStatus()
-
-		// Providing status
-		sendCommandFunc()
+		updateNodeStatus()		// Initially set node status
+		sendCommandFunc()		// Providing status
 
 		// <==== FIRST RUN ACTIONS
 
@@ -464,11 +464,11 @@ module.exports = function(RED) {
 				/** Auto re-enable event based on incoming message topic */
 				var autoReenableEvent = config.set.autoIfMsgTopic && msg.topic === config.set.autoTopic
 				/** Open event based on incoming message topic */
-				var openEvent = msg.topic === config.set.openTopic
+				var openCommand = msg.topic === config.set.openTopic
 				/** Shade event based on incoming message topic */
-				var shadeEvent = msg.topic === config.set.shadeTopic
+				var shadeCommand = msg.topic === config.set.shadeTopic
 				/** Close event based on incoming message topic */
-				var closeEvent = msg.topic === config.set.closeTopic
+				var closeCommand = msg.topic === config.set.closeTopic
 				/** Height drive position event based on incoming message topic */
 				var driveHeightEvent = config.set.inmsgTopicActPosHeightType != "dis" && msg.topic === config.set.inmsgTopicActPosHeight
 			}
@@ -602,27 +602,31 @@ module.exports = function(RED) {
 			else if (autoReenableEvent) {
 				if (config.debug) {that.log("Re-enabeling automatic due to manual request")}
 				context.autoLocked = false
+				calcSetposHeight()
 				console.log("DEBUG: PANIC HERE 4")
 				context.stateButtonRunning = false
 				autoMoveFunc(true)
 			}
 			
-			else if (openEvent){
+			else if (openCommand){
 				if (config.debug) {that.log("Received command to open")}
 				context.setposHeight = shadingSetpos.open
 				autoMoveFunc(true)
+				context.autoLocked = true
 			}
 			
-			else if (shadeEvent){
+			else if (shadeCommand){
 				if (config.debug) {that.log("Received command to shade")}
 				context.setposHeight = shadingSetpos.shade
 				autoMoveFunc(true)
+				context.autoLocked = true
 			}
 			
-			else if (closeEvent){
+			else if (closeCommand){
 				if (config.debug) {that.log("Received command to close")}
 				context.setposHeight = shadingSetpos.close
 				autoMoveFunc(true)
+				context.autoLocked = true
 			}
 
 			else if (driveHeightEvent) {				// TODO Was wenn es das nicht gibt??
