@@ -248,6 +248,7 @@ module.exports = function(RED) {
 
 		/** Recalculates setposHeight */
 		function calcSetposHeight() {
+			if (config.debug) {that.log("Calculating new setposHeight. sunInSky = " + sunInSky)}
 			if (sunInSky) {																						// Daytime ->
 				if (config.set.openIfSunrise) {context.setposHeight = shadingSetpos.open}							// open
 				else if (config.set.shadeIfSunrise) {context.setposHeight = config.set.shadingSetposShade}			// shade
@@ -264,7 +265,8 @@ module.exports = function(RED) {
 		function mainLoopFunc(){
 
 			actDate = new Date()								// Set to actual time
-			
+			let init = false
+
 			if (dateStringPrev) {								// We have a previous date already backed up
 				const prevDate = new Date(dateStringPrev)		// Convert string to date object
 				if (prevDate.getDate() != actDate.getDate()) {	// A new day has arrived
@@ -281,6 +283,7 @@ module.exports = function(RED) {
 					console.log(sunTimes)
 					console.log("\n")
 				}
+				init = true
 			}
 
 			if (!isValidDate(sunTimes.sunrise) || !isValidDate(sunTimes.sunset)) {
@@ -290,6 +293,10 @@ module.exports = function(RED) {
 			sunriseAhead = sunTimes.sunrise > actDate		// Sunrise is in the future
 			sunsetAhead = sunTimes.sunset > actDate			// Sunset is in the future
 			sunInSky = !sunriseAhead && sunsetAhead			// It's daytime
+
+			if (init) {
+				calcSetposHeight()
+			}
 
 			// Sunrise event
 			if (sunriseAhead === false && sunriseAheadPrev === true) {
