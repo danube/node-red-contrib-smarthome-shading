@@ -24,6 +24,7 @@ module.exports = function(RED) {
 		let nodeContext = that.context();
 		let flowContext = that.context().flow;
 		let globalContext = that.context().global;
+
 		/**
 		 * The nodes context object
 		 * @property {Number} windowState 1 = opened, 2 = tilted, 3 = closed
@@ -445,12 +446,10 @@ module.exports = function(RED) {
 
 			if (buttonEvent) {
 
-				// Disable automatic
-				if (config.debug && !context.autoLocked) {that.log("Automatic disabled")}
-				context.autoLocked = true;
-
 				// Button open pressed
 				if (buttonPressOpenEvent) {
+					context.autoLocked = true
+					if (config.debug) {that.log("Automatic disabled")}
 					clearTimeout(context.buttonCloseTimeoutHandle); context.buttonCloseTimeoutHandle = null;
 
 					// Single/double click detection
@@ -476,17 +475,19 @@ module.exports = function(RED) {
 					}
 					
 				// Button close pressed
-			} else if (buttonPressCloseEvent) {
-				clearTimeout(context.buttonOpenTimeoutHandle); context.buttonOpenTimeoutHandle = null;
+				} else if (buttonPressCloseEvent) {
+					context.autoLocked = true
+					if (config.debug) {that.log("Automatic disabled")}
+					clearTimeout(context.buttonOpenTimeoutHandle); context.buttonOpenTimeoutHandle = null;
 				
-				// Single/double click detection
-				if (context.buttonCloseTimeoutHandle) {
-					
-					// DOUBLE CLICK ACTIONS ==>
-					clearTimeout(context.buttonCloseTimeoutHandle); context.buttonCloseTimeoutHandle = null;
+					// Single/double click detection
+					if (context.buttonCloseTimeoutHandle) {
+						
+						// DOUBLE CLICK ACTIONS ==>
+						clearTimeout(context.buttonCloseTimeoutHandle); context.buttonCloseTimeoutHandle = null;
 						sendCommandFunc(null,null,null,shadingSetpos.close);
 						// <== DOUBLE CLICK ACTIONS
-						
+							
 					} else {
 						context.buttonCloseTimeoutHandle = setTimeout(function(){
 							clearTimeout(context.buttonCloseTimeoutHandle); context.buttonCloseTimeoutHandle = null;
@@ -567,7 +568,6 @@ module.exports = function(RED) {
 			else if (autoReenableEvent) {
 				if (config.debug) {that.log("Re-enabeling automatic due to manual request")}
 				context.autoLocked = false
-				context.stateButtonRunning = false
 				autoMoveFunc(true)
 			}
 			
