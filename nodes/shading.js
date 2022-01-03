@@ -351,7 +351,7 @@ module.exports = function(RED) {
 		function updateNodeStatus() {
 
 			let fill = "grey"
-			let shape = "ring"
+			let shape = "dot"
 			let text = ""
 
 			if (config.set.autoActive) {
@@ -359,15 +359,13 @@ module.exports = function(RED) {
 				if (sunInSky) {
 					text = text + " | 🌜 " + sunTimes.sunset.getHours() + ":" + sunTimes.sunset.getMinutes()
 				} else {
-					text = text + " | 🌅 " + sunTimes.sunrise.getHours() + ":" + sunTimes.sunrise.getMinutes()
+					text = text + " | 🌞 " + sunTimes.sunrise.getHours() + ":" + sunTimes.sunrise.getMinutes()
 				}
-				if (context.autoLocked) {fill = "red"}
-				else {fill = "green"}
+				if (context.autoLocked) {fill = "red"} else {fill = "green"}
 			}
 			
 			if (config.set.autoActive && config.set.winswitchEnable && context.windowStateStr) {
 				text = text + " | " + context.windowStateStr
-				if (context.windowState === window.closed) {shape = "dot"}
 			}
 			
 			that.status({fill: fill, shape: shape, text: text})
