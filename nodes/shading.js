@@ -1,24 +1,22 @@
 // TODO auto ist gelocked, wenn taster gedrückt werden. Dann fährt nichts mehr, auch nicht wenn ein command kommt. ist autolocked wirklich noch nötig?
 // TODO Error, Warnung, Info Nummern prüfen
 // TODO console log DEBUG entfernen
-// TODO verstecke DEBUG Option
-// TODO schön die Uhrzeit beim node status formatieren (dzt. zb. 9:8 für 09:08)
-// TODO Schlafen Modus überlegen
 
 
 module.exports = function(RED) {
 
 	// Definition of persistant variables
-	let handle = null
+	let handle, sunTimes, lat, lon = null
+	let sunriseFuncTimeoutHandle, sunsetFuncTimeoutHandle = null
+
+	// Loading external modules
+	var suncalc = require("suncalc")	// https://www.npmjs.com/package/suncalc#reference
 
 
 	/** Config node */
     function ShadingConfigNode(node) {
         RED.nodes.createNode(this,node)
 
-		console.log("DEBUG: CONFIG NODE")
-		console.log(node)
-		
 		/**
 		 * Converts input string to typed defined value
 		 * @param {String} type Announced type which to convert to. Allowed: "num", "bool", "str".
@@ -31,7 +29,7 @@ module.exports = function(RED) {
 			if (type === "bool" && (value === "true" || value === "false")) {return value === "true"}				// Convert bool to string
 			return -1
 		}
-		
+
 		node.inmsgWinswitchPayloadOpened = typeToNumFunc(node.inmsgWinswitchPayloadOpenedType, node.inmsgWinswitchPayloadOpened)
 		node.inmsgWinswitchPayloadTilted = typeToNumFunc(node.inmsgWinswitchPayloadTiltedType, node.inmsgWinswitchPayloadTilted)
 		node.inmsgWinswitchPayloadClosed = typeToNumFunc(node.inmsgWinswitchPayloadClosedType, node.inmsgWinswitchPayloadClosed)
@@ -43,13 +41,23 @@ module.exports = function(RED) {
 		node.shadingSetposShade = typeToNumFunc("num", node.shadingSetposShade)
 		node.inmsgButtonDblclickTime = typeToNumFunc("num", node.inmsgButtonDblclickTime)
 		
+		node.inmsgTopicActPosHeight = node.inmsgTopicActPosHeight || "heightfeedback"
+		node.inmsgButtonTopicOpen = node.inmsgButtonTopicOpen || "buttonup"
+		node.inmsgButtonTopicClose = node.inmsgButtonTopicClose || "buttondown"
+		node.autoTopic = node.autoTopic || "auto"
+		node.openTopic = node.openTopic || "commandopen"
+		node.shadeTopic = node.shadeTopic || "commandshade"
+		node.closeTopic = node.closeTopic || "commandclose"
+		node.inmsgWinswitchTopic = node.inmsgWinswitchTopic || "switch"
+		node.inmsgButtonDblclickTime = node.inmsgButtonDblclickTime || 500
+
 		this.config = node
-		
+
     }
 	
+    RED.nodes.registerType("shading configuration",ShadingConfigNode)
 	
 	/** Working node */
-    RED.nodes.registerType("shading configuration",ShadingConfigNode)
 	
 	function ShadingNode(node) {
 		RED.nodes.createNode(this,node)
@@ -63,7 +71,7 @@ module.exports = function(RED) {
 		/**
 		 * The nodes context object
 		 * @property {Number} windowState 1 = opened, 2 = tilted, 3 = closed
-		 * @property {Bool} autoLocked If set, no automatic actios will be fired
+		 * @property {Bool} autoLocked If set, no automatic actions will be fired
 		 * @property {Bool} stateButtonOpen Button open is pressed
 		 * @property {Bool} stateButtonClose Button close is pressed
 		 * @property {Bool} stateButtonRunning Any button has been pressed and action is running
@@ -80,7 +88,7 @@ module.exports = function(RED) {
 		}
 
 		// Variable declaration
-		const loopIntervalTime = 5000;
+		const loopIntervalTime = 5000
 
 		const shadingSetpos = {
 			open: 0,
@@ -94,12 +102,9 @@ module.exports = function(RED) {
 			closed: 3
 		}
 
-		let sunTimes = null
 		var err = false
 		let loopCounter = 0
 
-		/** The backed up time as ISO string */
-		let dateStringPrev = null
 		/** The backed up state of sunrise being in the future */
 		let sunriseAheadPrev = null
 		/** The backed up state of sunet being in the future */
@@ -107,7 +112,6 @@ module.exports = function(RED) {
 		/** The actual time as date object */
 		let actDate = new Date()
 		// Loading external modules
-		var suncalc = require("suncalc")	// https://www.npmjs.com/package/suncalc#reference
 
 		// FUNCTIONS ====>
 
@@ -121,7 +125,7 @@ module.exports = function(RED) {
 		 */
 		function sendCommandFunc(a,b,c,d) {
 			
-			let msgA, msgB, msgC, msgD, msgE = null;
+			let msgA, msgB, msgC, msgD, msgE = null
 
 			if (a != null) {
 				msgA = {topic: "open", payload: a}
@@ -163,20 +167,23 @@ module.exports = function(RED) {
 		/** Checks if automatic movement is allowed and sends setpos values. Prior to that, context.setposHeight must be made available.
 		 * This function must be called each time an automatic movement should processed.
 		 * @param {Boolean} sendNow If true, the setpoint value will be sent. If false, the setpoint will be sent only if it changes.
-		 * @param {Boolean} ignoreHardlock If true, the setpoint will be sent even if hardlock is active.
+		 * @param {Boolean} ignoreLock If true, the setpoint will be sent even if hardlock is active.
 		 */
-		function autoMoveFunc(sendNow, ignoreHardlock) {
+		function autoMoveFunc(sendNow, ignoreLock) {
+
+			const caller = autoMoveFunc.caller.name
+			const callee = arguments.callee.name
 
 			if (typeof context.setposHeight != "number") {				// setposHeight is not a number
-				that.error("E001: setposHeight is not valid (" + context.setposHeight + ")")
+				that.error("E001: invalid setposHeight ('" + context.setposHeight + "') [" + caller + "]")
 				return
 			}
 			else if (context.setposHeight < 0) {						// setposHeight is negative
-				that.error("E001: setposHeight is negative (" + context.setposHeight + ")")
+				that.error("E002: negative setposHeight ('" + context.setposHeight + "') [" + caller + "]")
 				return
 			}
 			else if (context.setposHeight > 100) {						// setposHeight is above 100
-				that.error("E001: setposHeight is above 100 (" + context.setposHeight + ")")
+				that.error("E003: setposHeight above 100 ('" + context.setposHeight + "') [" + caller + "]")
 				return
 			} else {
 
@@ -191,7 +198,7 @@ module.exports = function(RED) {
 					if (config.hardlockType === "flow") {context.hardlock = flowContext.get(config.hardlock)}
 					else if (config.hardlockType === "global") {context.hardlock = globalContext.get(config.hardlock)}
 					else if (config.hardlockType === "dis") {context.hardlock = false}
-					else {that.error("E003: Undefined hardlock type")}
+					else {that.error("E005: Undefined hardlock type")}
 					if (typeof context.hardlock === "undefined") {
 						that.warn("W003: Undefined hard lock variable at '" + config.hardlockType + "." + config.hardlock + "'. Assuming false until set.")
 						context.hardlock = false
@@ -203,7 +210,7 @@ module.exports = function(RED) {
 					context.hardlock = false
 				}
 
-				if (ignoreHardlock) {if (node.debug) {that.log("Hardlock will be ignored, as you configured.")}}
+				if (ignoreLock) {if (node.debug) {that.log("Lock will be ignored")}}
 
 				let allowLowering = 																// Check security conditions
 					(context.windowState === window.opened && config.allowLoweringWhenOpened)
@@ -211,11 +218,11 @@ module.exports = function(RED) {
 					|| context.windowState === window.closed
 					|| !config.winswitchEnable
 
-				if (context.hardlock && !ignoreHardlock) {												// Hardlock -> nothing will happen
+				if (context.hardlock && !ignoreLock) {													// Hardlock -> nothing will happen
 					if (node.debug) {that.log("Locked by hardlock, nothing will happen.")}
-				} else if (context.autoLocked) {														// Softlock -> nothing will happen
+				} else if (context.autoLocked && !ignoreLock) {											// Softlock -> nothing will happen
 					if (node.debug) {that.log("Locked by application, nothing will happen.")}
-				} else if (config.inmsgTopicActPosHeightType === "dis") {							// No shading position feedback -> always move
+				} else if (config.inmsgTopicActPosHeightType === "dis") {								// No shading position feedback -> always move
 					sendCommandFunc(null,null,null,context.setposHeight)
 				} else if (typeof context.actposHeight == "undefined" && context.setposHeight === 0) {	// Actual height position unknown but setpos is 0 -> move up
 					that.warn("Unknown actual position, but rising is allowed.")
@@ -227,7 +234,7 @@ module.exports = function(RED) {
 					sendCommandFunc(null,null,null,context.setposHeight)
 				} else if (context.setposHeight > context.actposHeight) {								// Lowering -> check conditions
 					if (config.winswitchEnable && (!context.windowState || context.windowState < 1 || context.windowState > 3)) {		// Check plausibility of window switch
-						that.warn("Unknown or invalid window State (open/tilted/closed). Nothing will happen.")		// TODO move this to another position, i.e. window switch event detection
+						that.warn("Unknown or invalid window State (open/tilted/closed). Nothing will happen.")
 					}
 					if (allowLowering) {
 						sendCommandFunc(null,null,null,context.setposHeight)
@@ -247,6 +254,179 @@ module.exports = function(RED) {
 		function isValidDate(d) {return d instanceof Date && !isNaN(d)}
 
 
+		/** Recalculates setposHeight */
+		function calcSetposHeight() {
+			if (context.sunInSky) {
+				if (node.debug) {that.log("Checking configuration for daytime")}
+				if (config.openIfSunrise) {
+					context.setposHeight = shadingSetpos.open
+					autoMoveFunc()
+					return
+				} else if (config.shadeIfSunrise) {
+					context.setposHeight = config.shadingSetposShade
+					autoMoveFunc()
+					return
+				} else if (config.closeIfSunrise) {
+					context.setposHeight = shadingSetpos.close
+					autoMoveFunc()
+					return
+				} else {
+					if (node.debug) {that.log("Nothing configured to happen on daytime")}
+				}
+			} else {
+				if (node.debug) {that.log("Checking configuration for nighttime")}
+				if (config.openIfSunset) {
+					context.setposHeight = shadingSetpos.open
+					autoMoveFunc()
+					return
+				} else if (config.shadeIfSunset) {
+					context.setposHeight = config.shadingSetposShade
+					autoMoveFunc()
+					return
+				} else if (config.closeIfSunset) {
+					context.setposHeight = shadingSetpos.close
+					autoMoveFunc()
+					return
+				}
+				if (node.debug) {that.log("Nothing configured to happen on nighttime")}
+			}
+		}
+
+		/** TODO Function description */
+		function sunriseFunc(){
+			suncalcFunc()
+		}
+		
+		/** TODO Function description */
+		function sunsetFunc(){
+			suncalcFunc()
+		}
+
+		/** This is the loop function which will be processed only if automatic is enabled. It provides the almighty context.setposHeight. */
+		function mainLoopFunc() {
+
+			actDate = new Date()								// Set to actual time
+
+			if (!isValidDate(sunTimes.sunrise) || !isValidDate(sunTimes.sunset)) {
+				that.error("E004: Suntimes calculator seems broken. Please consult the developer!")
+			}
+
+			context.sunriseAhead = sunTimes.sunrise > actDate					// Sunrise is in the future
+			context.sunsetAhead = sunTimes.sunset > actDate						// Sunset is in the future
+			context.sunInSky = !context.sunriseAhead && context.sunsetAhead		// It's daytime
+			
+			// Sunrise event
+			if (context.sunriseAhead === false && sunriseAheadPrev === true) {
+				if (node.debug) {that.log("Now it's sunrise")}								// -> Send debug message
+				calcSetposHeight()
+				if (config.autoIfSunrise && context.autoLocked) {							// -> Check if lock needs to be released
+					context.autoLocked = false
+					if (node.debug) {that.log("Automatic re-enabled")}						// -> Send debug message
+				}
+				updateNodeStatus()
+			}
+			
+			// Sunset event
+			else if (context.sunsetAhead === false && sunsetAheadPrev === true) {
+				if (node.debug) {that.log("Now it's sunset")}								// -> Send debug message
+				calcSetposHeight()
+				if (config.autoIfSunset && context.autoLocked) {							// -> Check if lock needs to be released
+					context.autoLocked = false												// -> Release lock
+					if (node.debug) {that.log("Automatic re-enabled")}						// -> Send debug message
+				}
+				updateNodeStatus()
+			}
+
+			// Backing up
+			sunriseAheadPrev = context.sunriseAhead
+			sunsetAheadPrev = context.sunsetAhead
+
+			// Proceed sending if setpoint is valid
+			if (context.setposHeight) {
+				autoMoveFunc()
+			}
+
+		}
+
+
+		/** This function prints config and context on the console. Add "message" to prefix a message. */
+		function printConsoleDebug(message) {
+
+			that.log("========== DEBUGGING START ==========")
+			if (message) {
+				console.log(message)
+			}
+			console.log("\n::::: NODE :::::")
+			console.log(node)
+			console.log("\n::::: CONFIG :::::")
+			console.log(config)
+			console.log("\n::::: CONTEXT :::::")
+			console.log(context)
+			console.log("\n")
+		}
+
+
+		/** This function updates the node status. See https://nodered.org/docs/creating-nodes/status for more details.
+		 * 
+		 * Description "shape"
+		 * always "dot"
+		 * 
+		 * Description "fill"
+		 * grey: Automatic is disabled in configuration
+		 * green: Automatic is configured but inactive
+		 * red: Automatic is configured and active
+		 * 
+		 * Description "text"
+		 * 
+		*/
+		function updateNodeStatus() {
+
+			let fill = "grey"
+			let text = "Auto off "
+
+			function addZero(i) {
+				if (i < 10) {i = "0" + i}
+				return i
+			  }
+
+			if (config.autoActive) {
+				
+				if (context.autoLocked) {
+					fill = "red"
+					text = ""
+				} else {
+					fill = "green"
+					text = ""
+				}
+
+				if (context.setposHeight) {text = context.setposHeight + "% | "}
+
+				if (context.sunInSky) {
+					text = text + "🌜 " + addZero(sunTimes.sunset.getHours()) + ":" + addZero(sunTimes.sunset.getMinutes())
+				} else {
+					text = text + "🌞 " + addZero(sunTimes.sunrise.getHours()) + ":" + addZero(sunTimes.sunrise.getMinutes())
+				}
+			}
+			
+			if (config.autoActive && config.winswitchEnable && context.windowStateStr) {
+				text = text + " | " + context.windowStateStr
+			}
+			
+			that.status({fill: fill, shape: "dot", text: text})
+
+		}
+
+		/** Calculates ms from now to 1 second after midnight
+		 * @param {Date} now Start time from which to calculate from
+		 */
+		function msToMidnight(now) {
+			let next = new Date()
+			next.setDate(now.getDate() + 1)
+			next.setHours(0,0,1,0)
+			let diff = next.getTime() - now.getTime()
+			return diff
+		}
+
 		/** Gets suncalc times
 		 * @property {Date} dawn dawn (morning nautical twilight ends, morning civil twilight starts)
 		 * @property {Date} dusk dusk (evening nautical twilight starts)
@@ -264,174 +444,79 @@ module.exports = function(RED) {
 		 * @property {Date} sunsetStart sunset starts (bottom edge of the sun touches the horizon)
 		*/
 		function suncalcFunc() {
-			return suncalc.getTimes(new Date().setHours(12,0,0), config.lat, config.lon)
-		}
-	
+			let sunEventTimeoutHandle = null
 
-
-		/** Recalculates setposHeight */
-		function calcSetposHeight() {
-			if (node.debug) {that.log("Calculating new setposHeight")}
-			if (context.sunInSky) {																					// Daytime ->
-				if (config.openIfSunrise) {context.setposHeight = shadingSetpos.open}							// open
-				else if (config.shadeIfSunrise) {context.setposHeight = config.shadingSetposShade}			// shade
-				else if (config.closeIfSunrise) {context.setposHeight = shadingSetpos.close}					// close
-			} else {																								// Nighttime ->
-				if (config.openIfSunset) {context.setposHeight = shadingSetpos.open}							// open
-				else if (config.shadeIfSunset) {context.setposHeight = config.shadingSetposShade}			// shade
-				else if (config.closeIfSunset) {context.setposHeight = shadingSetpos.close}						// close
+			/** Actual date */
+			let now = new Date()
+			
+			// Calculate suntimes 
+			sunTimes = suncalc.getTimes(now, config.lat, config.lon)
+			
+			/** Calculate ms to sunrise and sunset
+			 * @returns {Bool} TRUE if any sun event is in the future (or now). FALSE if both are in the past.
+			*/
+			function sunEventInFutureFunc() {
+				sunTimes.msToSunrise = sunTimes.sunrise.getTime() - now.getTime()
+				sunTimes.msToSunset = sunTimes.sunset.getTime() - now.getTime()
+				return sunTimes.msToSunrise >= 0 || sunTimes.msToSunset >= 0
 			}
-			autoMoveFunc()
-		}
-
-
-		/** This is the loop function which will be processed only if automatic is enabled. It provides the almighty context.setposHeight. */
-		function mainLoopFunc(){
-
-			actDate = new Date()								// Set to actual time
-			let init = false
-
-			if (dateStringPrev) {								// We have a previous date already backed up
-				const prevDate = new Date(dateStringPrev)		// Convert string to date object
-				if (prevDate.getDate() != actDate.getDate()) {	// A new day has arrived
-					sunTimes = suncalcFunc()					// Get new suncalc values and simulate noon
-					if (node.debug) {
-						that.log("A new day has arrived! Here comes sunTimes:")
-						console.log(sunTimes)
+			
+			// Retry sequence if sunrise and sunset are both in past
+			if (!sunEventInFutureFunc()) {
+				let tryThatDate = now
+				tryThatDate.setHours(12,0,0)
+				sunTimes = suncalc.getTimes(tryThatDate, config.lat, config.lon)
+				if (!sunEventInFutureFunc()) {
+					tryThatDate.setDate(now.getDate() + 1)
+					sunTimes = suncalc.getTimes(tryThatDate, config.lat, config.lon)
+					if (!sunEventInFutureFunc()) {
+						that.error("E006: Cannot find any valid sunrise or sunset time")
+						clearTimeout(sunEventTimeoutHandle)
+						return
 					}
 				}
-			} else {											// This must be the first cycle
-				sunTimes = suncalcFunc();						// Get new suncalc values and simulate noon
-				if (node.debug) {
-					console.log("\n::::: SUNTIMES :::::")
-					console.log(sunTimes)
-					console.log("\n")
-				}
-				init = true
 			}
 
-			if (!isValidDate(sunTimes.sunrise) || !isValidDate(sunTimes.sunset)) {
-				that.error("E002: Suntimes calculator seems broken. Please consult the developer!")
+			if (sunTimes.msToSunrise < sunTimes.msToSunset) {
+				sunEventTimeoutHandle = setTimeout(sunriseFunc, sunTimes.msToSunrise)
+			} else {
+				sunEventTimeoutHandle = setTimeout(sunsetFunc, sunTimes.msToSunset)
 			}
 
-			context.sunriseAhead = sunTimes.sunrise > actDate		// Sunrise is in the future
-			context.sunsetAhead = sunTimes.sunset > actDate			// Sunset is in the future
-			context.sunInSky = !context.sunriseAhead && context.sunsetAhead			// It's daytime
 
-			if (init) {
-				calcSetposHeight()
-			}
 
-			// Sunrise event
-			if (context.sunriseAhead === false && sunriseAheadPrev === true) {
-				if (node.debug) {that.log("Now it's sunrise")}													// -> Send debug message
-				calcSetposHeight()
-				if (config.autoIfSunrise && context.autoLocked) {												// -> Check if lock needs to be released
-					context.autoLocked = false
-					if (node.debug) {that.log("Automatic re-enabled")}											// -> Send debug message
-				}
-				updateNodeStatus()
-			}
+			// Setting timeout trigger for sunrise and sunset
+			// TODO hier hatte ich aufgehört, weiß grad nimmer was das werden sollte
 			
-			// Sunset event
-			else if (context.sunsetAhead === false && sunsetAheadPrev === true) {
-				if (node.debug) {that.log("Now it's sunset")}														// -> Send debug message
-				calcSetposHeight()
-				if (config.autoIfSunset && context.autoLocked) {												// -> Check if lock needs to be released
-					context.autoLocked = false																		// -> Release lock
-					if (node.debug) {that.log("Automatic re-enabled")}											// -> Send debug message
-				}
-				updateNodeStatus()
-			}
-
-			// Backing up
-			dateStringPrev = actDate.toISOString()
-			sunriseAheadPrev = context.sunriseAhead
-			sunsetAheadPrev = context.sunsetAhead
-
-			// Proceed sending if setpoint is valid
-			if (context.setposHeight) {autoMoveFunc()}
+			// clearTimeout(sunriseFuncTimeoutHandle)
+			// clearTimeout(sunsetFuncTimeoutHandle)
+			// if (sunTimes.msToSunrise >= 0) {
+			// 	sunriseFuncTimeoutHandle = 
+			// }
+			// if (sunTimes.msToSunset >= 0) {
+			// }
 
 		}
-
-
-		/** This function prints config and context on the console. Add "message" to prefix a message. */
-		function printConsoleDebug(message) {
-			that.log("========== DEBUGGING START ==========")
-			if (message) {
-				console.log(message)
-			}
-			console.log("\n::::: CONFIG :::::")
-			console.log(config)
-			console.log("\n::::: CONTEXT :::::")
-			console.log(context)
-			if (sunTimes) {
-				console.log("\n::::: SUNTIMES :::::")
-				console.log(sunTimes)
-				console.log("\n")
-			}
-		}
-
-
-		/** This function updates the node status. See https://nodered.org/docs/creating-nodes/status for more details. */
-		function updateNodeStatus() {
-
-			let fill = "grey"
-			let shape = "dot"
-			let text = "Auto off"
-
-			function addZero(i) {
-				if (i < 10) {i = "0" + i}
-				return i
-			  }
-
-			if (config.autoActive) {
-				text = context.setposHeight + "%"
-				if (context.sunInSky) {
-					text = text + " | 🌜 " + addZero(sunTimes.sunset.getHours()) + ":" + addZero(sunTimes.sunset.getMinutes())
-				} else {
-					text = text + " | 🌞 " + addZero(sunTimes.sunrise.getHours()) + ":" + addZero(sunTimes.sunrise.getMinutes())
-				}
-				if (context.autoLocked) {fill = "red"} else {fill = "green"}
-			}
-			
-			if (config.autoActive && config.winswitchEnable && context.windowStateStr) {
-				text = text + " | " + context.windowStateStr
-			}
-			
-			that.status({fill: fill, shape: shape, text: text})
-
-		}
-
+	
 		// <==== FUNCTIONS
 
 
 
 
 
-		// FIRST RUN ACTIONS ====>
-
-		// Filling empty string fields with defaults
-		config.inmsgButtonTopicOpen = config.inmsgButtonTopicOpen || "buttonup"
-		config.inmsgButtonTopicClose = config.inmsgButtonTopicClose || "buttondown"
+		// FIRST RUN ACTIONS (INIT) ====>
+		
+		
 		if (config.autoActive) {
-			config.autoTopic = config.autoTopic || "auto"
-			config.openTopic = config.openTopic || "commandopen"
-			config.shadeTopic = config.shadeTopic || "commandshade"
-			config.closeTopic = config.closeTopic || "commandclose"
-			if (config.winswitchEnable) {
-				config.inmsgWinswitchTopic = config.inmsgWinswitchTopic || "switch"
-			}
+			suncalcFunc()
+			calcSetposHeight()
+		} else {
+			clearTimeout(sunriseFuncTimeoutHandle)
+			clearTimeout(sunsetFuncTimeoutHandle)
 		}
 		
 
-		config.inmsgButtonDblclickTime = config.inmsgButtonDblclickTime | 500;
-
-		config.shadingSetposShade = shadingSetpos.shade
 		
-		// Show config and context on console
-		if (node.debug) {printConsoleDebug()}
-
 		// Main loop
 		if (config.autoActive) {
 			mainLoopFunc()		// Trigger once as setInterval will fire first after timeout
@@ -441,8 +526,10 @@ module.exports = function(RED) {
 		
 		updateNodeStatus()		// Initially set node status
 		sendCommandFunc()		// Providing status
+		
+		if (node.debug) {printConsoleDebug()}
 
-		// <==== FIRST RUN ACTIONS
+		// <==== FIRST RUN ACTIONS (INIT)
 
 
 
@@ -455,22 +542,22 @@ module.exports = function(RED) {
 			
 			/** Storing peripheral states */
 			if (msg.topic === config.inmsgButtonTopicOpen) {context.stateButtonOpen = msg.payload}
-			else if (msg.topic === config.inmsgButtonTopicClose) {context.stateButtonClose = msg.payload}; // TODO logical verification, like drive height position
+			else if (msg.topic === config.inmsgButtonTopicClose) {context.stateButtonClose = msg.payload}
 
 			/** Resend event */
-			var resendEvent = msg.topic === "resend";										// TODO in documentation
+			var resendEvent = msg.topic === "resend"										// TODO in documentation
 			/** Button open/close event based on incoming message topic */
-			var buttonEvent = msg.topic === config.inmsgButtonTopicOpen || msg.topic === config.inmsgButtonTopicClose;
+			var buttonEvent = msg.topic === config.inmsgButtonTopicOpen || msg.topic === config.inmsgButtonTopicClose
 			/** Button press event based on incoming message topic, if payload is TRUE */
-			var buttonPressEvent = buttonEvent && msg.payload === true;
+			var buttonPressEvent = buttonEvent && msg.payload === true
 			/** Button press open event */
-			var buttonPressOpenEvent = msg.topic === config.inmsgButtonTopicOpen && msg.payload === true;
+			var buttonPressOpenEvent = msg.topic === config.inmsgButtonTopicOpen && msg.payload === true
 			/** Button press close event */
-			var buttonPressCloseEvent = msg.topic === config.inmsgButtonTopicClose && msg.payload === true;
+			var buttonPressCloseEvent = msg.topic === config.inmsgButtonTopicClose && msg.payload === true
 			/** Button release event based on incoming message topic, if payload is FALSE */
-			var buttonReleaseEvent = buttonEvent && msg.payload === false;
+			var buttonReleaseEvent = buttonEvent && msg.payload === false
 			/** Debug on console request */
-			var printConsoleDebugEvent = msg.debug;
+			var printConsoleDebugEvent = msg.debug
 
 			if (config.autoActive) {
 				/** Window switch event based on incoming message topic */
@@ -493,72 +580,78 @@ module.exports = function(RED) {
 				if (buttonPressOpenEvent) {
 					context.autoLocked = true
 					if (node.debug) {that.log("Automatic disabled")}
-					clearTimeout(context.buttonCloseTimeoutHandle); context.buttonCloseTimeoutHandle = null;
+					clearTimeout(context.buttonCloseTimeoutHandle)
+					context.buttonCloseTimeoutHandle = null
 
 					// Single/double click detection
 					if (context.buttonOpenTimeoutHandle) {
 						
 						// DOUBLE CLICK ACTIONS ==>
-						clearTimeout(context.buttonOpenTimeoutHandle); context.buttonOpenTimeoutHandle = null;
-						sendCommandFunc(null,null,null,shadingSetpos.open);
+						clearTimeout(context.buttonOpenTimeoutHandle)
+						context.buttonOpenTimeoutHandle = null
+						sendCommandFunc(null,null,null,shadingSetpos.open)
 						// <== DOUBLE CLICK ACTIONS
 
 					} else {
 						context.buttonOpenTimeoutHandle = setTimeout(function(){
-							clearTimeout(context.buttonOpenTimeoutHandle); context.buttonOpenTimeoutHandle = null;
+							clearTimeout(context.buttonOpenTimeoutHandle)
+							context.buttonOpenTimeoutHandle = null
 							if (context.stateButtonOpen) {
 
 								// LONG CLICK ACTIONS ==>
-								sendCommandFunc(config.payloadOpenCmd,null,null,null);
-								context.stateButtonRunning = true;
+								sendCommandFunc(config.payloadOpenCmd,null,null,null)
+								context.stateButtonRunning = true
 								// <== LONG CLICK ACTIONS
 								
 							}
-						}, config.inmsgButtonDblclickTime);
+						}, config.inmsgButtonDblclickTime)
 					}
 					
 				// Button close pressed
 				} else if (buttonPressCloseEvent) {
 					context.autoLocked = true
 					if (node.debug) {that.log("Automatic disabled")}
-					clearTimeout(context.buttonOpenTimeoutHandle); context.buttonOpenTimeoutHandle = null;
+					clearTimeout(context.buttonOpenTimeoutHandle)
+					context.buttonOpenTimeoutHandle = null
 				
 					// Single/double click detection
 					if (context.buttonCloseTimeoutHandle) {
 						
 						// DOUBLE CLICK ACTIONS ==>
-						clearTimeout(context.buttonCloseTimeoutHandle); context.buttonCloseTimeoutHandle = null;
-						sendCommandFunc(null,null,null,shadingSetpos.close);
+						clearTimeout(context.buttonCloseTimeoutHandle)
+						context.buttonCloseTimeoutHandle = null
+						sendCommandFunc(null,null,null,shadingSetpos.close)
 						// <== DOUBLE CLICK ACTIONS
 							
 					} else {
 						context.buttonCloseTimeoutHandle = setTimeout(function(){
-							clearTimeout(context.buttonCloseTimeoutHandle); context.buttonCloseTimeoutHandle = null;
+							clearTimeout(context.buttonCloseTimeoutHandle)
+							context.buttonCloseTimeoutHandle = null
 							if (context.stateButtonClose) {
 								
 								// LONG CLICK ACTIONS ==>
-								sendCommandFunc(null,config.payloadCloseCmd,null,null);
-								context.stateButtonRunning = true;
+								sendCommandFunc(null,config.payloadCloseCmd,null,null)
+								context.stateButtonRunning = true
 								// <== LONG CLICK ACTIONS
 								
 							}
-						}, config.inmsgButtonDblclickTime);
+						}, config.inmsgButtonDblclickTime)
 					}
 					
 				// Any button released
 				} else if (buttonReleaseEvent && context.stateButtonRunning) {
 					
 					// BUTTONS RELEASED ACTIONS ==>
-					context.stateButtonRunning = false;
-					sendCommandFunc(null,null,config.payloadStopCmd,null);
+					context.stateButtonRunning = false
+					sendCommandFunc(null,null,config.payloadStopCmd,null)
 					// <== BUTTONS RELEASED ACTIONS
 				}
 			}
 
 			else if (windowSwitchEvent) {
 				
-				let oldState = context.windowState;
-				let oldStateStr = context.windowStateStr;
+				let oldState = context.windowState
+				let oldStateStr = context.windowStateStr
 
 				// Storing context values
 				if (msg.payload === config.inmsgWinswitchPayloadOpened) {
@@ -576,7 +669,8 @@ module.exports = function(RED) {
 				}
 
 				// Return if window switch state is unknown or unchanged (filter)
-				if (oldState == context.windowState || !oldState) {return}
+				// Enable the following line to prevent equal events (like open -> open)
+				// if (oldState == context.windowState || !oldState) {return}
 				
 				// Sending debug message
 				if (node.debug) {that.log("Window switch event detected: " + oldStateStr + " -> "  + context.windowStateStr)}
@@ -621,28 +715,28 @@ module.exports = function(RED) {
 			else if (openCommand){
 				if (node.debug) {that.log("Received command to open")}
 				context.setposHeight = shadingSetpos.open
-				autoMoveFunc(true)
+				autoMoveFunc(true,true)
 				context.autoLocked = true
 			}
 			
 			else if (shadeCommand){
 				if (node.debug) {that.log("Received command to shade")}
 				context.setposHeight = shadingSetpos.shade
-				autoMoveFunc(true)
+				autoMoveFunc(true,true)
 				context.autoLocked = true
 			}
 			
 			else if (closeCommand){
 				if (node.debug) {that.log("Received command to close")}
 				context.setposHeight = shadingSetpos.close
-				autoMoveFunc(true)
+				autoMoveFunc(true,true)
 				context.autoLocked = true
 			}
 
 			else if (driveHeightEvent) {				// TODO Was wenn es das nicht gibt??
 				if (msg.payload >= 0 && msg.payload <= 100 && typeof msg.payload === "number") {
-					let prevPos = context.actposHeight;
-					context.actposHeight = msg.payload;
+					let prevPos = context.actposHeight
+					context.actposHeight = msg.payload
 					that.log("New shading position detected: " + prevPos + " -> " + context.actposHeight)
 				} else {
 					that.warn("W001: Actual drive position must be number between 0 and 100, but received '" + msg.payload + "'.")
@@ -663,25 +757,17 @@ module.exports = function(RED) {
 			
 			else if (msg.frcSunrise) {
 				sunTimes.sunrise = new Date(msg.frcSunrise)
-				that.warn("Sunrise value overwritten")
-				console.log("\n::::: SUNTIMES :::::")
-				console.log(sunTimes)
-				console.log("\n")
-
+				that.warn("Sunrise value overwritten. New value: " + sunTimes.sunrise)
 			}
 			
 			else if (msg.frcSunset) {
 				sunTimes.sunset = new Date(msg.frcSunset)
-				that.warn("Sunset value overwritten")
-				console.log("\n::::: SUNTIMES :::::")
-				console.log(sunTimes)
-				console.log("\n")
+				that.warn("Sunset value overwritten. New value: " + sunTimes.sunset)
 			}
 			
 			else if (msg.frcSunauto) {
-				that.warn("Sunrise and sunset values reset")
-				dateStringPrev = null;
-				mainLoopFunc();
+				that.log("Sunrise and sunset values reset")
+				mainLoopFunc()
 			}
 			
 			else if (node.debug) {
@@ -696,10 +782,10 @@ module.exports = function(RED) {
 			if (err) {
 				if (done) {
 					// Node-RED 1.0 compatible
-					done(err);
+					done(err)
 				} else {
 					// Node-RED 0.x compatible
-					this.error(err,msg);
+					this.error(err,msg)
 				}
 			}
 
@@ -718,7 +804,7 @@ module.exports = function(RED) {
 
 
 
-		nodeContext.set("context", context);		// Backing up context
+		nodeContext.set("context", context)		// Backing up context
 
 		
 
@@ -727,12 +813,12 @@ module.exports = function(RED) {
 		// CLOSE EVENTS ====>
 
 		this.on('close', function() {
-			clearInterval(handle);
+			clearInterval(handle)
 		})
 
 		// <==== CLOSE EVENTS
 
 	}
 
-    RED.nodes.registerType("shading",ShadingNode);
+    RED.nodes.registerType("shading",ShadingNode)
 }
