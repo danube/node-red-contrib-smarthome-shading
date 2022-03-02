@@ -4,7 +4,7 @@
     RED.nodes.registerType ('shading configuration', {
         category: 'config',
         defaults: {
-            name: {value: "Shading main configuration"},
+            name: {value: "Shading configuration"},
             shadingSetposShade: {value: 80, required: true},
             inmsgButtonTopicOpen: {},
             inmsgButtonTopicClose: {},
@@ -51,7 +51,7 @@
             closeIfSunset: {},
         },
         label: function() {
-            return this.name || "Shading main configuration";
+            return this.name || "Shading configuration";
         },
         oneditprepare: function() {
 
@@ -310,7 +310,7 @@
     <div class="form-tips"><b>Tip:</b> Check out <a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md" target="_blank">this manual</a> or click any heading, to receive detailled infromation.</div>
     <div class="form-row">
         <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
-        <input type="text" id="node-config-input-name" placeholder="Shading main configuration">
+        <input type="text" id="node-config-input-name" placeholder="Shading configuration">
     </div>
     <hr>
     <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md#blind-configuration" target="_blank">Blind configuration</a></h3>
@@ -385,7 +385,7 @@
         <div class="form-row">
             <label for="node-config-input-inmsgTopicActPosHeight"><i class="fa fa-envelope-open-o"></i> Height feedback topic</label>
             <input type="hidden" id="node-config-input-inmsgTopicActPosHeightType">
-            <input type="text" id="node-config-input-inmsgTopicActPosHeight"> <!-- TODO Placeholder, damit nix ausgefüllt werden muss wenn man von dis auf string umschaltet -->
+            <input type="text" id="node-config-input-inmsgTopicActPosHeight" placeholder="heightfeedback">
         </div>
         <div class="form-row">
             <label for="node-config-input-hardlock"><i class="fa fa-sliders"></i> Hard lock</label>
