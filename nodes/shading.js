@@ -388,25 +388,24 @@ module.exports = function(RED) {
 			function addZero(i) {
 				if (i < 10) {i = "0" + i}
 				return i
-			  }
+			}
 
 			if (config.autoActive) {
 				
+				text = context.setposHeight + "% | "
+
 				if (context.autoLocked) {
 					fill = "red"
-					text = ""
 				} else {
 					fill = "green"
-					text = ""
 				}
-
-				if (context.setposHeight) {text = context.setposHeight + "% | "}
 
 				if (context.sunInSky) {
 					text = text + "🌜 " + addZero(sunTimes.sunset.getHours()) + ":" + addZero(sunTimes.sunset.getMinutes())
 				} else {
 					text = text + "🌞 " + addZero(sunTimes.sunrise.getHours()) + ":" + addZero(sunTimes.sunrise.getMinutes())
 				}
+
 			}
 			
 			if (config.autoActive && config.winswitchEnable && context.windowStateStr) {
