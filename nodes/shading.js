@@ -44,7 +44,6 @@ module.exports = function(RED) {
 		node.inmsgTopicActPosHeight = node.inmsgTopicActPosHeight || "heightfeedback"
 		node.inmsgButtonTopicOpen = node.inmsgButtonTopicOpen || "buttonup"
 		node.inmsgButtonTopicClose = node.inmsgButtonTopicClose || "buttondown"
-		node.autoTopic = node.autoTopic || "auto"
 		node.openTopic = node.openTopic || "commandopen"
 		node.shadeTopic = node.shadeTopic || "commandshade"
 		node.closeTopic = node.closeTopic || "commandclose"
@@ -151,7 +150,8 @@ module.exports = function(RED) {
 				topic: "status",
 				payload: {
 					config: config,
-					context: context
+					context: context,
+					sunTimes: sunTimes
 				}
 			}
 
@@ -320,10 +320,6 @@ module.exports = function(RED) {
 			if (context.sunriseAhead === false && sunriseAheadPrev === true) {
 				if (node.debug) {that.log("Now it's sunrise")}								// -> Send debug message
 				calcSetposHeight()
-				if (config.autoIfSunrise && context.autoLocked) {							// -> Check if lock needs to be released
-					context.autoLocked = false
-					if (node.debug) {that.log("Automatic re-enabled")}						// -> Send debug message
-				}
 				updateNodeStatus()
 			}
 			
@@ -331,10 +327,6 @@ module.exports = function(RED) {
 			else if (context.sunsetAhead === false && sunsetAheadPrev === true) {
 				if (node.debug) {that.log("Now it's sunset")}								// -> Send debug message
 				calcSetposHeight()
-				if (config.autoIfSunset && context.autoLocked) {							// -> Check if lock needs to be released
-					context.autoLocked = false												// -> Release lock
-					if (node.debug) {that.log("Automatic re-enabled")}						// -> Send debug message
-				}
 				updateNodeStatus()
 			}
 
@@ -563,7 +555,7 @@ module.exports = function(RED) {
 				/** Window switch event based on incoming message topic */
 				var windowSwitchEvent = config.winswitchEnable && msg.topic === config.inmsgWinswitchTopic
 				/** Auto re-enable event based on incoming message topic */
-				var autoReenableEvent = config.autoIfMsgTopic && msg.topic === config.autoTopic
+				var autoReenableEvent = config.autoIfMsgTopic && msg.topic === "auto"
 				/** Open event based on incoming message topic */
 				var openCommand = msg.topic === config.openTopic
 				/** Shade event based on incoming message topic */
@@ -674,18 +666,6 @@ module.exports = function(RED) {
 				
 				// Sending debug message
 				if (node.debug) {that.log("Window switch event detected: " + oldStateStr + " -> "  + context.windowStateStr)}
-
-				// Re-enable automatic
-				let reenable = (
-					(config.autoIfWinOpenToTilt && oldState == window.opened && context.windowState == window.tilted)
-					|| (config.autoIfWinClosed && context.windowState == window.closed)
-				)
-				if (reenable) {
-					if (node.debug) {that.log("Re-enabeling automatic due to window switch event")}
-					context.autoLocked = false
-					calcSetposHeight()
-					autoMoveFunc(true)
-				}
 
 				// Move up when window opens
 				if (context.windowState == window.opened && config.openIfWinOpen) {

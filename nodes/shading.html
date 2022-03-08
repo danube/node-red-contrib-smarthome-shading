@@ -36,12 +36,7 @@
             inmsgWinswitchPayloadTiltedType: {},
             allowLoweringWhenTilted: {},
             allowLoweringWhenOpened: {},
-            autoIfSunrise: {},
-            autoIfSunset: {},
-            autoIfWinOpenToTilt: {},
-            autoIfWinClosed: {},
             autoIfMsgTopic: {},
-            autoTopic: {},
             openIfWinOpen: {},
             openIfSunrise: {},
             openIfSunset: {},
@@ -153,15 +148,6 @@
                 }
             })
             
-            // Hide autoTopic area
-            $("#node-config-input-autoIfMsgTopic").on('change', function() {
-                if ($("#node-config-input-autoIfMsgTopic").prop("checked")) {
-                    $('#autoTopic').show('fast')
-                } else {
-                    $('#autoTopic').hide('fast')
-                }
-            })
-
             // Disable incompatible options - open conditions, sunrise
             $("#node-config-input-openIfSunrise").on('change', function() {
                 if ($(this).prop("checked")) {
@@ -437,24 +423,7 @@
         <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/automatic.md#events-configuration" target="_blank">Events configuration</a></h3>
         <h4>Re-enable automatic conditions</h4>
         <div class="form-row checkbox-row">
-            <input type="checkbox" id="node-config-input-autoIfSunrise"> <label style="width: 300px" for="node-config-input-autoIfSunrise">Sunrise</label>
-        </div>
-        <div class="form-row checkbox-row">
-            <input type="checkbox" id="node-config-input-autoIfSunset"> <label style="width: 300px" for="node-config-input-autoIfSunset">Sunset</label>
-        </div>
-        <div class="form-row checkbox-row winswitch tiltswitch">
-            <input type="checkbox" id="node-config-input-autoIfWinOpenToTilt" class="winswitch-checkbox"> <label style="width: 300px" for="node-config-input-autoIfWinOpenToTilt">Window changes from 'open' to 'tilted'</label>
-        </div>
-        <div class="form-row checkbox-row winswitch">
-            <input type="checkbox" id="node-config-input-autoIfWinClosed" class="winswitch-checkbox"> <label style="width: 300px" for="node-config-input-autoIfWinClosed">Window changes from any state to 'closed'</label>
-        </div>
-        <div class="form-row checkbox-row">
-            <input type="checkbox" id="node-config-input-autoIfMsgTopic"> <label style="width: 300px" for="node-config-input-autoIfMsgTopic">Message with topic</label>
-        </div>
-        <div id="autoTopic" style="padding-left: 20px">
-            <div class="form-row checkbox-row" style="width: 300px;">
-                <input type="text" id="node-config-input-autoTopic" placeholder="'auto' if blank">
-            </div>
+            <input type="checkbox" id="node-config-input-autoIfMsgTopic"> <label style="width: 300px" for="node-config-input-autoIfMsgTopic">Message with topic 'auto'</label>
         </div>
         <h4>Open conditions</h4>
         <div class="form-row checkbox-row winswitch">
