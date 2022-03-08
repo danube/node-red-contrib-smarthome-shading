@@ -683,6 +683,7 @@ module.exports = function(RED) {
 				if (reenable) {
 					if (node.debug) {that.log("Re-enabeling automatic due to window switch event")}
 					context.autoLocked = false
+					calcSetposHeight()
 					autoMoveFunc(true)
 				}
 
