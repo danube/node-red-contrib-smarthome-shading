@@ -150,7 +150,8 @@ module.exports = function(RED) {
 			msgE = {
 				topic: "status",
 				payload: {
-					automatic: config.autoActive && !context.autoLocked,
+					config: config,
+					context: context
 				}
 			}
 
