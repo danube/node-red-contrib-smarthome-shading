@@ -9,7 +9,7 @@ module.exports = function(RED) {
 	// Definition of persistant variables
 	let handle, sunTimes, lat, lon = null
 	let sunriseFuncTimeoutHandle, sunsetFuncTimeoutHandle = null
-	/** Closes shading if window closes */
+	/** If set, the shade closes as soon as the window closes */
 	let closeIfWinCloses = false
 
 	// Loading external modules
@@ -131,22 +131,22 @@ module.exports = function(RED) {
 
 			if (a != null) {
 				msgA = {topic: "open", payload: a}
-				that.log("msgA has content")
+				// that.log("msgA has content")
 			} else msgA = null
 			
 			if (b != null) {
 				msgB = {topic: "close", payload: b}
-				that.log("msgB has content")
+				// that.log("msgB has content")
 			} else msgB = null
 			
 			if (c != null) {
 				msgC = {topic: "stop", payload: c}
-				that.log("msgC has content")
+				// that.log("msgC has content")
 			} else msgC = null
 			
 			if (d != null) {
 				msgD = {topic: "command", payload: d}
-				that.log("msgD has content")
+				// that.log("msgD has content")
 			} else msgD = null
 
 			msgE = {
@@ -160,10 +160,10 @@ module.exports = function(RED) {
 
 			that.send([msgA, msgB, msgC, msgD, msgE])
 
-			if (node.debug) {
-				that.log("Here are new output values")
-				console.log([msgA, msgB, msgC, msgD, msgE])
-			}
+			// if (node.debug) {
+			// 	that.log("Here are new output values")
+			// 	console.log([msgA, msgB, msgC, msgD, msgE])
+			// }
 
 		}
 
@@ -572,7 +572,7 @@ module.exports = function(RED) {
 				/** Window switch close event based on incoming message payload */
 				var windowSwitchCloseEvent = msg.payload === config.inmsgWinswitchPayloadClosed
 				/** Auto re-enable event based on incoming message topic */
-				var autoReenableEvent = config.autoIfMsgTopic && msg.topic === "auto"		// TODO make topic configurable? --> DOC
+				var autoReenableEvent = config.autoIfMsgTopic && msg.topic === "auto"		// TODO make topic configurable? --> DOCME
 				/** Open event based on incoming message topic */
 				var openCommand = msg.topic === config.openTopic
 				/** Shade event based on incoming message topic */
@@ -664,8 +664,6 @@ module.exports = function(RED) {
 				let oldState = context.windowState
 				let oldStateStr = context.windowStateStr
 
-				closeIfWinCloses = false
-				
 				if ((windowSwitchOpenEvent || windowSwitchTiltEvent) && context.actposHeight > shadingSetpos.shade && config.preventClosing) {
 					context.setposHeight = shadingSetpos.shade
 					autoMoveFunc(true, true)
@@ -710,7 +708,7 @@ module.exports = function(RED) {
 				closeIfWinCloses = false
 			}
 			
-			else if (openCommand){
+			else if (openCommand) {
 				if (node.debug) {that.log("Received command to open")}
 				context.setposHeight = shadingSetpos.open
 				autoMoveFunc(true,true)
@@ -718,7 +716,7 @@ module.exports = function(RED) {
 				closeIfWinCloses = false
 			}
 			
-			else if (shadeCommand){
+			else if (shadeCommand) {
 				if (node.debug) {that.log("Received command to shade")}
 				context.setposHeight = shadingSetpos.shade
 				autoMoveFunc(true,true)
@@ -726,7 +724,7 @@ module.exports = function(RED) {
 				closeIfWinCloses = false
 			}
 			
-			else if (closeCommand){
+			else if (closeCommand) {		// TODO If blind is below shading position and command is received, it will move up. Clarify what should happen then.
 				if (node.debug) {that.log("Received command to close")}
 				if (config.preventClosing && context.windowState != window.closed) {
 					if (node.debug) {that.log("Window is not closed, going to shade position instead.")}
