@@ -595,7 +595,7 @@ module.exports = function(RED) {
 					context.buttonCloseTimeoutHandle = null
 
 					// Single/double click detection
-					if (context.buttonOpenTimeoutHandle) {
+					if (context.buttonOpenTimeoutHandle) {									// handle present -> must be second click
 						
 						// DOUBLE CLICK ACTIONS ==>
 						clearTimeout(context.buttonOpenTimeoutHandle)
@@ -603,17 +603,26 @@ module.exports = function(RED) {
 						sendCommandFunc(null,null,null,shadingSetpos.open)
 						// <== DOUBLE CLICK ACTIONS
 
-					} else {
-						context.buttonOpenTimeoutHandle = setTimeout(function(){
+					} else {																// no handle present -> must be first click
+						context.buttonOpenTimeoutHandle = setTimeout(function(){			// set timeout with function
 							clearTimeout(context.buttonOpenTimeoutHandle)
 							context.buttonOpenTimeoutHandle = null
-							if (context.stateButtonOpen) {
+							if (context.stateButtonOpen) {									// button is still pressed -> must be a double click
 
 								// LONG CLICK ACTIONS ==>
 								sendCommandFunc(config.payloadOpenCmd,null,null,null)
 								context.stateButtonRunning = true
 								// <== LONG CLICK ACTIONS
 								
+							} else {														// button not pressed anymore -> must be a single click
+								
+								// SINGLE CLICK ACTIONS ==>
+								if (context.actposHeight > shadingSetpos.shade) {
+									sendCommandFunc(null,null,null,shadingSetpos.shade)
+								} else {
+									sendCommandFunc(null,null,null,shadingSetpos.open)
+								}
+								// <== SINGLE CLICK ACTIONS
 							}
 						}, config.inmsgButtonDblclickTime)
 					}
@@ -645,6 +654,15 @@ module.exports = function(RED) {
 								context.stateButtonRunning = true
 								// <== LONG CLICK ACTIONS
 								
+							} else {
+								
+								// SINGLE CLICK ACTIONS ==>
+								if (context.actposHeight < shadingSetpos.shade) {
+									sendCommandFunc(null,null,null,shadingSetpos.shade)
+								} else {
+									sendCommandFunc(null,null,null,shadingSetpos.close)
+								}
+								// <== SINGLE CLICK ACTIONS
 							}
 						}, config.inmsgButtonDblclickTime)
 					}
