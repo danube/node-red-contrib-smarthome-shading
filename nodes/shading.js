@@ -387,11 +387,15 @@ module.exports = function(RED) {
 
 			if (config.autoActive) {
 				
-				text = context.setposHeight + "% | "
-
 				if (context.autoLocked) {
+					if (context.actposHeight) {
+						text = context.actposHeight + "% | "
+					} else {
+						text = context.setposHeight + "% | "
+					}
 					fill = "red"
 				} else {
+					text = context.setposHeight + "% | "
 					fill = "green"
 				}
 
