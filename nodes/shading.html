@@ -34,10 +34,10 @@
             winswitchTiltedEnable: {},
             inmsgWinswitchPayloadTilted: {value: 2},
             inmsgWinswitchPayloadTiltedType: {},
+            preventClosing: {},
             allowLoweringWhenTilted: {},
             allowLoweringWhenOpened: {},
             autoIfMsgTopic: {},
-            openIfWinOpen: {},
             openIfSunrise: {},
             openIfSunset: {},
             shadeIfSunrise: {},
@@ -408,7 +408,10 @@
                 <input type="hidden" id="node-config-input-inmsgWinswitchPayloadTiltedType">
                 <input type="text" id="node-config-input-inmsgWinswitchPayloadTilted">
             </div>
-            <hr>
+            <div class="form-row checkbox-row">
+                <input type="checkbox" id="node-config-input-preventClosing"> <label style="width: 350px" for="node-config-input-preventClosing">Prevent closing shade if window is open or tilted</label>
+            </div>
+        <hr>
             <div>
                 <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/automatic.md#security-configuration" target="_blank">Security configuration</a></h3>
                 <div class="form-row checkbox-row tiltswitch">
@@ -426,9 +429,6 @@
             <input type="checkbox" id="node-config-input-autoIfMsgTopic"> <label style="width: 300px" for="node-config-input-autoIfMsgTopic">Message with topic 'auto'</label>
         </div>
         <h4>Open conditions</h4>
-        <div class="form-row checkbox-row winswitch">
-            <input type="checkbox" id="node-config-input-openIfWinOpen" class="winswitch-checkbox"> <label style="width: 300px" for="node-config-input-openIfWinOpen">Window changes from any state to 'open'</label>
-        </div>
         <div class="form-row checkbox-row" id="openIfSunrise-div">
             <input type="checkbox" id="node-config-input-openIfSunrise"> <label style="width: 300px" for="node-config-input-openIfSunrise">Sunrise</label>
         </div>

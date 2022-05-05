@@ -3,11 +3,14 @@
 // TODO console log DEBUG entfernen
 
 
+
 module.exports = function(RED) {
 
 	// Definition of persistant variables
 	let handle, sunTimes, lat, lon = null
 	let sunriseFuncTimeoutHandle, sunsetFuncTimeoutHandle = null
+	/** Closes shading if window closes */
+	let closeIfWinCloses = false
 
 	// Loading external modules
 	var suncalc = require("suncalc")	// https://www.npmjs.com/package/suncalc#reference
@@ -400,8 +403,12 @@ module.exports = function(RED) {
 
 			}
 			
-			if (config.autoActive && config.winswitchEnable && context.windowStateStr) {
-				text = text + " | " + context.windowStateStr
+			if (config.autoActive && config.winswitchEnable) {
+				if (context.windowStateStr) {
+					text = text + " | " + context.windowStateStr
+				} else {
+					text = text + " | Unknown"
+				}
 			}
 			
 			that.status({fill: fill, shape: "dot", text: text})
@@ -554,8 +561,14 @@ module.exports = function(RED) {
 			if (config.autoActive) {
 				/** Window switch event based on incoming message topic */
 				var windowSwitchEvent = config.winswitchEnable && msg.topic === config.inmsgWinswitchTopic
+				/** Window switch open event based on incoming message payload */
+				var windowSwitchOpenEvent = msg.payload === config.inmsgWinswitchPayloadOpened
+				/** Window switch tilt event based on incoming message payload */
+				var windowSwitchTiltEvent = msg.payload === config.inmsgWinswitchPayloadTilted
+				/** Window switch close event based on incoming message payload */
+				var windowSwitchCloseEvent = msg.payload === config.inmsgWinswitchPayloadClosed
 				/** Auto re-enable event based on incoming message topic */
-				var autoReenableEvent = config.autoIfMsgTopic && msg.topic === "auto"
+				var autoReenableEvent = config.autoIfMsgTopic && msg.topic === "auto"		// TODO make topic configurable? --> DOC
 				/** Open event based on incoming message topic */
 				var openCommand = msg.topic === config.openTopic
 				/** Shade event based on incoming message topic */
@@ -567,6 +580,8 @@ module.exports = function(RED) {
 			}
 
 			if (buttonEvent) {
+
+				closeIfWinCloses = false
 
 				// Button open pressed
 				if (buttonPressOpenEvent) {
@@ -645,19 +660,32 @@ module.exports = function(RED) {
 				let oldState = context.windowState
 				let oldStateStr = context.windowStateStr
 
-				// Storing context values
-				if (msg.payload === config.inmsgWinswitchPayloadOpened) {
+				closeIfWinCloses = false
+				
+				if ((windowSwitchOpenEvent || windowSwitchTiltEvent) && context.actposHeight > shadingSetpos.shade && config.preventClosing) {
+					context.setposHeight = shadingSetpos.shade
+					autoMoveFunc(true, true)
+					closeIfWinCloses = true
+				}
+
+				if (windowSwitchOpenEvent) {
 					context.windowState = window.opened
-					context.windowStateStr = "opened"
-				} else if (msg.payload === config.inmsgWinswitchPayloadTilted) {
+					context.windowStateStr = "Opened"
+				} else if (windowSwitchTiltEvent) {
 					context.windowState = window.tilted
-					context.windowStateStr = "tilted"
-				} else if (msg.payload === config.inmsgWinswitchPayloadClosed) {
+					context.windowStateStr = "Tilted"
+				} else if (windowSwitchCloseEvent) {
 					context.windowState = window.closed
-					context.windowStateStr = "closed"
+					context.windowStateStr = "Closed"
+					if (closeIfWinCloses) {
+						if (node.debug) {that.log("Held back closing command, now executing.")}
+						context.setposHeight = shadingSetpos.close
+						autoMoveFunc(true, true)
+						closeIfWinCloses = false
+					}
 				} else {
 					context.windowState = null
-					context.windowStateStr = "unknown"
+					context.windowStateStr = "Unknown"
 				}
 
 				// Return if window switch state is unknown or unchanged (filter)
@@ -667,22 +695,6 @@ module.exports = function(RED) {
 				// Sending debug message
 				if (node.debug) {that.log("Window switch event detected: " + oldStateStr + " -> "  + context.windowStateStr)}
 
-				// Move up when window opens
-				if (context.windowState == window.opened && config.openIfWinOpen) {
-					context.setposHeight = shadingSetpos.open
-					autoMoveFunc(true)
-				}
-
-				// Shade when window opens and shading is closed
-				// if (context.windowState == window.opened && cfg.shadeIfWinOpen && context.actposHeight > shadingSetpos.shade) {		// TODO workaround wenn es keine actposHeight gibt
-				// 	context.setposHeight = shadingSetpos.shade
-				// 	if (cfg.shadeIfWinOpenOverrideHardlock) {
-				// 		autoMoveFunc(true,true)
-				// 	} else {
-				// 		autoMoveFunc(true)
-				// 	}
-				// }
-				
 			}
 
 			else if (autoReenableEvent) {
@@ -691,6 +703,7 @@ module.exports = function(RED) {
 				calcSetposHeight()
 				context.stateButtonRunning = false
 				autoMoveFunc(true)
+				closeIfWinCloses = false
 			}
 			
 			else if (openCommand){
@@ -698,6 +711,7 @@ module.exports = function(RED) {
 				context.setposHeight = shadingSetpos.open
 				autoMoveFunc(true,true)
 				context.autoLocked = true
+				closeIfWinCloses = false
 			}
 			
 			else if (shadeCommand){
@@ -705,11 +719,18 @@ module.exports = function(RED) {
 				context.setposHeight = shadingSetpos.shade
 				autoMoveFunc(true,true)
 				context.autoLocked = true
+				closeIfWinCloses = false
 			}
 			
 			else if (closeCommand){
 				if (node.debug) {that.log("Received command to close")}
-				context.setposHeight = shadingSetpos.close
+				if (config.preventClosing && context.windowState != window.closed) {
+					if (node.debug) {that.log("Window is not closed, going to shade position instead.")}
+					context.setposHeight = shadingSetpos.shade
+					closeIfWinCloses = true
+				} else {
+					context.setposHeight = shadingSetpos.close
+				}
 				autoMoveFunc(true,true)
 				context.autoLocked = true
 			}
