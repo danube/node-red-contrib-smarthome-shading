@@ -1,6 +1,4 @@
-// TODO auto ist gelocked, wenn taster gedrückt werden. Dann fährt nichts mehr, auch nicht wenn ein command kommt. ist autolocked wirklich noch nötig?
 // TODO Error, Warnung, Info Nummern prüfen
-// TODO console log DEBUG entfernen
 
 
 
@@ -11,6 +9,8 @@ module.exports = function(RED) {
 	let sunriseFuncTimeoutHandle, sunsetFuncTimeoutHandle = null
 	/** If set, the shade closes as soon as the window closes */
 	let closeIfWinCloses = false
+	/** Configuration node variables */
+	// let config = {}
 
 	// Loading external modules
 	var suncalc = require("suncalc")	// https://www.npmjs.com/package/suncalc#reference
@@ -18,7 +18,8 @@ module.exports = function(RED) {
 
 	/** Config node */
     function ShadingConfigNode(node) {
-        RED.nodes.createNode(this,node)
+        RED.nodes.createNode(this, node)
+		this.config = node
 
 		/**
 		 * Converts input string to typed defined value
@@ -33,39 +34,39 @@ module.exports = function(RED) {
 			return -1
 		}
 
-		node.inmsgWinswitchPayloadOpened = typeToNumFunc(node.inmsgWinswitchPayloadOpenedType, node.inmsgWinswitchPayloadOpened)
-		node.inmsgWinswitchPayloadTilted = typeToNumFunc(node.inmsgWinswitchPayloadTiltedType, node.inmsgWinswitchPayloadTilted)
-		node.inmsgWinswitchPayloadClosed = typeToNumFunc(node.inmsgWinswitchPayloadClosedType, node.inmsgWinswitchPayloadClosed)
-		node.lat = typeToNumFunc("num", node.lat)
-		node.lon = typeToNumFunc("num", node.lon)
-		node.payloadOpenCmd = typeToNumFunc(node.payloadOpenCmdType, node.payloadOpenCmd)
-		node.payloadCloseCmd = typeToNumFunc(node.payloadCloseCmdType, node.payloadCloseCmd)
-		node.payloadStopCmd = typeToNumFunc(node.payloadStopCmdType, node.payloadStopCmd)
-		node.shadingSetposShade = typeToNumFunc("num", node.shadingSetposShade)
-		node.inmsgButtonDblclickTime = typeToNumFunc("num", node.inmsgButtonDblclickTime)
+		this.config.inmsgWinswitchPayloadOpened = typeToNumFunc(node.inmsgWinswitchPayloadOpenedType, node.inmsgWinswitchPayloadOpened)
+		this.config.inmsgWinswitchPayloadTilted = typeToNumFunc(node.inmsgWinswitchPayloadTiltedType, node.inmsgWinswitchPayloadTilted)
+		this.config.inmsgWinswitchPayloadClosed = typeToNumFunc(node.inmsgWinswitchPayloadClosedType, node.inmsgWinswitchPayloadClosed)
+		this.config.lat = typeToNumFunc("num", node.lat)
+		this.config.lon = typeToNumFunc("num", node.lon)
+		this.config.payloadOpenCmd = typeToNumFunc(node.payloadOpenCmdType, node.payloadOpenCmd)
+		this.config.payloadCloseCmd = typeToNumFunc(node.payloadCloseCmdType, node.payloadCloseCmd)
+		this.config.payloadStopCmd = typeToNumFunc(node.payloadStopCmdType, node.payloadStopCmd)
+		this.config.shadingSetposShade = typeToNumFunc("num", node.shadingSetposShade)
+		this.config.inmsgButtonDblclickTime = typeToNumFunc("num", node.inmsgButtonDblclickTime)
 		
-		node.inmsgTopicActPosHeight = node.inmsgTopicActPosHeight || "heightfeedback"
-		node.inmsgButtonTopicOpen = node.inmsgButtonTopicOpen || "buttonup"
-		node.inmsgButtonTopicClose = node.inmsgButtonTopicClose || "buttondown"
-		node.openTopic = node.openTopic || "commandopen"
-		node.shadeTopic = node.shadeTopic || "commandshade"
-		node.closeTopic = node.closeTopic || "commandclose"
-		node.inmsgWinswitchTopic = node.inmsgWinswitchTopic || "switch"
-		node.inmsgButtonDblclickTime = node.inmsgButtonDblclickTime || 500
-
-		this.config = node
+		this.config.inmsgTopicActPosHeight = node.inmsgTopicActPosHeight || "heightfeedback"
+		this.config.inmsgButtonTopicOpen = node.inmsgButtonTopicOpen || "buttonup"
+		this.config.inmsgButtonTopicClose = node.inmsgButtonTopicClose || "buttondown"
+		this.config.openTopic = node.openTopic || "commandopen"
+		this.config.shadeTopic = node.shadeTopic || "commandshade"
+		this.config.closeTopic = node.closeTopic || "commandclose"
+		this.config.inmsgWinswitchTopic = node.inmsgWinswitchTopic || "switch"
+		this.config.inmsgButtonDblclickTime = node.inmsgButtonDblclickTime || 500
 
     }
 	
     RED.nodes.registerType("shading configuration",ShadingConfigNode)
+
 	
 	/** Working node */
-	
 	function ShadingNode(node) {
-		RED.nodes.createNode(this,node)
-		const config = RED.nodes.getNode(node.configSet).config
+		RED.nodes.createNode(this, node)
 		const that = this
-		
+		/** This is the content of the associated configuration node, including all necessary conversions. */
+		let config = {}
+		config = RED.nodes.getNode(node.configSet).config
+
 		let nodeContext = that.context()
 		let flowContext = that.context().flow
 		let globalContext = that.context().global
@@ -83,21 +84,31 @@ module.exports = function(RED) {
 		let context = nodeContext.get("context")
 
 		if (!context) {
-			if (node.debug) {
-				that.warn("W002: No context to restore, so sensor states are unknown. See https://nodered.org/docs/user-guide/context#saving-context-data-to-the-file-system how to save states.")
-			}
+			that.warn("W002: No context to restore, so sensor states are unknown. See https://nodered.org/docs/user-guide/context#saving-context-data-to-the-file-system how to save states.")
 			context = {}
 		}
 
 		// Variable declaration
+		
+		/** Main loop interval [ms] in which the environment (sun position, temperatures, ...) will be checked. */
 		const loopIntervalTime = 5000
 
+		/** Positions [%] for shading commands
+		 * @property {number} open Constant 0
+		 * @property {number} shade The value set in the node configuration
+		 * @property {number} close Constant 100
+		 */
 		const shadingSetpos = {
 			open: 0,
 			shade: config.shadingSetposShade,
 			close: 100
 		}
 
+		/** Enum list for window swith position
+		 * @property {number} opened Value 1
+		 * @property {number} tilted Value 2
+		 * @property {number} closed Value 3
+		 */
 		const window = {
 			opened: 1,
 			tilted: 2,
@@ -105,7 +116,6 @@ module.exports = function(RED) {
 		}
 
 		var err = false
-		let loopCounter = 0
 
 		/** The backed up state of sunrise being in the future */
 		let sunriseAheadPrev = null
@@ -114,6 +124,7 @@ module.exports = function(RED) {
 		/** The actual time as date object */
 		let actDate = new Date()
 		// Loading external modules
+
 
 		// FUNCTIONS ====>
 
@@ -159,11 +170,6 @@ module.exports = function(RED) {
 			}
 
 			that.send([msgA, msgB, msgC, msgD, msgE])
-
-			// if (node.debug) {
-			// 	that.log("Here are new output values")
-			// 	console.log([msgA, msgB, msgC, msgD, msgE])
-			// }
 
 		}
 
@@ -352,13 +358,13 @@ module.exports = function(RED) {
 			if (message) {
 				console.log(message)
 			}
-			console.log("\n::::: NODE :::::")
-			console.log(node)
-			console.log("\n::::: CONFIG :::::")
-			console.log(config)
-			console.log("\n::::: CONTEXT :::::")
-			console.log(context)
-			console.log("\n")
+			// console.log("\n::::: NODE :::::")
+			// console.log(node)
+			// console.log("\n::::: CONFIG :::::")
+			// console.log(config)
+			// console.log("\n::::: CONTEXT :::::")
+			// console.log(context)
+			// console.log("\n")
 		}
 
 
@@ -509,7 +515,6 @@ module.exports = function(RED) {
 
 		// FIRST RUN ACTIONS (INIT) ====>
 		
-		
 		if (config.autoActive) {
 			suncalcFunc()
 			calcSetposHeight()
@@ -517,8 +522,6 @@ module.exports = function(RED) {
 			clearTimeout(sunriseFuncTimeoutHandle)
 			clearTimeout(sunsetFuncTimeoutHandle)
 		}
-		
-
 		
 		// Main loop
 		if (config.autoActive) {
@@ -542,7 +545,7 @@ module.exports = function(RED) {
 		// MESSAGE EVENT ACTIONS ====>
 
 		this.on('input', function(msg,send,done) {
-			
+
 			/** Storing peripheral states */
 			if (msg.topic === config.inmsgButtonTopicOpen) {context.stateButtonOpen = msg.payload}
 			else if (msg.topic === config.inmsgButtonTopicClose) {context.stateButtonClose = msg.payload}
@@ -589,15 +592,20 @@ module.exports = function(RED) {
 
 				// Button open pressed
 				if (buttonPressOpenEvent) {
-					context.autoLocked = true
-					if (node.debug) {that.log("Automatic disabled")}
 					clearTimeout(context.buttonCloseTimeoutHandle)
 					context.buttonCloseTimeoutHandle = null
 
+					// Both buttons pressed detection -> enable automatic		// DOCME wenn beide buttons gedrückt werden, reaktiviert das die Automatik
+					if (context.stateButtonClose) {
+						autoReenableEvent = true
+					}
+					
 					// Single/double click detection
-					if (context.buttonOpenTimeoutHandle) {									// handle present -> must be second click
+					else if (context.buttonOpenTimeoutHandle) {								// handle present -> must be second click
 						
 						// DOUBLE CLICK ACTIONS ==>
+						context.autoLocked = true
+						if (node.debug) {that.log("Automatic disabled")}
 						clearTimeout(context.buttonOpenTimeoutHandle)
 						context.buttonOpenTimeoutHandle = null
 						sendCommandFunc(null,null,null,shadingSetpos.open)
@@ -605,9 +613,11 @@ module.exports = function(RED) {
 
 					} else {																// no handle present -> must be first click
 						context.buttonOpenTimeoutHandle = setTimeout(function(){			// set timeout with function
+							context.autoLocked = true
+							if (node.debug) {that.log("Automatic disabled")}
 							clearTimeout(context.buttonOpenTimeoutHandle)
 							context.buttonOpenTimeoutHandle = null
-							if (context.stateButtonOpen) {									// button is still pressed -> must be a double click
+							if (context.stateButtonOpen) {									// button is still pressed -> must be a long click
 
 								// LONG CLICK ACTIONS ==>
 								sendCommandFunc(config.payloadOpenCmd,null,null,null)
@@ -629,15 +639,20 @@ module.exports = function(RED) {
 					
 				// Button close pressed
 				} else if (buttonPressCloseEvent) {
-					context.autoLocked = true
-					if (node.debug) {that.log("Automatic disabled")}
 					clearTimeout(context.buttonOpenTimeoutHandle)
 					context.buttonOpenTimeoutHandle = null
 				
+					// Both buttons pressed detection -> enable automatic
+					if (context.stateButtonOpen) {
+						autoReenableEvent = true
+					}
+
 					// Single/double click detection
-					if (context.buttonCloseTimeoutHandle) {
+					else if (context.buttonCloseTimeoutHandle) {
 						
 						// DOUBLE CLICK ACTIONS ==>
+						context.autoLocked = true
+						if (node.debug) {that.log("Automatic disabled")}
 						clearTimeout(context.buttonCloseTimeoutHandle)
 						context.buttonCloseTimeoutHandle = null
 						sendCommandFunc(null,null,null,shadingSetpos.close)
@@ -645,6 +660,8 @@ module.exports = function(RED) {
 							
 					} else {
 						context.buttonCloseTimeoutHandle = setTimeout(function(){
+							context.autoLocked = true
+							if (node.debug) {that.log("Automatic disabled")}
 							clearTimeout(context.buttonCloseTimeoutHandle)
 							context.buttonCloseTimeoutHandle = null
 							if (context.stateButtonClose) {
@@ -717,15 +734,6 @@ module.exports = function(RED) {
 
 			}
 
-			else if (autoReenableEvent) {
-				if (node.debug) {that.log("Re-enabeling automatic due to manual request")}
-				context.autoLocked = false
-				calcSetposHeight()
-				context.stateButtonRunning = false
-				autoMoveFunc(true)
-				closeIfWinCloses = false
-			}
-			
 			else if (openCommand) {
 				if (node.debug) {that.log("Received command to open")}
 				context.setposHeight = shadingSetpos.open
@@ -773,7 +781,17 @@ module.exports = function(RED) {
 			else if (printConsoleDebugEvent) {
 				printConsoleDebug("Debug requested, so here we go.")
 			}
+
+			if (autoReenableEvent) {
+				if (node.debug) {that.log("Re-enabeling automatic due to manual request")}
+				context.autoLocked = false
+				calcSetposHeight()
+				context.stateButtonRunning = false
+				autoMoveFunc(true)
+				closeIfWinCloses = false
+			}
 			
+
 			
 			// ONLY FOR DEBUGGING ====>
 			
@@ -790,10 +808,6 @@ module.exports = function(RED) {
 			else if (msg.frcSunauto) {
 				that.log("Sunrise and sunset values reset")
 				mainLoopFunc()
-			}
-			
-			else if (node.debug) {
-				that.log("Unknown message with topic '" + msg.topic + "'")
 			}
 			
 			// <==== ONLY FOR DEBUGGING
