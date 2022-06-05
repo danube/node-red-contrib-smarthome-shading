@@ -1,5 +1,5 @@
 // TODO Error, Warnung, Info Nummern prüfen
-
+// TODO Status beim ersten Init schicken, damit die UI anzeigen kann.
 
 
 module.exports = function(RED) {
@@ -400,8 +400,14 @@ module.exports = function(RED) {
 						text = context.setposHeight + "% | "
 					}
 					fill = "red"
-				} else {
+				} else if (typeof context.setposHeight == "number") {
 					text = context.setposHeight + "% | "
+					fill = "green"
+				} else if (typeof context.actposHeight == "number") {
+					text = context.actposHeight + "% | "
+					fill = "green"
+				} else {
+					text = "Unknown position | "
 					fill = "green"
 				}
 
@@ -411,15 +417,18 @@ module.exports = function(RED) {
 					text = text + "🌞 " + addZero(sunTimes.sunrise.getHours()) + ":" + addZero(sunTimes.sunrise.getMinutes())
 				}
 
+				if (config.winswitchEnable) {
+					if (context.windowStateStr) {
+						text = text + " | " + context.windowStateStr
+					} else {
+						text = text + " | Unknown"
+					}
+				}
+
+			} else if (typeof context.actposHeight == "number") {
+				text = context.actposHeight + "% | " + text
 			}
 			
-			if (config.autoActive && config.winswitchEnable) {
-				if (context.windowStateStr) {
-					text = text + " | " + context.windowStateStr
-				} else {
-					text = text + " | Unknown"
-				}
-			}
 			
 			that.status({fill: fill, shape: "dot", text: text})
 
@@ -518,16 +527,12 @@ module.exports = function(RED) {
 		if (config.autoActive) {
 			suncalcFunc()
 			calcSetposHeight()
+			clearInterval(handle)										// Clear eventual previous loop
+			mainLoopFunc()												// Trigger once as setInterval will fire first after timeout
+			handle = setInterval(mainLoopFunc, loopIntervalTime)		// Continuous interval run
 		} else {
 			clearTimeout(sunriseFuncTimeoutHandle)
 			clearTimeout(sunsetFuncTimeoutHandle)
-		}
-		
-		// Main loop
-		if (config.autoActive) {
-			mainLoopFunc()		// Trigger once as setInterval will fire first after timeout
-			clearInterval(handle)		// Clear eventual previous loop
-			handle = setInterval(mainLoopFunc, loopIntervalTime)		// Continuous interval run
 		}
 		
 		updateNodeStatus()		// Initially set node status
@@ -564,6 +569,8 @@ module.exports = function(RED) {
 			var buttonReleaseEvent = buttonEvent && msg.payload === false
 			/** Debug on console request */
 			var printConsoleDebugEvent = msg.debug
+			/** Height drive position event based on incoming message topic */
+			var driveHeightEvent = config.inmsgTopicActPosHeightType != "dis" && msg.topic === config.inmsgTopicActPosHeight
 
 			if (config.autoActive) {
 				/** Window switch event based on incoming message topic */
@@ -582,8 +589,6 @@ module.exports = function(RED) {
 				var shadeCommand = msg.topic === config.shadeTopic
 				/** Close event based on incoming message topic */
 				var closeCommand = msg.topic === config.closeTopic
-				/** Height drive position event based on incoming message topic */
-				var driveHeightEvent = config.inmsgTopicActPosHeightType != "dis" && msg.topic === config.inmsgTopicActPosHeight
 			}
 
 			if (buttonEvent) {
