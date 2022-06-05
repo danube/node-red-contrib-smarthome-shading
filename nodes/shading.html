@@ -6,6 +6,8 @@
         defaults: {
             name: {value: "Shading configuration"},
             shadingSetposShade: {value: 80, required: true},
+            inmsgTopicActPosHeight: {},
+            inmsgTopicActPosHeightType: {},
             inmsgButtonTopicOpen: {},
             inmsgButtonTopicClose: {},
             inmsgButtonDblclickTime: {value: 500, required: true},
@@ -21,8 +23,6 @@
             autoActive: {},
             lat: {value: "", validate: function() {return !this.autoActive || this.lat != ""}},
             lon: {value: "", validate: function() {return !this.autoActive || this.lon != ""}},
-            inmsgTopicActPosHeight: {},
-            inmsgTopicActPosHeightType: {},
             hardlock: {},
             hardlockType: {},
             winswitchEnable: {value: false},
@@ -51,6 +51,12 @@
         oneditprepare: function() {
 
             var optionNothing = {value: "dis", label: "Disabled", hasValue: false}
+
+            $("#node-config-input-inmsgTopicActPosHeight").typedInput({
+                default: "dis",
+                typeField: $("#node-config-input-inmsgTopicActPosHeightType"),
+                types: ["str",optionNothing]
+            })
 
             if (this.payloadOpenCmdType === "initval") {
                 $("#node-config-input-payloadOpenCmdType").val("bool");
@@ -107,12 +113,6 @@
                 default: "dis",
                 typeField: $("#node-config-input-hardlockType"),
                 types: ["flow","global",optionNothing]
-            })
-
-            $("#node-config-input-inmsgTopicActPosHeight").typedInput({
-                default: "dis",
-                typeField: $("#node-config-input-inmsgTopicActPosHeightType"),
-                types: ["str",optionNothing]
             })
 
             // Hide Window switch class
@@ -304,7 +304,12 @@
         <label for="node-config-input-shadingSetposShade"><i class="fa fa-window-maximize"></i> Shade position</label>
         <input type="number" step="1" min="0" max="100" id="node-config-input-shadingSetposShade"> %
     </div>
-    <hr>
+    <div class="form-row">
+        <label for="node-config-input-inmsgTopicActPosHeight"><i class="fa fa-envelope-open-o"></i> Height feedback topic</label>
+        <input type="hidden" id="node-config-input-inmsgTopicActPosHeightType">
+        <input type="text" id="node-config-input-inmsgTopicActPosHeight" placeholder="heightfeedback">
+    </div>
+<hr>
     <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md#pushbutton-configuration" target="_blank">Pushbutton configuration</a></h3>
     <div class="form-row">
         <label for="node-config-input-inmsgButtonTopicOpen"><i class="fa fa-envelope-open-o"></i> Topic: Move down</label>
@@ -367,11 +372,6 @@
         <div class="form-row">
             <label for="node-config-input-lon"><i class="fa fa-compass"></i> Longitude</label>
             <input type="text" id="node-config-input-lon" placeholder="9.663123" style="width: 150px;"> °
-        </div>
-        <div class="form-row">
-            <label for="node-config-input-inmsgTopicActPosHeight"><i class="fa fa-envelope-open-o"></i> Height feedback topic</label>
-            <input type="hidden" id="node-config-input-inmsgTopicActPosHeightType">
-            <input type="text" id="node-config-input-inmsgTopicActPosHeight" placeholder="heightfeedback">
         </div>
         <div class="form-row">
             <label for="node-config-input-hardlock"><i class="fa fa-sliders"></i> Hard lock</label>
