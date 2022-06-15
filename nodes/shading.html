@@ -1,3 +1,7 @@
+<!-- 
+    TODO i18n
+-->
+
 <!-- BEGIN configuration -->
 
 <script type="text/javascript">
@@ -10,7 +14,7 @@
             inmsgTopicActPosHeightType: {},
             inmsgButtonTopicOpen: {},
             inmsgButtonTopicClose: {},
-            inmsgButtonDblclickTime: {value: 500, required: true},
+            inmsgButtonDblclickTime: {value: 400, required: true},
             openTopic: {},
             shadeTopic: {},
             closeTopic: {},
@@ -406,10 +410,14 @@
             <div class="form-row tiltswitch">
                 <label for="node-config-input-inmsgWinswitchPayloadTilted"><i class="fa fa-rocket"></i> Payload Tilted</label>
                 <input type="hidden" id="node-config-input-inmsgWinswitchPayloadTiltedType">
-                <input type="text" id="node-config-input-inmsgWinswitchPayloadTilted">
+                    <input type="text" id="node-config-input-inmsgWinswitchPayloadTilted">
             </div>
             <div class="form-row checkbox-row">
-                <input type="checkbox" id="node-config-input-preventClosing"> <label style="width: 350px" for="node-config-input-preventClosing">Prevent closing shade if window is open or tilted</label>
+                <input type="checkbox" id="node-config-input-preventClosing"> <label style="width: 350px" for="node-config-input-preventClosing">Preserve shade position</label>
+                <!-- DOCME
+                    Wenn das Rollo zu ist und das Fenster gekippt oder geöffnet wird, fährt das Rollo auf Schlitze.
+                    Wenn das Rollo oberhalb der shade Position ist und das Kommando schließen erhält, wird bei gekipptem oder geöffnetem Fenster stattdessen die shade position angefahren.
+                    Beim Schließen fährt auch das Rollo wieder zu. -->
             </div>
         <hr>
             <div>

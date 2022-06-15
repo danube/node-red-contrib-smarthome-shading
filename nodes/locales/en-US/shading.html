@@ -1,4 +1,44 @@
 <script type="text/html" data-help-name="mynode">
-    <p>This is the first paragraph. It appears in the popup.</p>
-    <p>After that, more paragraphs follow.</p>
+    <h3 style="font-weight: bolder;">Warning and error codes</h3>
+    <p>Warnings and errors will be sent both to the integrated Node-RED debugger and the terminal, so it may be a good idea to have focus to at least one of them. If a warning or an error happens, it will be sent to there with a leading identifier. This starts either with "W" for warnings or "E" for errors. Example: "E007: Invalid James Bond detected, replace!". Here's the list of codes supported by this individual node.</p>
+
+        <h4 style="font-weight: bolder;">Warnings (Wxxx)</h4>
+
+            <h5 style="font-weight: bolder;">W001: Cannot restore sensor states</h5>
+            <p>The node receives sensor states and stores them in the local memory. This local memory gets lost, if the node (or Node-RED) restarts. Then, the previous sensor states are unknown. To solve this, Node-RED has introduced the context store option "localfilesystem". With this ability, the store will be permanently written into a file on your system. On a restart, this file the will be loaded. <a href="https://nodered.org/docs/user-guide/context#saving-context-data-to-the-file-system" target="_blank">Learn here, how to enable the option.</a></p>
+            
+            <h5 style="font-weight: bolder;">W002: Received invalid drive position '<code>msg.payload</code>'.</h5>
+            <p>Your drive sent an actual position value. The value in percent must be between 0 (open) and 100 (closed), but the received value was not within this range. The received value will be shown in the message as <code>msg.payload</code>.</p>
+            
+            <h5 style="font-weight: bolder;">W003: Undefined hardlock variable at '<code>[config.hardlockType].[config.hardlock]</code>'.</h5>
+            <p>The hardlock variable must be available either as flow or global variable in your context data. So you must set it somewhere, before this node will be called. If the configured variable is unavailable, you will see this warning. Further, <strong>the node assumes an active hardlock</strong>. Optionally, disable the hardlock option in the configuration.</p>
+            
+            <h5 style="font-weight: bolder;">W004: Hard lock variable not a boolean</h5>
+            <p>Your configured hardlock variable can be found either as flow or global one. But it's value is neither <code>true</code> nor <code>false</code>. Check and fix that. Until then, <strong>the node assumes an active hardlock</strong>. Optionally, disable the hardlock option in the configuration.</p>
+            
+            <h5 style="font-weight: bolder;">TBC W010: Arming payload invalid</h5>
+            <p>Some explanation</p>
+            
+            <h5 style="font-weight: bolder;">W010: Arming payload invalid</h5>
+            <p>Some explanation</p>
+            
+            <h5 style="font-weight: bolder;">W010: Arming payload invalid</h5>
+            <p>Some explanation</p>
+            
+            <h5 style="font-weight: bolder;">W010: Arming payload invalid</h5>
+            <p>Some explanation</p>
+
+        <h4 style="font-weight: bolder;">Errors (Exxx)</h4>
+            <h5 style="font-weight: bolder;">E010: Warning time unit invalid</h5>
+            <p>In your node configuration, you have to set a timeout value (or use <code>0</code> to disable) together with a unit (Seconds, Minutes, Hours). As this unit has to be set from a dropdown, there should not be a way the node receives anything else than one of these. Anyways, the unit will be checked and if, for some weird reason, it is not one of those selectable, you will see this error. Get in touch with the developer to get that fixed.</p>
+
 </script>
+
+
+<!-- TODO
+- Wenn hardlock true ist, ist ein Verfahren mit den commandopen/shade/close Befehlen immer noch möglich. Es wird allerdings eine Information "Ignoring active hardlock" ausgegeben.
+
+
+
+
+-->

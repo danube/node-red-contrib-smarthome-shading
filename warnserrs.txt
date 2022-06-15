@@ -1,0 +1,16 @@
+
+W003: Undefined hardlock variable at '" + config.hardlockType + "." + config.hardlock + "'.
+Assuming false until set.
+
+W004: Hard lock variable at '" + config.hardlockType + "." + config.hardlock + "' defined but not a boolean.
+Assuming false until set.
+
+W005: Unknown actual position, but rising is allowed.
+
+W006: Unknown actual position. Nothing will happen.
+Drive may move down but lowering is not allowed (check window switch permissions).
+
+W007: Unknown actual position, but lowering is allowed.
+
+W008: Unknown or invalid window State. Nothing will happen.
+(open/tilted/closed)

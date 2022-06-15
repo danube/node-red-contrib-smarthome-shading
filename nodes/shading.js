@@ -84,7 +84,7 @@ module.exports = function(RED) {
 		let context = nodeContext.get("context")
 
 		if (!context) {
-			that.warn("W002: No context to restore, so sensor states are unknown. See https://nodered.org/docs/user-guide/context#saving-context-data-to-the-file-system how to save states.")
+			that.warn("W001: Cannot restore sensor states")
 			context = {}
 		}
 
@@ -183,6 +183,7 @@ module.exports = function(RED) {
 
 			const caller = autoMoveFunc.caller.name
 			const callee = arguments.callee.name
+			// console.log("DEBUG: "+callee+" called from '"+caller+"'")
 
 			if (typeof context.setposHeight != "number") {				// setposHeight is not a number
 				that.error("E001: invalid setposHeight ('" + context.setposHeight + "') [" + caller + "]")
@@ -205,22 +206,31 @@ module.exports = function(RED) {
 
 				// Getting hardlock state
 				if (config.autoActive) {
-					if (config.hardlockType === "flow") {context.hardlock = flowContext.get(config.hardlock)}
-					else if (config.hardlockType === "global") {context.hardlock = globalContext.get(config.hardlock)}
-					else if (config.hardlockType === "dis") {context.hardlock = false}
-					else {that.error("E005: Undefined hardlock type")}
-					if (typeof context.hardlock === "undefined") {
-						that.warn("W003: Undefined hard lock variable at '" + config.hardlockType + "." + config.hardlock + "'. Assuming false until set.")
+
+
+					if (config.hardlockType === "flow") {
+						context.hardlock = flowContext.get(config.hardlock)
+					} else if (config.hardlockType === "global") {
+						context.hardlock = globalContext.get(config.hardlock)
+					} else if (config.hardlockType === "dis") {
 						context.hardlock = false
-					} else if (typeof context.hardlock !== "boolean") {
-						that.warn("W004: Hard lock variable at '" + config.hardlockType + "." + config.hardlock + "' defined but not a boolean. Assuming false until set.")
-						context.hardlock = false
+					} else {
+						that.error("E005: Undefined hardlock type")
 					}
+
+					if (typeof context.hardlock === "undefined") {		// FIXME das funktioniert nicht, nachdem der node initialisiert wurde (ohne context)
+						that.warn("W003: Undefined hardlock variable at '" + config.hardlockType + "." + config.hardlock + "'.")
+						context.hardlock = true
+					} else if (typeof context.hardlock !== "boolean") {
+						that.warn("W004: Hard lock variable not a boolean")
+						context.hardlock = true
+					}
+
 				} else {
 					context.hardlock = false
 				}
 
-				if (ignoreLock) {if (node.debug) {that.log("Lock will be ignored")}}
+				if (ignoreLock) {if (node.debug) {that.log("Ignoring active hardlock")}}
 
 				let allowLowering = 																// Check security conditions
 					(context.windowState === window.opened && config.allowLoweringWhenOpened)
@@ -235,16 +245,16 @@ module.exports = function(RED) {
 				} else if (config.inmsgTopicActPosHeightType === "dis") {								// No shading position feedback -> always move
 					sendCommandFunc(null,null,null,context.setposHeight)
 				} else if (typeof context.actposHeight == "undefined" && context.setposHeight === 0) {	// Actual height position unknown but setpos is 0 -> move up
-					that.warn("Unknown actual position, but rising is allowed.")
+					that.warn("W005: Unknown actual position, but rising is allowed.")
 					sendCommandFunc(null,null,null,context.setposHeight)
 				} else if (typeof context.actposHeight == "undefined" && !allowLowering) {				// Actual height position unknown where lowering is not allowed
-					that.warn("Unknown actual position. Drive may move down but lowering is not allowed (check window switch permissions). Nothing will happen.")
+					that.warn("W006: Unknown actual position. Nothing will happen.")
 				} else if (typeof context.actposHeight == "undefined") {
-					that.log("Unknown actual position, but lowering is allowed.")
+					that.log("W007: Unknown actual position, but lowering is allowed.")
 					sendCommandFunc(null,null,null,context.setposHeight)
 				} else if (context.setposHeight > context.actposHeight) {								// Lowering -> check conditions
 					if (config.winswitchEnable && (!context.windowState || context.windowState < 1 || context.windowState > 3)) {		// Check plausibility of window switch
-						that.warn("Unknown or invalid window State (open/tilted/closed). Nothing will happen.")
+						that.warn("W008: Unknown or invalid window State. Nothing will happen.")
 					}
 					if (allowLowering) {
 						sendCommandFunc(null,null,null,context.setposHeight)
@@ -266,6 +276,9 @@ module.exports = function(RED) {
 
 		/** Recalculates setposHeight */
 		function calcSetposHeight() {
+			const caller = calcSetposHeight.caller.name
+			const callee = arguments.callee.name
+			// console.log("DEBUG: "+callee+" called from '"+caller+"'")
 			if (context.sunInSky) {
 				if (node.debug) {that.log("Checking configuration for daytime")}
 				if (config.openIfSunrise) {
@@ -407,7 +420,7 @@ module.exports = function(RED) {
 					text = context.actposHeight + "% | "
 					fill = "green"
 				} else {
-					text = "Unknown position | "
+					text = "Unknown height | "
 					fill = "green"
 				}
 
@@ -526,9 +539,9 @@ module.exports = function(RED) {
 		
 		if (config.autoActive) {
 			suncalcFunc()
+			mainLoopFunc()												// Trigger once as setInterval will fire first after timeout
 			calcSetposHeight()
 			clearInterval(handle)										// Clear eventual previous loop
-			mainLoopFunc()												// Trigger once as setInterval will fire first after timeout
 			handle = setInterval(mainLoopFunc, loopIntervalTime)		// Continuous interval run
 		} else {
 			clearTimeout(sunriseFuncTimeoutHandle)
@@ -774,7 +787,7 @@ module.exports = function(RED) {
 					context.actposHeight = msg.payload
 					that.log("New shading position detected: " + prevPos + " -> " + context.actposHeight)
 				} else {
-					that.warn("W001: Actual drive position must be number between 0 and 100, but received '" + msg.payload + "'.")
+					that.warn("W002: Received invalid drive position '" + msg.payload + "'.")
 				}
 			}
 
@@ -792,32 +805,8 @@ module.exports = function(RED) {
 				context.autoLocked = false
 				calcSetposHeight()
 				context.stateButtonRunning = false
-				autoMoveFunc(true)
 				closeIfWinCloses = false
 			}
-			
-
-			
-			// ONLY FOR DEBUGGING ====>
-			
-			else if (msg.frcSunrise) {
-				sunTimes.sunrise = new Date(msg.frcSunrise)
-				that.warn("Sunrise value overwritten. New value: " + sunTimes.sunrise)
-			}
-			
-			else if (msg.frcSunset) {
-				sunTimes.sunset = new Date(msg.frcSunset)
-				that.warn("Sunset value overwritten. New value: " + sunTimes.sunset)
-			}
-			
-			else if (msg.frcSunauto) {
-				that.log("Sunrise and sunset values reset")
-				mainLoopFunc()
-			}
-			
-			// <==== ONLY FOR DEBUGGING
-
-			
 			
 
 			if (err) {
