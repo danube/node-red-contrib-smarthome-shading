@@ -183,7 +183,7 @@ module.exports = function(RED) {
 
 			const caller = autoMoveFunc.caller.name
 			const callee = arguments.callee.name
-			// console.log("DEBUG: "+callee+" called from '"+caller+"'")
+			// that.log("DEBUG: "+callee+" called from '"+caller+"'")
 
 			if (typeof context.setposHeight != "number") {				// setposHeight is not a number
 				that.error("E001: invalid setposHeight ('" + context.setposHeight + "') [" + caller + "]")
@@ -199,7 +199,11 @@ module.exports = function(RED) {
 			} else {
 
 				// Check for new setposHeight and sendNow
-				if (context.setposHeightPrev == context.setposHeight && !sendNow) {return}
+				if (context.setposHeightPrev == context.setposHeight && !sendNow) {
+					// -- DEBUG: some useful lines for debugging -->
+					// if (node.debug) {that.log("Not re-sending already sent setposHeight '" + context.setposHeight + "'")}
+					return
+				}
 				
 				// Sending console message
 				else if (node.debug) {that.log("setposHeight: " + context.setposHeightPrev + " -> " + context.setposHeight)}
@@ -274,8 +278,10 @@ module.exports = function(RED) {
 		function isValidDate(d) {return d instanceof Date && !isNaN(d)}
 
 
-		/** Recalculates setposHeight */
-		function calcSetposHeight() {
+		/** Recalculates setposHeight
+		 * @param {Boolean} sendNow Will be forwarded to autoMoveFunc
+		 */
+		function calcSetposHeight(sendNow) {
 			const caller = calcSetposHeight.caller.name
 			const callee = arguments.callee.name
 			// console.log("DEBUG: "+callee+" called from '"+caller+"'")
@@ -283,15 +289,15 @@ module.exports = function(RED) {
 				if (node.debug) {that.log("Checking configuration for daytime")}
 				if (config.openIfSunrise) {
 					context.setposHeight = shadingSetpos.open
-					autoMoveFunc()
+					autoMoveFunc(sendNow)
 					return
 				} else if (config.shadeIfSunrise) {
 					context.setposHeight = config.shadingSetposShade
-					autoMoveFunc()
+					autoMoveFunc(sendNow)
 					return
 				} else if (config.closeIfSunrise) {
 					context.setposHeight = shadingSetpos.close
-					autoMoveFunc()
+					autoMoveFunc(sendNow)
 					return
 				} else {
 					if (node.debug) {that.log("Nothing configured to happen on daytime")}
@@ -300,15 +306,15 @@ module.exports = function(RED) {
 				if (node.debug) {that.log("Checking configuration for nighttime")}
 				if (config.openIfSunset) {
 					context.setposHeight = shadingSetpos.open
-					autoMoveFunc()
+					autoMoveFunc(sendNow)
 					return
 				} else if (config.shadeIfSunset) {
 					context.setposHeight = config.shadingSetposShade
-					autoMoveFunc()
+					autoMoveFunc(sendNow)
 					return
 				} else if (config.closeIfSunset) {
 					context.setposHeight = shadingSetpos.close
-					autoMoveFunc()
+					autoMoveFunc(sendNow)
 					return
 				}
 				if (node.debug) {that.log("Nothing configured to happen on nighttime")}
@@ -330,6 +336,8 @@ module.exports = function(RED) {
 
 			actDate = new Date()								// Set to actual time
 
+			that.log("DEBUG: mainLoopFunc called at " + actDate)
+
 			if (!isValidDate(sunTimes.sunrise) || !isValidDate(sunTimes.sunset)) {
 				that.error("E004: Suntimes calculator seems broken. Please consult the developer!")
 			}
@@ -337,7 +345,12 @@ module.exports = function(RED) {
 			context.sunriseAhead = sunTimes.sunrise > actDate					// Sunrise is in the future
 			context.sunsetAhead = sunTimes.sunset > actDate						// Sunset is in the future
 			context.sunInSky = !context.sunriseAhead && context.sunsetAhead		// It's daytime
-			
+
+			// -- DEBUG: some useful lines for debugging -->
+			// that.log("DEBUG: actdate = " + actDate)
+			// that.log("DEBUG: sunset = " + sunTimes.sunset)
+			// that.log("DEBUG: sunsetAhead = " + context.sunsetAhead + ", sunsetAheadPrev = " + sunsetAheadPrev)
+
 			// Sunrise event
 			if (context.sunriseAhead === false && sunriseAheadPrev === true) {
 				if (node.debug) {that.log("Now it's sunrise")}								// -> Send debug message
@@ -351,6 +364,9 @@ module.exports = function(RED) {
 				calcSetposHeight()
 				updateNodeStatus()
 			}
+
+			// -- DEBUG: some useful lines for debugging -->
+			// else {that.log("DEBUG: nothing to do\n\r\n\r")}
 
 			// Backing up
 			sunriseAheadPrev = context.sunriseAhead
@@ -367,8 +383,8 @@ module.exports = function(RED) {
 		/** This function prints config and context on the console. Add "message" to prefix a message. */
 		function printConsoleDebug(message) {
 
-			that.log("========== DEBUGGING START ==========")
 			if (message) {
+				that.log("========== DEBUGGING START ==========")
 				console.log(message)
 			}
 			// console.log("\n::::: NODE :::::")
@@ -538,9 +554,10 @@ module.exports = function(RED) {
 		// FIRST RUN ACTIONS (INIT) ====>
 		
 		if (config.autoActive) {
+			if (node.debug) {that.log("Automatic configured, starting interval.")}
 			suncalcFunc()
-			mainLoopFunc()												// Trigger once as setInterval will fire first after timeout
 			calcSetposHeight()
+			mainLoopFunc()												// Trigger once as setInterval will fire first after timeout
 			clearInterval(handle)										// Clear eventual previous loop
 			handle = setInterval(mainLoopFunc, loopIntervalTime)		// Continuous interval run
 		} else {
@@ -801,11 +818,13 @@ module.exports = function(RED) {
 			}
 
 			if (autoReenableEvent) {
-				if (node.debug) {that.log("Re-enabeling automatic due to manual request")}
+				if (node.debug) {that.log("Re-enabeling automatic due to manual request")}		// TODO vielleicht eigene message, wenn autoReenableEvent gesetzt wird durch drücken beider buttons
 				context.autoLocked = false
-				calcSetposHeight()
 				context.stateButtonRunning = false
 				closeIfWinCloses = false
+				calcSetposHeight(true)
+				clearInterval(handle)										// Clear eventual previous loop
+				handle = setInterval(mainLoopFunc, loopIntervalTime)		// Continuous interval run
 			}
 			
 
@@ -843,6 +862,7 @@ module.exports = function(RED) {
 		// CLOSE EVENTS ====>
 
 		this.on('close', function() {
+			if (node.debug) {that.log("Stopping automatic interval")}
 			clearInterval(handle)
 		})
 
