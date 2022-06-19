@@ -4,14 +4,6 @@
 
 module.exports = function(RED) {
 
-	// Definition of persistant variables
-	let handle, sunTimes, lat, lon = null
-	let sunriseFuncTimeoutHandle, sunsetFuncTimeoutHandle = null
-	/** If set, the shade closes as soon as the window closes */
-	let closeIfWinCloses = false
-	/** Configuration node variables */
-	// let config = {}
-
 	// Loading external modules
 	var suncalc = require("suncalc")	// https://www.npmjs.com/package/suncalc#reference
 
@@ -66,6 +58,14 @@ module.exports = function(RED) {
 		/** This is the content of the associated configuration node, including all necessary conversions. */
 		let config = {}
 		config = RED.nodes.getNode(node.configSet).config
+
+		// Definition of persistant variables
+		let handle, sunTimes, lat, lon = null
+		let sunriseFuncTimeoutHandle, sunsetFuncTimeoutHandle = null
+		/** If set, the shade closes as soon as the window closes */
+		let closeIfWinCloses = false
+		/** Configuration node variables */
+		// let config = {}
 
 		let nodeContext = that.context()
 		let flowContext = that.context().flow
@@ -557,6 +557,7 @@ module.exports = function(RED) {
 			if (node.debug) {that.log("Automatic configured, starting interval.")}
 			suncalcFunc()
 			calcSetposHeight()
+			that.log("DEBUG: init starting mainLoopFunc")
 			mainLoopFunc()												// Trigger once as setInterval will fire first after timeout
 			clearInterval(handle)										// Clear eventual previous loop
 			handle = setInterval(mainLoopFunc, loopIntervalTime)		// Continuous interval run
@@ -824,6 +825,7 @@ module.exports = function(RED) {
 				closeIfWinCloses = false
 				calcSetposHeight(true)
 				clearInterval(handle)										// Clear eventual previous loop
+				that.log("DEBUG: autoReenableEvent starting mainLoopFunc")
 				handle = setInterval(mainLoopFunc, loopIntervalTime)		// Continuous interval run
 			}
 			
