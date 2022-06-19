@@ -91,7 +91,7 @@ module.exports = function(RED) {
 		// Variable declaration
 		
 		/** Main loop interval [ms] in which the environment (sun position, temperatures, ...) will be checked. */
-		const loopIntervalTime = 5000
+		const loopIntervalTime = 20000		// TODO make configurable
 
 		/** Positions [%] for shading commands
 		 * @property {number} open Constant 0
