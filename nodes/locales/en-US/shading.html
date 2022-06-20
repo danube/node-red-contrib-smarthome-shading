@@ -1,6 +1,29 @@
-<script type="text/html" data-help-name="mynode">
-    <h3 style="font-weight: bolder;">Warning and error codes</h3>
-    <p>Warnings and errors will be sent both to the integrated Node-RED debugger and the terminal, so it may be a good idea to have focus to at least one of them. If a warning or an error happens, it will be sent to there with a leading identifier. This starts either with "W" for warnings or "E" for errors. Example: "E007: Invalid James Bond detected, replace!". Here's the list of codes supported by this individual node.</p>
+<script type="text/html" data-help-name="shading">
+    <p>Control your shading and blinds with the help of this node. Connect window switches and push buttons. Configure automatic movement and security measures.</p>
+
+    <h3 style="font-weight: bolder">Questions or bugs</h3>
+        <p>Please contact me, if you have any question. Let me know, if something is not clear or you have found a bug, a typo or something else. I'm happy for any opportunity to improve the solutions, as I use them by myself. <a href="https://rebrand.ly/wasfiit" target="_blank">Raise an issue on GitHub</a> or <a href="https://rebrand.ly/cb4glqq" target="_blank">Talk to me in Discord</a>.</p>
+        <p>If you're satisfied, <a href="https://rebrand.ly/zm4k1c6" target="_blank">buy me a coffee.</p>
+        <img src="https://raw.githubusercontent.com/danube/node-red-contrib-smarthome-shading/main/files/bmc-white-button.png" onerror="this.onerror=null; this.remove();"></a>
+
+    <h3 style="font-weight: bolder;">Parameters (main node)</h3>
+
+        <h4 style="font-weight: bolder;">Name</h4>
+        <p>If unset, the node shows "Shading" on the drawboard. If you give it any value here, the node will be shown with this string.</p>
+
+        <h4 style="font-weight: bolder;">Configuration</h4>
+        <p>Use the dropdown to either select one of the already composed configuration sets or create a new one. See "Parameters (configuration node) to learn about the settings you can take there.</p>
+
+
+
+        TBC muss hier ein eigener data-helper her??
+
+
+
+
+        <h3 style="font-weight: bolder;">Warning and error codes</h3>
+
+            <p>Warnings and errors will be sent both to the integrated Node-RED debugger and the terminal, so it may be a good idea to have focus to at least one of them. If a warning or an error happens, it will be sent to there with a leading identifier. This starts either with "W" for warnings or "E" for errors. Example: "E007: Invalid James Bond detected, replace!". Here's the list of codes supported by this individual node.</p>
 
         <h4 style="font-weight: bolder;">Warnings (Wxxx)</h4>
 
@@ -10,27 +33,43 @@
             <h5 style="font-weight: bolder;">W002: Received invalid drive position '<code>msg.payload</code>'.</h5>
             <p>Your drive sent an actual position value. The value in percent must be between 0 (open) and 100 (closed), but the received value was not within this range. The received value will be shown in the message as <code>msg.payload</code>.</p>
             
-            <h5 style="font-weight: bolder;">W003: Undefined hardlock variable at '<code>[config.hardlockType].[config.hardlock]</code>'.</h5>
+            <h5 style="font-weight: bolder;">W003: Undefined hardlock variable at '<code>location.variable</code>'.</h5>
             <p>The hardlock variable must be available either as flow or global variable in your context data. So you must set it somewhere, before this node will be called. If the configured variable is unavailable, you will see this warning. Further, <strong>the node assumes an active hardlock</strong>. Optionally, disable the hardlock option in the configuration.</p>
             
             <h5 style="font-weight: bolder;">W004: Hard lock variable not a boolean</h5>
-            <p>Your configured hardlock variable can be found either as flow or global one. But it's value is neither <code>true</code> nor <code>false</code>. Check and fix that. Until then, <strong>the node assumes an active hardlock</strong>. Optionally, disable the hardlock option in the configuration.</p>
+            <p>Good news: Your configured hardlock variable can be found either as flow or global one. Bad news: It's value is neither <code>true</code> nor <code>false</code>. Check and fix that. Until then, <strong>the node assumes an active hardlock</strong>. Optionally, disable the hardlock option in the configuration.</p>
             
-            <h5 style="font-weight: bolder;">TBC W010: Arming payload invalid</h5>
-            <p>Some explanation</p>
+            <h5 style="font-weight: bolder;">W005: Unknown actual position, but rising is allowed.</h5>
+            <p>You have configured, that the node expects a position feedback from the drive (node setting: "Height feedback topic"). No such position feedback has been received yet. Now, the drive should go to open position (0%). From safety view, this is okay, but you will receive this message, until a valid position feedback message has been received or the node setting is changed to "Disabled".</p>
             
-            <h5 style="font-weight: bolder;">W010: Arming payload invalid</h5>
-            <p>Some explanation</p>
+            <h5 style="font-weight: bolder;">W006: Unknown actual position. Nothing will happen.</h5>
+            <p>You have configured, that the node expects a position feedback from the drive (node setting: "Height feedback topic"). No such position feedback has been received yet. Now, the drive should go to some position, which is not the open position (something above 0%). From safety view, according to the node settings, this may be disallowed, as it may be possible that the shading moves down (we do not know, as we have no actual position). Hence, nothing will happen. You will receive this message, until a valid position feedback message has been received or the node setting is changed to "Disabled".</p>
+
+            <h5 style="font-weight: bolder;">W007: Unknown actual position</h5>
+            <p>You have configured, that the node expects a position feedback from the drive (node setting: "Height feedback topic"). No such position feedback has been received yet. Security settings do not disallow movement in any condition, so the drive will move. You will receive this message, until a valid position feedback message has been received or the node setting is changed to "Disabled".</p>
             
-            <h5 style="font-weight: bolder;">W010: Arming payload invalid</h5>
-            <p>Some explanation</p>
-            
-            <h5 style="font-weight: bolder;">W010: Arming payload invalid</h5>
-            <p>Some explanation</p>
+            <h5 style="font-weight: bolder;">W008: Unknown or invalid window State. Nothing will happen.</h5>
+            <p>You have a window switch configured. TO be able to operate the drive properly, the switch state must be present and valid. Until then, for security reason, the drive will only move up, but not down. You will receive this message, until a valid window switch position has been received or the setting "Window switch enable" is unchecked.</p>
 
         <h4 style="font-weight: bolder;">Errors (Exxx)</h4>
-            <h5 style="font-weight: bolder;">E010: Warning time unit invalid</h5>
-            <p>In your node configuration, you have to set a timeout value (or use <code>0</code> to disable) together with a unit (Seconds, Minutes, Hours). As this unit has to be set from a dropdown, there should not be a way the node receives anything else than one of these. Anyways, the unit will be checked and if, for some weird reason, it is not one of those selectable, you will see this error. Get in touch with the developer to get that fixed.</p>
+
+            <h5 style="font-weight: bolder;">E001: invalid setposHeight type ('type') [caller]</h5>
+            <p>Height setpoint must be of type "number". For some reason, that's not the case (see <code>'type'</code> for the type received. Please consult the developer.</p>
+
+            <h5 style="font-weight: bolder;">E002: negative setposHeight ('value') [caller]</h5>
+            <p>Height setpoint must be bigger than zero. For some reason, that's not the case (see <code>'value'</code> for the value received. Please consult the developer.</p>
+
+            <h5 style="font-weight: bolder;">E003: setposHeight above 100 ('value') [caller]</h5>
+            <p>Height setpoint must be below 100. For some reason, that's not the case (see <code>'value'</code> for the value received. Please consult the developer.</p>
+
+            <h5 style="font-weight: bolder;">E004: Suntimes calculator broken</h5>
+            <p>3rd party library "<a href="https://www.npmjs.com/package/suncalc" target="_blank">suncalc</a>" is loaded to calculate sun related values. This function did not provide valid values. Please consult the developer.</p>
+
+            <h5 style="font-weight: bolder;">E005: Undefined hardlock type</h5>
+            <p>Hardlock type is defined in the node configuration via dropdown and can be either "Disabled", "Flow" or "Global". This error appears, if the setting holds another value (which should not be possible). Please consult the developer.</p>
+
+            <h5 style="font-weight: bolder;">E006: Cannot find valid sunrise or sunset times</h5>
+            <p>3rd party library "<a href="https://www.npmjs.com/package/suncalc" target="_blank">suncalc</a>" is loaded to calculate sunrise and sunset times. This function did not provide valid values. Please consult the developer.</p>
 
 </script>
 

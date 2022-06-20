@@ -1,6 +1,6 @@
 // TODO Error, Warnung, Info Nummern prüfen
 // TODO Status beim ersten Init schicken, damit die UI anzeigen kann.
-
+// TODO context.actposHeight im Init löschen, wenn Einstellung auf "Disabled" ist.
 
 module.exports = function(RED) {
 
@@ -186,7 +186,7 @@ module.exports = function(RED) {
 			// that.log("DEBUG: "+callee+" called from '"+caller+"'")
 
 			if (typeof context.setposHeight != "number") {				// setposHeight is not a number
-				that.error("E001: invalid setposHeight ('" + context.setposHeight + "') [" + caller + "]")
+				that.error("E001: invalid setposHeight type ('" + typeof context.setposHeight + "') [" + caller + "]")
 				return
 			}
 			else if (context.setposHeight < 0) {						// setposHeight is negative
@@ -230,6 +230,9 @@ module.exports = function(RED) {
 						context.hardlock = true
 					}
 
+				
+				// Check if movement is allowed
+				
 				} else {
 					context.hardlock = false
 				}
@@ -254,16 +257,15 @@ module.exports = function(RED) {
 				} else if (typeof context.actposHeight == "undefined" && !allowLowering) {				// Actual height position unknown where lowering is not allowed
 					that.warn("W006: Unknown actual position. Nothing will happen.")
 				} else if (typeof context.actposHeight == "undefined") {
-					that.log("W007: Unknown actual position, but lowering is allowed.")
+					that.log("W007: Unknown actual position")
 					sendCommandFunc(null,null,null,context.setposHeight)
 				} else if (context.setposHeight > context.actposHeight) {								// Lowering -> check conditions
 					if (config.winswitchEnable && (!context.windowState || context.windowState < 1 || context.windowState > 3)) {		// Check plausibility of window switch
 						that.warn("W008: Unknown or invalid window State. Nothing will happen.")
-					}
-					if (allowLowering) {
+					} else if (allowLowering) {
 						sendCommandFunc(null,null,null,context.setposHeight)
 					} else {
-						if (node.debug) {that.log("Lowering not allowed. Check window switch. Nothing will happen.")}
+						if (node.debug) {that.log("Window position prevents lowering")}
 					}
 				} else if (context.setposHeight <= context.actposHeight) {								// Rising or unchanged
 					sendCommandFunc(null,null,null,context.setposHeight)
@@ -339,7 +341,7 @@ module.exports = function(RED) {
 			that.log("DEBUG: mainLoopFunc called at " + actDate)
 
 			if (!isValidDate(sunTimes.sunrise) || !isValidDate(sunTimes.sunset)) {
-				that.error("E004: Suntimes calculator seems broken. Please consult the developer!")
+				that.error("E004: Suntimes calculator broken")
 			}
 
 			context.sunriseAhead = sunTimes.sunrise > actDate					// Sunrise is in the future
@@ -517,7 +519,7 @@ module.exports = function(RED) {
 					tryThatDate.setDate(now.getDate() + 1)
 					sunTimes = suncalc.getTimes(tryThatDate, config.lat, config.lon)
 					if (!sunEventInFutureFunc()) {
-						that.error("E006: Cannot find any valid sunrise or sunset time")
+						that.error("E006: Cannot find valid sunrise or sunset times")
 						clearTimeout(sunEventTimeoutHandle)
 						return
 					}
