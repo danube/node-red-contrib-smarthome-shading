@@ -338,8 +338,6 @@ module.exports = function(RED) {
 
 			actDate = new Date()								// Set to actual time
 
-			that.log("DEBUG: mainLoopFunc called at " + actDate)
-
 			if (!isValidDate(sunTimes.sunrise) || !isValidDate(sunTimes.sunset)) {
 				that.error("E004: Suntimes calculator broken")
 			}
@@ -559,11 +557,11 @@ module.exports = function(RED) {
 			if (node.debug) {that.log("Automatic configured, starting interval.")}
 			suncalcFunc()
 			calcSetposHeight()
-			that.log("DEBUG: init starting mainLoopFunc")
 			mainLoopFunc()												// Trigger once as setInterval will fire first after timeout
 			clearInterval(handle)										// Clear eventual previous loop
 			handle = setInterval(mainLoopFunc, loopIntervalTime)		// Continuous interval run
 		} else {
+			if (node.debug) {that.log("Automatic not configured")}
 			clearTimeout(sunriseFuncTimeoutHandle)
 			clearTimeout(sunsetFuncTimeoutHandle)
 		}
@@ -839,7 +837,6 @@ module.exports = function(RED) {
 				closeIfWinCloses = false
 				calcSetposHeight(true)
 				clearInterval(handle)										// Clear eventual previous loop
-				that.log("DEBUG: autoReenableEvent starting mainLoopFunc")
 				handle = setInterval(mainLoopFunc, loopIntervalTime)		// Continuous interval run
 			}
 			
