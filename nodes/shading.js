@@ -642,17 +642,23 @@ module.exports = function(RED) {
 					else if (context.buttonOpenTimeoutHandle) {								// handle present -> must be second click
 						
 						// DOUBLE CLICK ACTIONS ==>
-						context.autoLocked = true
-						if (node.debug) {that.log("Automatic disabled")}
+						if (node.debug) {that.log("Open doubleclick detected")}
+						if (!context.autoLocked) {
+							context.autoLocked = true
+							if (node.debug) {that.log("Automatic disabled")}
+						}
 						clearTimeout(context.buttonOpenTimeoutHandle)
 						context.buttonOpenTimeoutHandle = null
 						sendCommandFunc(null,null,null,shadingSetpos.open)
 						// <== DOUBLE CLICK ACTIONS
-
+						
 					} else {																// no handle present -> must be first click
 						context.buttonOpenTimeoutHandle = setTimeout(function(){			// set timeout with function
-							context.autoLocked = true
-							if (node.debug) {that.log("Automatic disabled")}
+							if (node.debug) {that.log("Open singleclick detected")}
+							if (!context.autoLocked) {
+								context.autoLocked = true
+								if (node.debug) {that.log("Automatic disabled")}
+							}
 							clearTimeout(context.buttonOpenTimeoutHandle)
 							context.buttonOpenTimeoutHandle = null
 							if (context.stateButtonOpen) {									// button is still pressed -> must be a long click
@@ -676,7 +682,7 @@ module.exports = function(RED) {
 					}
 					
 				// Button close pressed
-				} else if (buttonPressCloseEvent) {
+			} else if (buttonPressCloseEvent) {
 					clearTimeout(context.buttonOpenTimeoutHandle)
 					context.buttonOpenTimeoutHandle = null
 				
@@ -689,17 +695,23 @@ module.exports = function(RED) {
 					else if (context.buttonCloseTimeoutHandle) {
 						
 						// DOUBLE CLICK ACTIONS ==>
-						context.autoLocked = true
-						if (node.debug) {that.log("Automatic disabled")}
+						if (node.debug) {that.log("Close doubleclick detected")}
+						if (!context.autoLocked) {
+							context.autoLocked = true
+							if (node.debug) {that.log("Automatic disabled")}
+						}
 						clearTimeout(context.buttonCloseTimeoutHandle)
 						context.buttonCloseTimeoutHandle = null
 						sendCommandFunc(null,null,null,shadingSetpos.close)
 						// <== DOUBLE CLICK ACTIONS
-							
+						
 					} else {
 						context.buttonCloseTimeoutHandle = setTimeout(function(){
-							context.autoLocked = true
-							if (node.debug) {that.log("Automatic disabled")}
+							if (node.debug) {that.log("Close singleclick detected")}
+							if (!context.autoLocked) {
+								context.autoLocked = true
+								if (node.debug) {that.log("Automatic disabled")}
+							}
 							clearTimeout(context.buttonCloseTimeoutHandle)
 							context.buttonCloseTimeoutHandle = null
 							if (context.stateButtonClose) {
@@ -820,7 +832,7 @@ module.exports = function(RED) {
 				printConsoleDebug("Debug requested, so here we go.")
 			}
 
-			if (autoReenableEvent) {
+			if (autoReenableEvent && config.autoActive) {
 				if (node.debug) {that.log("Re-enabeling automatic due to manual request")}		// TODO vielleicht eigene message, wenn autoReenableEvent gesetzt wird durch drücken beider buttons
 				context.autoLocked = false
 				context.stateButtonRunning = false
@@ -866,7 +878,7 @@ module.exports = function(RED) {
 		// CLOSE EVENTS ====>
 
 		this.on('close', function() {
-			if (node.debug) {that.log("Stopping automatic interval")}
+			if (node.debug && !context.autoLocked) {that.log("Stopping automatic interval")}
 			clearInterval(handle)
 		})
 
