@@ -1,76 +1,231 @@
+<!--
+    TODO Ausgänge beschreiben
+-->
+
 <script type="text/html" data-help-name="shading">
+
+    <style>
+        .red-ui-help h3, .red-ui-help h4, .red-ui-help h5 {
+            font-weight: bolder;
+        }
+    </style>
+
     <p>Control your shading and blinds with the help of this node. Connect window switches and push buttons. Configure automatic movement and security measures.</p>
 
-    <h3 style="font-weight: bolder">Questions or bugs</h3>
+    <h3><i class="fa fa-cog"></i> Properties</h3>
+
+        <h4><i class="fa fa-tag"></i> Name</h4>
+            <p>If unset, the node shows "Shading" on the drawboard. If you give it any value here, the node will be shown with this string.</p>
+
+        <h4><i class="fa fa-sliders"></i> Configuration</h4>
+            <p>Use the dropdown to either select one of the already composed configuration sets or create a new one.</p>
+
+        <h4><i class="fa fa-bug"></i> Debugging</h4>
+            <p>If enabled, additional messages will be printed in the Node-RED Log and the debugging console of the web UI.</p>
+
+    <h3><i class="fa fa-exclamation-circle"></i> Warning and error codes</h3>
+        <p>Warnings and errors will be sent both to the integrated Node-RED debugger and the terminal, so it may be a good idea to have focus to at least one of them. If a warning or an error happens, it will be sent to there with a leading identifier. This starts either with "W" for warnings or "E" for errors. Example: "E007: Invalid James Bond detected, replace!". Here's the list of codes supported by this node.</p>
+
+        <h4>Warnings (Wxxx)</h4>
+
+            <h5>W001: Cannot restore sensor states</h5>
+                <p>During operation, the node receives sensor states and stores them in the local memory. This local memory gets lost, if the node (or Node-RED) restarts. Then, the previous sensor states are unknown. To solve this, Node-RED has introduced the context store option "localfilesystem". With this ability, the store will be permanently written into a file on your system. On a restart, this file the will be loaded. <a href="https://nodered.org/docs/user-guide/context#saving-context-data-to-the-file-system" target="_blank">Learn here, how to enable the option.</a></p>
+            
+            <h5>W002: Received invalid drive position '<code>msg.payload</code>'.</h5>
+                <p>Your drive sent an actual position value. The value in percent must be between 0 (open) and 100 (closed), but the received value was not within this range. The received value will be shown in the message as <code>msg.payload</code>.</p>
+            
+            <h5>W003: Undefined hardlock variable at '<code>location.variable</code>'.</h5>
+                <p>The hardlock variable must be available either as flow or global variable in your context data. So you must set it somewhere, before this node will be called. If the configured variable is unavailable, you will see this warning. Further, <strong>the node assumes an active hardlock</strong>. Optionally, disable the hardlock option in the configuration.</p>
+            
+            <h5>W004: Hard lock variable not a boolean</h5>
+                <p>Good news: Your configured hardlock variable can be found either as flow or global one. Bad news: It's value is neither <code>true</code> nor <code>false</code>. Check and fix that. Until then, <strong>the node assumes an active hardlock</strong>. Optionally, disable the hardlock option in the configuration.</p>
+            
+            <h5>W005: Unknown actual position, but rising is allowed.</h5>
+                <p>You have configured, that the node expects a position feedback from the drive (node setting: "Height feedback topic"). No such position feedback has been received yet. Now, the drive should go to open position (0%). From safety view, this is okay, but you will receive this message, until a valid position feedback message has been received or the node setting is changed to "Disabled".</p>
+            
+            <h5>W006: Unknown actual position. Nothing will happen.</h5>
+                <p>You have configured, that the node expects a position feedback from the drive (node setting: "Height feedback topic"). No such position feedback has been received yet. Now, the drive should go to some position, which is not the open position (something above 0%). From safety view, according to the node settings, this may be disallowed, as it may be possible that the shading moves down (we do not know, as we have no actual position). Hence, nothing will happen. You will receive this message, until a valid position feedback message has been received or the node setting is changed to "Disabled".</p>
+
+            <h5>W007: Unknown actual position</h5>
+                <p>You have configured, that the node expects a position feedback from the drive (node setting: "Height feedback topic"). No such position feedback has been received yet. Security settings do not disallow movement in any condition, so the drive will move. You will receive this message, until a valid position feedback message has been received or the node setting is changed to "Disabled".</p>
+            
+            <h5>W008: Unknown or invalid window State. Nothing will happen.</h5>
+                <p>You have a window switch configured. TO be able to operate the drive properly, the switch state must be present and valid. Until then, for security reason, the drive will only move up, but not down. You will receive this message, until a valid window switch position has been received or the setting "Window switch enable" is unchecked.</p>
+
+        <h4>Errors (Exxx)</h4>
+
+            <h5>E001: invalid setposHeight type ('type') [caller]</h5>
+                <p>Height setpoint must be of type "number". For some reason, that's not the case (see <code>'type'</code> for the type received. Please consult the developer.</p>
+
+            <h5>E002: negative setposHeight ('value') [caller]</h5>
+                <p>Height setpoint must be bigger than zero. For some reason, that's not the case (see <code>'value'</code> for the value received. Please consult the developer.</p>
+
+            <h5>E003: setposHeight above 100 ('value') [caller]</h5>
+                <p>Height setpoint must be below 100. For some reason, that's not the case (see <code>'value'</code> for the value received. Please consult the developer.</p>
+
+            <h5>E004: Suntimes calculator broken</h5>
+                <p>3rd party library "<a href="https://www.npmjs.com/package/suncalc" target="_blank">suncalc</a>" is loaded to calculate sun related values. This function did not provide valid values. Please consult the developer.</p>
+
+            <h5>E005: Undefined hardlock type</h5>
+                <p>Hardlock type is defined in the node configuration via dropdown and can be either "Disabled", "Flow" or "Global". This error appears, if the setting holds another value (which should not be possible). Please consult the developer.</p>
+
+            <h5>E006: Cannot find valid sunrise or sunset times</h5>
+                <p>3rd party library "<a href="https://www.npmjs.com/package/suncalc" target="_blank">suncalc</a>" is loaded to calculate sunrise and sunset times. This function did not provide valid values. Please consult the developer.</p>
+
+    <h3><i class="fa fa-question-circle"></i> Questions or bugs</h3>
+        <p>Please contact me, if you have any question. Let me know, if something is not clear or you have found a bug, a typo or something else. I'm happy for any opportunity to improve the solutions, as I use them by myself. <a href="https://rebrand.ly/wasfiit" target="_blank">Raise an issue on GitHub</a> or <a href="https://rebrand.ly/cb4glqq" target="_blank">Talk to me in Discord</a>.</p>
+        <p>If you're satisfied, <a href="https://rebrand.ly/zm4k1c6" target="_blank">buy me a coffee.</p>
+        <img src="https://raw.githubusercontent.com/danube/node-red-contrib-smarthome-shading/main/files/bmc-white-button.png" onerror="this.onerror=null; this.remove();"></a>
+        
+        
+</script>
+
+
+
+<script type="text/html" data-help-name="shading configuration">
+
+    <style>
+        .red-ui-help h3, .red-ui-help h4, .red-ui-help h5 {
+            font-weight: bolder;
+        }
+        .red-ui-help h4 {
+            text-decoration: underline;
+        }
+        .iconpadding {
+            padding-left: 20px;
+        }
+    </style>
+
+    <p>This configuration node holds all parameters for your shading. You can create several different configuration nodes. Then, choose the according configuration node in your node setting.</p>
+
+    <h3><i class="fa fa-cog"></i> Properties</h3>
+
+            <h5><i class="fa fa-tag"></i> Name</h5>
+                <p>This is the name, with which you identify your set of parameters. If you plan to have more than one such configuration sets, it is recommended to give a specific name. You may use some values, so that you are able to identify specific parameters you set. If you habe only one single configuration node, you may leave this field empty. A default value "Shading configuration" will then be used.</p>
+
+        <h4>Blind</h4>
+
+            <h5><i class="fa fa-window-maximize"></i> Shade position</h5>
+                <p>This value defines the position between completedy opened and completely closed in percent, where 0% is opened/up and 100% is closed/down. Usually, this position is that one, where the blind provides a good sunshade, with gaps between the blades for ventilation. Default: 80</p>
+
+            <h5><i class="fa fa-envelope-open-o"></i> Height feedback topic</h5>
+                <p>Choose between <code>Disabled</code> and <code>string</code> from the type selector. If <code>string</code> is selected, fill in what comes as <code>msg.topic</code> of the message holding the feedback value as <code>msg.payload</code> from the connected drive. This value must be beteen <code>0</code> (representing a completely opened shade) and <code>100</code> (representing a completely closed shade). Default (if left blank): Disabled.</p>
+            
+        <h4>Pushbutton</h4>
+            <p>A connected pushbutton must send a message, where <code>msg.payload</code> is <code>true</code>, when the pushbutton is pressed and <code>false</code>, when the pushbutton is released. <code>msg.topic</code> can be configured below. If you have no pushbutton, you can ignore this section.</p>
+
+            <h5><i class="fa fa-envelope-open-o"></i> Topic: Move up</h5>
+                <p><code>msg.topic</code> of the message, when the down button is pressed or released. Default (if left blank): "buttonup".</p>
+                
+            <h5><i class="fa fa-envelope-open-o"></i> Topic: Move down</h5>
+                <p><code>msg.topic</code> of the message, when the up button is pressed or released. Default (if left blank): "buttondown".</p>
+            
+            <h5><i class="fa fa-clock-o"></i> Doubleclick time</h5>
+                <p>Each button can be single- or double-pressed. A single press moves the blind between the three default positions (open/shade/close). A double-press will move the blind either completely up or completely down, depending on the button pressed. This is the time in miliseconds, the node waits between the presses. Default: 400.</p>
+
+        <h4>Command</h4>
+            <p>Commands are supported to move the shade in one of three predefined positions: open, shade and close. <code>msg.payload</code> will be ignored, as long as <code>msg.topic</code> contains one of the following strings.</p>
+
+            <h5><i class="fa fa-envelope-open-o"></i> Topic: Open</h5>
+                <p><code>msg.topic</code> of the message, to move to open position. Default (if left blank): commandopen.</p>
+                
+            <h5><i class="fa fa-envelope-open-o"></i> Topic: Shade</h5>
+                <p><code>msg.topic</code> of the message, to move to shade position. Default (if left blank): commandshade.</p>
+                
+            <h5><i class="fa fa-envelope-open-o"></i> Topic: Close</h5>
+                <p><code>msg.topic</code> of the message, to move to close position. Default (if left blank): commandclose.</p>
+
+        <h4>Output</h4>
+            <p>The node has several outputs. Three of them provide jog control signals: Open, close and stop. They are used for jogging the drive with the pushbuttons.
+            <ul>
+                <li>Long-pressing the open pushbutton will trigger the output "open".</li>
+                <li>Long-pressing the close pushbutton will trigger the output "close".</li>
+                <li>Releasing any of the buttons after a long-press will trigger the output "stop".</li>
+            </ul>
+            Define <code>msg.payload</code> for each of these outputs.</p>
+
+            <h5><i class="fa fa-rocket"></i> Open</h5>
+                <p><code>msg.payload</code> of the message been sent on the open output, when you long-press the open pushbutton. Default: boolean, true.</p>
+
+            <h5><i class="fa fa-rocket"></i> Close</h5>
+                <p><code>msg.payload</code> of the message been sent on the close output, when you long-press the close pushbutton. Default: boolean, true.</p>
+
+            <h5><i class="fa fa-rocket"></i> Stop</h5>
+                <p><code>msg.payload</code> of the message been sent on the stop output, when you release the open or close pushbutton, after you long-pressed any of them. Default: boolean, true.</p>
+
+        <h4>Automatic</h4>
+            <p>Automating your shades may be wanted in several installations. Options below offer you several options to automate the shading behavior.</p>
+
+            <h5><i class="fa fa-power-off"></i> Enable</h5>
+                <p>When enabled, the node periodically checks the sun position according to the coordinates you provide. You have the possibility to define what happens on sunrise and sunset. Enable this option to see any of the parameters below. Default: disabled.</p>
+
+            <h5><i class="fa fa-compass"></i> Latitude / Longitude</h5>
+                <p>Provide latitude and longitude of the installation. If unknown, use one of the mapping tools from the internet or check <a href="https://www.latlong.net/" target="_blank">latlong.net</a>.</p>
+
+            <h5><i class="fa fa-sliders"></i> Hard lock</h5>
+                <p>Hardlock gives you the possibility to suppress any automatic movement. The variable must be available either in the flow or global context data and must be <code>true</code> or <code>false</code>. Default: disabled.</p>
+
+        <h4>Window switch</h4>
+            <p>If you have a window switch installed, you can configure it below. Additional security settings offer you a configuration, how the window position affects automatic movements.</p>
+
+            <h5><i class="fa fa-power-off"></i> Enable</h5>
+                <p>To configure the window switch, you must enable this option. Default: disabled.</p>
+
+            <h5><i class="fa fa-envelope-open-o"></i> Topic</h5>
+                <p>Define the <code>msg.topic</code> of the message containing the window switch position value. Default (if left blank): switch.</p>
+
+            <h5><i class="fa fa-rocket"></i> Payload: Opened</h5>
+                <p>Define the <code>msg.payload</code> of the message, when the window is opened. Default: number, 1.</p>
+
+            <h5><i class="fa fa-rocket"></i> Payload: Closed</h5>
+                <p>Define the <code>msg.payload</code> of the message, when the window is closed. Default: number, 3.</p>
+
+            <h5><i class="fa fa-power-off"></i> Tilted sensor</h5>
+                <p>Check this option, if your window is equipped with a tilt sensor. Default: disabled.</p>
+
+            <h5><i class="fa fa-rocket"></i> Payload: Tilted</h5>
+                <p>Define the <code>msg.payload</code> of the message, when the window is tilted. Default: number, 2.</p>
+
+            <h5><i class="fa fa-check-square-o"></i> Preserve shade position</h5>
+                <p>If the node receives a close command, without having this option enabled, it moves the blind completely down. Scenario 1: When this option is enabled and the window is not closed, the blind instead of going to close position, it remains in the shade position. If you close the window later, the blind will also close. Scenario 2: When the option is enabled, the window is closed and the blind is in close position, it will move into shade position, once you unclose the window. Closing the window closes also the shade. Default: disabled.</p>
+        
+        <h4>Security</h4>
+            <p>This parameters are essential to prevent accidents or lock you out of your house.</p>
+
+            <h5><i class="fa fa-check-square-o"></i> Lowering allowed if window is tilted</h5>
+                <p>The blind is allowed to lower, when the window is tilted. Default: false.</p>
+
+            <h5><i class="fa fa-check-square-o"></i> Lowering allowed if window is opened</h5>
+                <p>The blind is allowed to lower, when the window is opened. Default: false.</p>
+            
+        <h4>Events</h4>
+            <h5>Re-enable automatic conditions</h5>
+                <p><i class="fa fa-check-square-o"></i> <strong>Message with topic 'auto'</strong></p>
+                <p class="iconpadding">When you manually move the blind (either with the pushbuttons or by sending a command message), automatic mode is disabled. The node icon will change and <code>payload.context.autoLocked</code> in the status-output is <code>true</code>.</p> If this option is enabled, you a message with <code>auto</code> in the <code>msg.topic</code> will re-enable automatic mode.
+            <h5>Open conditions</h5>
+                <p><i class="fa fa-check-square-o"></i> <strong>Sunrise</strong></p>
+                <p class="iconpadding">If checked and automatic mode is active, the blind will move to open position on sunrise.</p>
+                <p><i class="fa fa-check-square-o"></i> <strong>Sunset</strong></p>
+                <p class="iconpadding">If checked and automatic mode is active, the blind will move to open position on sunset.</p>
+
+            <h5>Shade conditions</h5>
+                <p><i class="fa fa-check-square-o"></i> <strong>Sunrise</strong></p>
+                <p class="iconpadding">If checked and automatic mode is active, the blind will move to shade position on sunrise.</p>
+                <p><i class="fa fa-check-square-o"></i> <strong>Sunset</strong></p>
+                <p class="iconpadding">If checked and automatic mode is active, the blind will move to shade position on sunset.</p>
+            
+            <h5>Close conditions</h5>
+                <p><i class="fa fa-check-square-o"></i> <strong>Sunrise</strong></p>
+                <p class="iconpadding">If checked and automatic mode is active, the blind will move to close position on sunrise.</p>
+                <p><i class="fa fa-check-square-o"></i> <strong>Sunset</strong></p>
+                <p class="iconpadding">If checked and automatic mode is active, the blind will move to close position on sunset.</p>
+
+    <h3><i class="fa fa-question-circle"></i> Questions or bugs</h3>
         <p>Please contact me, if you have any question. Let me know, if something is not clear or you have found a bug, a typo or something else. I'm happy for any opportunity to improve the solutions, as I use them by myself. <a href="https://rebrand.ly/wasfiit" target="_blank">Raise an issue on GitHub</a> or <a href="https://rebrand.ly/cb4glqq" target="_blank">Talk to me in Discord</a>.</p>
         <p>If you're satisfied, <a href="https://rebrand.ly/zm4k1c6" target="_blank">buy me a coffee.</p>
         <img src="https://raw.githubusercontent.com/danube/node-red-contrib-smarthome-shading/main/files/bmc-white-button.png" onerror="this.onerror=null; this.remove();"></a>
 
-    <h3 style="font-weight: bolder;">Parameters (main node)</h3>
-
-        <h4 style="font-weight: bolder;">Name</h4>
-        <p>If unset, the node shows "Shading" on the drawboard. If you give it any value here, the node will be shown with this string.</p>
-
-        <h4 style="font-weight: bolder;">Configuration</h4>
-        <p>Use the dropdown to either select one of the already composed configuration sets or create a new one. See "Parameters (configuration node) to learn about the settings you can take there.</p>
-
-
-
-        TBC muss hier ein eigener data-helper her??
-
-
-
-
-        <h3 style="font-weight: bolder;">Warning and error codes</h3>
-
-            <p>Warnings and errors will be sent both to the integrated Node-RED debugger and the terminal, so it may be a good idea to have focus to at least one of them. If a warning or an error happens, it will be sent to there with a leading identifier. This starts either with "W" for warnings or "E" for errors. Example: "E007: Invalid James Bond detected, replace!". Here's the list of codes supported by this individual node.</p>
-
-        <h4 style="font-weight: bolder;">Warnings (Wxxx)</h4>
-
-            <h5 style="font-weight: bolder;">W001: Cannot restore sensor states</h5>
-            <p>The node receives sensor states and stores them in the local memory. This local memory gets lost, if the node (or Node-RED) restarts. Then, the previous sensor states are unknown. To solve this, Node-RED has introduced the context store option "localfilesystem". With this ability, the store will be permanently written into a file on your system. On a restart, this file the will be loaded. <a href="https://nodered.org/docs/user-guide/context#saving-context-data-to-the-file-system" target="_blank">Learn here, how to enable the option.</a></p>
-            
-            <h5 style="font-weight: bolder;">W002: Received invalid drive position '<code>msg.payload</code>'.</h5>
-            <p>Your drive sent an actual position value. The value in percent must be between 0 (open) and 100 (closed), but the received value was not within this range. The received value will be shown in the message as <code>msg.payload</code>.</p>
-            
-            <h5 style="font-weight: bolder;">W003: Undefined hardlock variable at '<code>location.variable</code>'.</h5>
-            <p>The hardlock variable must be available either as flow or global variable in your context data. So you must set it somewhere, before this node will be called. If the configured variable is unavailable, you will see this warning. Further, <strong>the node assumes an active hardlock</strong>. Optionally, disable the hardlock option in the configuration.</p>
-            
-            <h5 style="font-weight: bolder;">W004: Hard lock variable not a boolean</h5>
-            <p>Good news: Your configured hardlock variable can be found either as flow or global one. Bad news: It's value is neither <code>true</code> nor <code>false</code>. Check and fix that. Until then, <strong>the node assumes an active hardlock</strong>. Optionally, disable the hardlock option in the configuration.</p>
-            
-            <h5 style="font-weight: bolder;">W005: Unknown actual position, but rising is allowed.</h5>
-            <p>You have configured, that the node expects a position feedback from the drive (node setting: "Height feedback topic"). No such position feedback has been received yet. Now, the drive should go to open position (0%). From safety view, this is okay, but you will receive this message, until a valid position feedback message has been received or the node setting is changed to "Disabled".</p>
-            
-            <h5 style="font-weight: bolder;">W006: Unknown actual position. Nothing will happen.</h5>
-            <p>You have configured, that the node expects a position feedback from the drive (node setting: "Height feedback topic"). No such position feedback has been received yet. Now, the drive should go to some position, which is not the open position (something above 0%). From safety view, according to the node settings, this may be disallowed, as it may be possible that the shading moves down (we do not know, as we have no actual position). Hence, nothing will happen. You will receive this message, until a valid position feedback message has been received or the node setting is changed to "Disabled".</p>
-
-            <h5 style="font-weight: bolder;">W007: Unknown actual position</h5>
-            <p>You have configured, that the node expects a position feedback from the drive (node setting: "Height feedback topic"). No such position feedback has been received yet. Security settings do not disallow movement in any condition, so the drive will move. You will receive this message, until a valid position feedback message has been received or the node setting is changed to "Disabled".</p>
-            
-            <h5 style="font-weight: bolder;">W008: Unknown or invalid window State. Nothing will happen.</h5>
-            <p>You have a window switch configured. TO be able to operate the drive properly, the switch state must be present and valid. Until then, for security reason, the drive will only move up, but not down. You will receive this message, until a valid window switch position has been received or the setting "Window switch enable" is unchecked.</p>
-
-        <h4 style="font-weight: bolder;">Errors (Exxx)</h4>
-
-            <h5 style="font-weight: bolder;">E001: invalid setposHeight type ('type') [caller]</h5>
-            <p>Height setpoint must be of type "number". For some reason, that's not the case (see <code>'type'</code> for the type received. Please consult the developer.</p>
-
-            <h5 style="font-weight: bolder;">E002: negative setposHeight ('value') [caller]</h5>
-            <p>Height setpoint must be bigger than zero. For some reason, that's not the case (see <code>'value'</code> for the value received. Please consult the developer.</p>
-
-            <h5 style="font-weight: bolder;">E003: setposHeight above 100 ('value') [caller]</h5>
-            <p>Height setpoint must be below 100. For some reason, that's not the case (see <code>'value'</code> for the value received. Please consult the developer.</p>
-
-            <h5 style="font-weight: bolder;">E004: Suntimes calculator broken</h5>
-            <p>3rd party library "<a href="https://www.npmjs.com/package/suncalc" target="_blank">suncalc</a>" is loaded to calculate sun related values. This function did not provide valid values. Please consult the developer.</p>
-
-            <h5 style="font-weight: bolder;">E005: Undefined hardlock type</h5>
-            <p>Hardlock type is defined in the node configuration via dropdown and can be either "Disabled", "Flow" or "Global". This error appears, if the setting holds another value (which should not be possible). Please consult the developer.</p>
-
-            <h5 style="font-weight: bolder;">E006: Cannot find valid sunrise or sunset times</h5>
-            <p>3rd party library "<a href="https://www.npmjs.com/package/suncalc" target="_blank">suncalc</a>" is loaded to calculate sunrise and sunset times. This function did not provide valid values. Please consult the developer.</p>
-
+        
 </script>
 
 

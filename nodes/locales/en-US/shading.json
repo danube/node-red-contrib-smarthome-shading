@@ -1,18 +1,74 @@
 {
     "common": {
-        "name": "Name",
-        "configname": "Name",
-        "lat": "Latitude",
-        "lon": "Longitude",
-        "orientation": "Orientation",
-        "configuration": "Configuration"
+        "namecfg": "Name",
+        "namecfg_ph": "Shading configuration",
+        "namenode": "Name",
+        "namenode_ph": "Kitchen, Livingroom, ...",
+        "configuration": "Configuration",
+        "debugging": "Debugging"
     },
-    "placeholder": {
-        "name": "",
-        "configname": "",
-        "lat": "",
-        "lon": "",
-        "orientation": ""
+    "blind": {
+        "h": "Blind",
+        "shadepos": "Shading position",
+        "heightfbtopic": "Height feedback topic",
+        "heightfbtopic_ph": "heightfeedback"
+    },
+    "pushbutton": {
+        "h": "Pushbutton",
+        "topicmoveup": "Topic: Move up",
+        "topicmoveup_ph": "Leave blank to use 'buttonup'",
+        "topicmovedwn": "Topic: Move down",
+        "topicmovedwn_ph": "Leave blank to use 'buttondown'",
+        "dblclktime": "Doubleclick time"
+    },
+    "command": {
+        "h": "Position commands",
+        "topicopen": "Topic: Open",
+        "topicopen_ph": "Leave blank to use 'commandopen'",
+        "topicshade": "Topic: Shade",
+        "topicshade_ph": "Leave blank to use 'commandshade'",
+        "topicclose": "Topic: Close",
+        "topicclose_ph": "Leave blank to use 'commandclose'"
+    },
+    "output": {
+        "h": "Outputs",
+        "open": "Payload: Open",
+        "close": "Payload: Close",
+        "stop": "Payload: Stop"
+    },
+    "automatic": {
+        "h": "Automatic",
+        "enable": "Enable",
+        "lat": "Latitude",
+        "lat_ph": "47.479123",
+        "lon": "Longitude",
+        "lon_ph": "9.663123",
+        "hardlock": "Hard lock"
+    },
+    "windowswitch": {
+        "h": "Window switch",
+        "enable": "Enable",
+        "topic": "Topic",
+        "topic_ph": "Leave blank to use 'switch'",
+        "payloadopened": "Payload: Opened",
+        "payloadclosed": "Payload: Closed",
+        "tiltedsensor": "Tilted sensor",
+        "payloadtilted": "Payload: Tilted",
+        "presshadepos": "Preserve shade position"
+    },
+    "security": {
+        "h": "Security",
+        "alwlowtilt": "Lowering allowed if window is tilted",
+        "alwlowopen": "Lowering allowed if window is opened"
+    },
+    "events": {
+        "h": "Events",
+        "reautoconds": "Re-enable automatic events",
+        "msgauto": "Message with topic 'auto'",
+        "openconds": "Open events",
+        "shadeconds": "Shade events",
+        "closeconds": "Close events",
+        "sunrise": "Sunrise",
+        "sunset": "Sunset"
     }
-
 }

@@ -1,0 +1,74 @@
+{
+    "common": {
+        "namecfg": "Name",
+        "namecfg_ph": "Beschattungskonfiguration",
+        "namenode": "Name",
+        "namenode_ph": "Küche, Wohnzimmer, ...",
+        "configuration": "Konfiguration",
+        "debugging": "Debugging"
+    },
+    "blind": {
+        "h": "Beschattung",
+        "shadepos": "Schatten-Position",
+        "heightfbtopic": "Topic: Istposition",
+        "heightfbtopic_ph": "heightfeedback"
+    },
+    "pushbutton": {
+        "h": "Taster",
+        "topicmoveup": "Topic: Fahre hoch",
+        "topicmoveup_ph": "Leer lassen für 'buttonup'",
+        "topicmovedwn": "Topic: Fahre runter",
+        "topicmovedwn_ph": "Leer lassen für 'buttondown'",
+        "dblclktime": "Doppelklick Zeit"
+    },
+    "command": {
+        "h": "Positionsbefehle",
+        "topicopen": "Topic: Öffnen",
+        "topicopen_ph": "Leer lassen für 'commandopen'",
+        "topicshade": "Topic: Beschatten",
+        "topicshade_ph": "Leer lassen für 'commandshade'",
+        "topicclose": "Topic: Schließen",
+        "topicclose_ph": "Leer lassen für 'commandclose'"
+    },
+    "output": {
+        "h": "Ausgänge",
+        "open": "Payload: Auf",
+        "close": "Payload: Ab",
+        "stop": "Payload: Stop"
+    },
+    "automatic": {
+        "h": "Automatik",
+        "enable": "Aktivieren",
+        "lat": "Längengrad",
+        "lat_ph": "47.479123",
+        "lon": "Breitengrad",
+        "lon_ph": "9.663123",
+        "hardlock": "Sperre"
+    },
+    "windowswitch": {
+        "h": "Fensterschalter",
+        "enable": "Aktivieren",
+        "topic": "Topic",
+        "topic_ph": "Leer lassen für 'switch'",
+        "payloadopened": "Payload: Geöffnet",
+        "payloadclosed": "Payload: Geschlossen",
+        "tiltedsensor": "Kippsensor",
+        "payloadtilted": "Payload: Gekippt",
+        "presshadepos": "Bewahre Schatten-Position"
+    },
+    "security": {
+        "h": "Sicherheit",
+        "alwlowtilt": "Abwärtsfahrt erlaubt wenn gekippt",
+        "alwlowopen": "Abwärtsfahrt erlaubt wenn geöffnet"
+    },
+    "events": {
+        "h": "Ereignisse",
+        "reautoconds": "Reaktiviere Automatik Ereignisse",
+        "msgauto": "Nachricht mit Topic 'auto'",
+        "openconds": "Öffnen Ereignisse",
+        "shadeconds": "Schattenfahrt Ereignisse",
+        "closeconds": "Schließen Ereignisse",
+        "sunrise": "Sonnenaufgang",
+        "sunset": "Sonnenuntergang"
+    }
+}
