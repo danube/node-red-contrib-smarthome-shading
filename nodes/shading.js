@@ -130,6 +130,20 @@ module.exports = function(RED) {
 
 
 		/**
+		 * This function sets all variables accordingly, so that automatic can be re-started.
+		 */
+		function autoReenableFunc() {
+			if (config.autoActive) {
+				context.autoLocked = false
+				context.stateButtonRunning = false
+				closeIfWinCloses = false
+				calcSetposHeight(true)
+				clearInterval(handle)										// Clear eventual previous loop
+				handle = setInterval(mainLoopFunc, loopIntervalTime)		// Continuous interval run
+			}
+		}
+
+		/**
 		 * This function will write the relevant node's output.
 		 * @param {String} a Payload for output 1 (opencommand)
 		 * @param {String} b Payload for output 2 (closecommand)
@@ -354,6 +368,10 @@ module.exports = function(RED) {
 			// Sunrise event
 			if (context.sunriseAhead === false && sunriseAheadPrev === true) {
 				if (node.debug) {that.log("Now it's sunrise")}								// -> Send debug message
+				if (config.autoIfSunrise) {
+					if (node.debug) {that.log("Re-enabeling automatic")}
+					autoReenableFunc()
+				}
 				calcSetposHeight()
 				updateNodeStatus()
 			}
@@ -361,6 +379,10 @@ module.exports = function(RED) {
 			// Sunset event
 			else if (context.sunsetAhead === false && sunsetAheadPrev === true) {
 				if (node.debug) {that.log("Now it's sunset")}								// -> Send debug message
+				if (config.autoIfSunset) {
+					if (node.debug) {that.log("Re-enabeling automatic")}
+					autoReenableFunc()
+				}
 				calcSetposHeight()
 				updateNodeStatus()
 			}
@@ -680,7 +702,7 @@ module.exports = function(RED) {
 					}
 					
 				// Button close pressed
-			} else if (buttonPressCloseEvent) {
+				} else if (buttonPressCloseEvent) {
 					clearTimeout(context.buttonOpenTimeoutHandle)
 					context.buttonOpenTimeoutHandle = null
 				
@@ -832,12 +854,7 @@ module.exports = function(RED) {
 
 			if (autoReenableEvent && config.autoActive) {
 				if (node.debug) {that.log("Re-enabeling automatic due to manual request")}		// TODO vielleicht eigene message, wenn autoReenableEvent gesetzt wird durch drücken beider buttons
-				context.autoLocked = false
-				context.stateButtonRunning = false
-				closeIfWinCloses = false
-				calcSetposHeight(true)
-				clearInterval(handle)										// Clear eventual previous loop
-				handle = setInterval(mainLoopFunc, loopIntervalTime)		// Continuous interval run
+				autoReenableFunc()
 			}
 			
 
