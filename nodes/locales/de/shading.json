@@ -65,9 +65,9 @@
         "h": "Ereignisse",
         "reautoconds": "Reaktiviere Automatik Ereignisse",
         "msgauto": "Nachricht mit Topic 'auto'",
-        "openconds": "Öffnen Ereignisse",
-        "shadeconds": "Schattenfahrt Ereignisse",
-        "closeconds": "Schließen Ereignisse",
+        "openconds": "Ereignisse zum Öffnen",
+        "shadeconds": "Ereignisse zur Schattenfahrt",
+        "closeconds": "Ereignisse zum Schließen",
         "sunrise": "Sonnenaufgang",
         "sunset": "Sonnenuntergang"
     }

@@ -1,7 +1,3 @@
-<!--
-    TODO Ausgänge beschreiben
--->
-
 <script type="text/html" data-help-name="shading">
 
     <style>
@@ -32,7 +28,7 @@
                 <p>During operation, the node receives sensor states and stores them in the local memory. This local memory gets lost, if the node (or Node-RED) restarts. Then, the previous sensor states are unknown. To solve this, Node-RED has introduced the context store option "localfilesystem". With this ability, the store will be permanently written into a file on your system. On a restart, this file the will be loaded. <a href="https://nodered.org/docs/user-guide/context#saving-context-data-to-the-file-system" target="_blank">Learn here, how to enable the option.</a></p>
             
             <h5>W002: Received invalid drive position '<code>msg.payload</code>'.</h5>
-                <p>Your drive sent an actual position value. The value in percent must be between 0 (open) and 100 (closed), but the received value was not within this range. The received value will be shown in the message as <code>msg.payload</code>.</p>
+                <p>Your drive sent an actual position value. The value in percent must be between 0 (open/up) and 100 (closed/down), but the received value was not within this range. The received value will be shown in the message as <code>msg.payload</code>.</p>
             
             <h5>W003: Undefined hardlock variable at '<code>location.variable</code>'.</h5>
                 <p>The hardlock variable must be available either as flow or global variable in your context data. So you must set it somewhere, before this node will be called. If the configured variable is unavailable, you will see this warning. Further, <strong>the node assumes an active hardlock</strong>. Optionally, disable the hardlock option in the configuration.</p>
@@ -50,18 +46,18 @@
                 <p>You have configured, that the node expects a position feedback from the drive (node setting: "Height feedback topic"). No such position feedback has been received yet. Security settings do not disallow movement in any condition, so the drive will move. You will receive this message, until a valid position feedback message has been received or the node setting is changed to "Disabled".</p>
             
             <h5>W008: Unknown or invalid window State. Nothing will happen.</h5>
-                <p>You have a window switch configured. TO be able to operate the drive properly, the switch state must be present and valid. Until then, for security reason, the drive will only move up, but not down. You will receive this message, until a valid window switch position has been received or the setting "Window switch enable" is unchecked.</p>
+                <p>You have a window switch configured. To be able to operate the drive properly, the switch state must be present and valid. Until then, for security reason, the drive will only move up, but not down. You will receive this message, until a valid window switch position has been received or the setting "Window switch enable" is unchecked.</p>
 
         <h4>Errors (Exxx)</h4>
 
             <h5>E001: invalid setposHeight type ('type') [caller]</h5>
-                <p>Height setpoint must be of type "number". For some reason, that's not the case (see <code>'type'</code> for the type received. Please consult the developer.</p>
+                <p>Height setpoint must be of type <code>number</code>. For some reason, that's not the case (see <code>'type'</code> for the type received). Please consult the developer.</p>
 
             <h5>E002: negative setposHeight ('value') [caller]</h5>
-                <p>Height setpoint must be bigger than zero. For some reason, that's not the case (see <code>'value'</code> for the value received. Please consult the developer.</p>
+                <p>Height setpoint must be bigger than zero. For some reason, that's not the case (see <code>'value'</code> for the value received). Please consult the developer.</p>
 
             <h5>E003: setposHeight above 100 ('value') [caller]</h5>
-                <p>Height setpoint must be below 100. For some reason, that's not the case (see <code>'value'</code> for the value received. Please consult the developer.</p>
+                <p>Height setpoint must be below 100. For some reason, that's not the case (see <code>'value'</code> for the value received). Please consult the developer.</p>
 
             <h5>E004: Suntimes calculator broken</h5>
                 <p>3rd party library "<a href="https://www.npmjs.com/package/suncalc" target="_blank">suncalc</a>" is loaded to calculate sun related values. This function did not provide valid values. Please consult the developer.</p>
@@ -72,7 +68,7 @@
             <h5>E006: Cannot find valid sunrise or sunset times</h5>
                 <p>3rd party library "<a href="https://www.npmjs.com/package/suncalc" target="_blank">suncalc</a>" is loaded to calculate sunrise and sunset times. This function did not provide valid values. Please consult the developer.</p>
 
-    <h3><i class="fa fa-question-circle"></i> Questions or bugs</h3>
+    <h3><i class="fa fa-question-circle"></i> Questions or wishes</h3>
         <p>Please contact me, if you have any question. Let me know, if something is not clear or you have found a bug, a typo or something else. I'm happy for any opportunity to improve the solutions, as I use them by myself. <a href="https://rebrand.ly/wasfiit" target="_blank">Raise an issue on GitHub</a> or <a href="https://rebrand.ly/cb4glqq" target="_blank">Talk to me in Discord</a>.</p>
         <p>If you're satisfied, <a href="https://rebrand.ly/zm4k1c6" target="_blank">buy me a coffee.</p>
         <img src="https://raw.githubusercontent.com/danube/node-red-contrib-smarthome-shading/main/files/bmc-white-button.png" onerror="this.onerror=null; this.remove();"></a>
@@ -121,19 +117,19 @@
                 <p><code>msg.topic</code> of the message, when the up button is pressed or released. Default (if left blank): "buttondown".</p>
             
             <h5><i class="fa fa-clock-o"></i> Doubleclick time</h5>
-                <p>Each button can be single- or double-pressed. A single press moves the blind between the three default positions (open/shade/close). A double-press will move the blind either completely up or completely down, depending on the button pressed. This is the time in miliseconds, the node waits between the presses. Default: 400.</p>
+                <p>Each button can be single- or double-pressed. A single press moves the blind between the three default positions (open/shade/close). A double-press will move the blind either completely up or completely down, depending on the button pressed. This is the time in miliseconds, the node waits between the presses. Default: "400".</p>
 
         <h4>Command</h4>
             <p>Commands are supported to move the shade in one of three predefined positions: open, shade and close. <code>msg.payload</code> will be ignored, as long as <code>msg.topic</code> contains one of the following strings.</p>
 
             <h5><i class="fa fa-envelope-open-o"></i> Topic: Open</h5>
-                <p><code>msg.topic</code> of the message, to move to open position. Default (if left blank): commandopen.</p>
+                <p><code>msg.topic</code> of the message, to move to open position. Default (if left blank): "commandopen".</p>
                 
             <h5><i class="fa fa-envelope-open-o"></i> Topic: Shade</h5>
-                <p><code>msg.topic</code> of the message, to move to shade position. Default (if left blank): commandshade.</p>
+                <p><code>msg.topic</code> of the message, to move to shade position. Default (if left blank): "commandshade".</p>
                 
             <h5><i class="fa fa-envelope-open-o"></i> Topic: Close</h5>
-                <p><code>msg.topic</code> of the message, to move to close position. Default (if left blank): commandclose.</p>
+                <p><code>msg.topic</code> of the message, to move to close position. Default (if left blank): "commandclose".</p>
 
         <h4>Output</h4>
             <p>The node has several outputs. Three of them provide jog control signals: Open, close and stop. They are used for jogging the drive with the pushbuttons.
@@ -144,13 +140,13 @@
             </ul>
             Define <code>msg.payload</code> for each of these outputs.</p>
 
-            <h5><i class="fa fa-rocket"></i> Open</h5>
+            <h5><i class="fa fa-rocket"></i> Payload: Open</h5>
                 <p><code>msg.payload</code> of the message been sent on the open output, when you long-press the open pushbutton. Default: boolean, true.</p>
 
-            <h5><i class="fa fa-rocket"></i> Close</h5>
+            <h5><i class="fa fa-rocket"></i> Payload: Close</h5>
                 <p><code>msg.payload</code> of the message been sent on the close output, when you long-press the close pushbutton. Default: boolean, true.</p>
 
-            <h5><i class="fa fa-rocket"></i> Stop</h5>
+            <h5><i class="fa fa-rocket"></i> Payload: Stop</h5>
                 <p><code>msg.payload</code> of the message been sent on the stop output, when you release the open or close pushbutton, after you long-pressed any of them. Default: boolean, true.</p>
 
         <h4>Automatic</h4>
@@ -163,13 +159,13 @@
                 <p>Provide latitude and longitude of the installation. If unknown, use one of the mapping tools from the internet or check <a href="https://www.latlong.net/" target="_blank">latlong.net</a>.</p>
 
             <h5><i class="fa fa-sliders"></i> Hard lock</h5>
-                <p>Hardlock gives you the possibility to suppress any automatic movement. The variable must be available either in the flow or global context data and must be <code>true</code> or <code>false</code>. Default: disabled.</p>
+                <p>Hardlock gives you the possibility to suppress any automatic movement. The variable must be available either in the flow or global context data and must be <code>true</code> or <code>false</code>. Note, that it is still possible to move the drive with the pushbuttons and the position commands. You will find a message in the logging console. Default: disabled.</p>
 
         <h4>Window switch</h4>
-            <p>If you have a window switch installed, you can configure it below. Additional security settings offer you a configuration, how the window position affects automatic movements.</p>
+            <p>If you have a window switch installed, you can configure below the expected message. Additional security settings offer you a configuration, how the window position affects automatic movements.</p>
 
             <h5><i class="fa fa-power-off"></i> Enable</h5>
-                <p>To configure the window switch, you must enable this option. Default: disabled.</p>
+                <p>To configure the window switch message, you must enable this option. Default: disabled.</p>
 
             <h5><i class="fa fa-envelope-open-o"></i> Topic</h5>
                 <p>Define the <code>msg.topic</code> of the message containing the window switch position value. Default (if left blank): switch.</p>
@@ -193,32 +189,32 @@
             <p>This parameters are essential to prevent accidents or lock you out of your house.</p>
 
             <h5><i class="fa fa-check-square-o"></i> Lowering allowed if window is tilted</h5>
-                <p>The blind is allowed to lower, when the window is tilted. Default: false.</p>
+                <p>The blind is allowed to lower, when the window is tilted. Default: disabled.</p>
 
             <h5><i class="fa fa-check-square-o"></i> Lowering allowed if window is opened</h5>
-                <p>The blind is allowed to lower, when the window is opened. Default: false.</p>
+                <p>The blind is allowed to lower, when the window is opened. Default: disabled.</p>
             
         <h4>Events</h4>
             <h5>Re-enable automatic conditions</h5>
                 <p><i class="fa fa-check-square-o"></i> <strong>Message with topic 'auto'</strong></p>
-                <p class="iconpadding">When you manually move the blind (either with the pushbuttons or by sending a command message), automatic mode is disabled. The node icon will change and <code>payload.context.autoLocked</code> in the status-output is <code>true</code>.</p> If this option is enabled, you a message with <code>auto</code> in the <code>msg.topic</code> will re-enable automatic mode.
+                <p class="iconpadding">When you manually move the blind (either with the pushbuttons or by sending a command message), automatic mode is disabled. The node icon will change and <code>payload.context.autoLocked</code> in the status-output is <code>true</code>.</p> If this option is enabled, you a message with <code>auto</code> in the <code>msg.topic</code> will re-enable automatic mode. Default: disabled.
             <h5>Open conditions</h5>
                 <p><i class="fa fa-check-square-o"></i> <strong>Sunrise</strong></p>
-                <p class="iconpadding">If checked and automatic mode is active, the blind will move to open position on sunrise.</p>
+                <p class="iconpadding">If checked and automatic mode is active, the blind will move to open position on sunrise. Default: disabled.</p>
                 <p><i class="fa fa-check-square-o"></i> <strong>Sunset</strong></p>
-                <p class="iconpadding">If checked and automatic mode is active, the blind will move to open position on sunset.</p>
+                <p class="iconpadding">If checked and automatic mode is active, the blind will move to open position on sunset. Default: disabled.</p>
 
             <h5>Shade conditions</h5>
                 <p><i class="fa fa-check-square-o"></i> <strong>Sunrise</strong></p>
-                <p class="iconpadding">If checked and automatic mode is active, the blind will move to shade position on sunrise.</p>
+                <p class="iconpadding">If checked and automatic mode is active, the blind will move to shade position on sunrise. Default: disabled.</p>
                 <p><i class="fa fa-check-square-o"></i> <strong>Sunset</strong></p>
-                <p class="iconpadding">If checked and automatic mode is active, the blind will move to shade position on sunset.</p>
+                <p class="iconpadding">If checked and automatic mode is active, the blind will move to shade position on sunset. Default: disabled.</p>
             
             <h5>Close conditions</h5>
                 <p><i class="fa fa-check-square-o"></i> <strong>Sunrise</strong></p>
-                <p class="iconpadding">If checked and automatic mode is active, the blind will move to close position on sunrise.</p>
+                <p class="iconpadding">If checked and automatic mode is active, the blind will move to close position on sunrise. Default: disabled.</p>
                 <p><i class="fa fa-check-square-o"></i> <strong>Sunset</strong></p>
-                <p class="iconpadding">If checked and automatic mode is active, the blind will move to close position on sunset.</p>
+                <p class="iconpadding">If checked and automatic mode is active, the blind will move to close position on sunset. Default: disabled.</p>
 
     <h3><i class="fa fa-question-circle"></i> Questions or bugs</h3>
         <p>Please contact me, if you have any question. Let me know, if something is not clear or you have found a bug, a typo or something else. I'm happy for any opportunity to improve the solutions, as I use them by myself. <a href="https://rebrand.ly/wasfiit" target="_blank">Raise an issue on GitHub</a> or <a href="https://rebrand.ly/cb4glqq" target="_blank">Talk to me in Discord</a>.</p>
@@ -227,12 +223,3 @@
 
         
 </script>
-
-
-<!-- TODO
-- Wenn hardlock true ist, ist ein Verfahren mit den commandopen/shade/close Befehlen immer noch möglich. Es wird allerdings eine Information "Ignoring active hardlock" ausgegeben.
-
-
-
-
--->
