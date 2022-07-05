@@ -1,6 +1,6 @@
-// TODO Error, Warnung, Info Nummern prüfen
 // TODO Status beim ersten Init schicken, damit die UI anzeigen kann.
 // TODO context.actposHeight im Init löschen, wenn Einstellung auf "Disabled" ist.
+// TODO Add possibility to set payload: "force" when sending topic: "commandXXX" to force movement, no matter the window position
 
 module.exports = function(RED) {
 
@@ -251,7 +251,7 @@ module.exports = function(RED) {
 					context.hardlock = false
 				}
 
-				if (ignoreLock) {if (node.debug) {that.log("Ignoring active hardlock")}}
+				if (ignoreLock && context.hardlock) {if (node.debug) {that.log("Ignoring active hardlock")}}
 
 				let allowLowering = 																// Check security conditions
 					(context.windowState === window.opened && config.allowLoweringWhenOpened)
@@ -279,7 +279,7 @@ module.exports = function(RED) {
 					} else if (allowLowering) {
 						sendCommandFunc(null,null,null,context.setposHeight)
 					} else {
-						if (node.debug) {that.log("Window position prevents lowering")}
+						if (node.debug) {that.log("Actual window position prevents lowering")}
 					}
 				} else if (context.setposHeight <= context.actposHeight) {								// Rising or unchanged
 					sendCommandFunc(null,null,null,context.setposHeight)
@@ -590,7 +590,8 @@ module.exports = function(RED) {
 		
 		updateNodeStatus()		// Initially set node status
 		sendCommandFunc()		// Providing status
-		
+		sendCommandFunc()		// Sending message on status output
+
 		if (node.debug) {printConsoleDebug()}
 
 		// <==== FIRST RUN ACTIONS (INIT)
