@@ -1,5 +1,3 @@
-// TODO Status beim ersten Init schicken, damit die UI anzeigen kann.
-// TODO context.actposHeight im Init löschen, wenn Einstellung auf "Disabled" ist.
 // TODO Add possibility to set payload: "force" when sending topic: "commandXXX" to force movement, no matter the window position
 
 module.exports = function(RED) {
@@ -183,7 +181,7 @@ module.exports = function(RED) {
 					sunTimes: sunTimes
 				}
 			}
-
+			
 			that.send([msgA, msgB, msgC, msgD, msgE])
 
 		}
@@ -576,6 +574,10 @@ module.exports = function(RED) {
 
 		// FIRST RUN ACTIONS (INIT) ====>
 		
+		if (config.inmsgTopicActPosHeightType == "dis") {
+			delete context.actposHeight
+		}
+		
 		if (config.autoActive) {
 			if (node.debug) {that.log("Automatic configured, starting interval.")}
 			suncalcFunc()
@@ -590,8 +592,10 @@ module.exports = function(RED) {
 		}
 		
 		updateNodeStatus()		// Initially set node status
-		sendCommandFunc()		// Providing status
-		sendCommandFunc()		// Sending message on status output
+
+		setTimeout(() => {			// Seems to be necessary, otherwise the message will be sent before Node-RED "Started flows"
+			sendCommandFunc()		// Providing status on startup
+		}, 10);
 
 		if (node.debug) {printConsoleDebug()}
 
