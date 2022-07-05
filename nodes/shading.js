@@ -43,6 +43,7 @@ module.exports = function(RED) {
 		this.config.openTopic = node.openTopic || "commandopen"
 		this.config.shadeTopic = node.shadeTopic || "commandshade"
 		this.config.closeTopic = node.closeTopic || "commandclose"
+		this.config.heightTopic = node.heightTopic || "commandheight"
 		this.config.inmsgWinswitchTopic = node.inmsgWinswitchTopic || "switch"
 		this.config.inmsgButtonDblclickTime = node.inmsgButtonDblclickTime || 500
 
@@ -642,6 +643,8 @@ module.exports = function(RED) {
 				var shadeCommand = msg.topic === config.shadeTopic
 				/** Close event based on incoming message topic */
 				var closeCommand = msg.topic === config.closeTopic
+				/** Height setpoint command based on incoming message topic */
+				var heightSetposCommand = msg.topic === config.heightTopic
 			}
 
 			if (buttonEvent) {
@@ -820,19 +823,20 @@ module.exports = function(RED) {
 				closeIfWinCloses = false
 			}
 			
-			else if (closeCommand) {		// TODO If blind is below shading position and command is received, it will move up. Clarify what should happen then.
-				if (node.debug) {that.log("Received command to close")}
-				if (config.preventClosing && context.windowState != window.closed) {
-					if (node.debug) {that.log("Window is not closed, going to shade position instead.")}
-					context.setposHeight = shadingSetpos.shade
-					closeIfWinCloses = true
-				} else {
-					context.setposHeight = shadingSetpos.close
+			else if (heightSetposCommand) {
+				if (msg.payload < 0 || msg.payload > 100 || typeof msg.payload != "number") {that.error("E007: Invalid height setpoint ('" + msg.payload + "')")} // TODO eigene meldung wenn datentyp != number
+				else {
+					if (node.debug) {that.log("Received height setpoint command '" + msg.payload + "'")}
+					if (msg.payload == 100) {
+						closeCommand = true
+					} else {
+						context.setposHeight = msg.payload
+						autoMoveFunc(true,true) // DOCME
+						context.autoLocked = true
+					}
 				}
-				autoMoveFunc(true,true)
-				context.autoLocked = true
 			}
-
+			
 			else if (driveHeightEvent) {				// TODO Was wenn es das nicht gibt??
 				if (msg.payload >= 0 && msg.payload <= 100 && typeof msg.payload === "number") {
 					let prevPos = context.actposHeight
@@ -850,6 +854,19 @@ module.exports = function(RED) {
 
 			else if (printConsoleDebugEvent) {
 				printConsoleDebug("Debug requested, so here we go.")
+			}
+
+			if (closeCommand) {		// TODO If blind is below shading position and command is received, it will move up. Clarify what should happen then.
+				if (node.debug) {that.log("Received command to close")}
+				if (config.preventClosing && context.windowState != window.closed) {
+					if (node.debug) {that.log("Window is not closed, going to shade position instead.")}
+					context.setposHeight = shadingSetpos.shade
+					closeIfWinCloses = true
+				} else {
+					context.setposHeight = shadingSetpos.close
+				}
+				autoMoveFunc(true,true)
+				context.autoLocked = true
 			}
 
 			if (autoReenableEvent && config.autoActive) {

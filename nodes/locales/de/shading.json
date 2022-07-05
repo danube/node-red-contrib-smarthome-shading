@@ -28,7 +28,9 @@
         "topicshade": "Topic: Beschatten",
         "topicshade_ph": "Leer lassen für 'commandshade'",
         "topicclose": "Topic: Schließen",
-        "topicclose_ph": "Leer lassen für 'commandclose'"
+        "topicclose_ph": "Leer lassen für 'commandclose'",
+        "topicheight": "Topic: Vorgabe Höhe",
+        "topicheight_ph": "Leer lassen für 'commandheight'"
     },
     "output": {
         "h": "Ausgänge",

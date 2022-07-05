@@ -28,7 +28,9 @@
         "topicshade": "Topic: Shade",
         "topicshade_ph": "Leave blank to use 'commandshade'",
         "topicclose": "Topic: Close",
-        "topicclose_ph": "Leave blank to use 'commandclose'"
+        "topicclose_ph": "Leave blank to use 'commandclose'",
+        "topicheight": "Topic: Height Position",
+        "topicheight_ph": "Leave blank to use 'commandheight'"
     },
     "output": {
         "h": "Outputs",
