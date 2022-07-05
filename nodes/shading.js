@@ -191,8 +191,9 @@ module.exports = function(RED) {
 		 * This function must be called each time an automatic movement should processed.
 		 * @param {Boolean} sendNow If true, the setpoint value will be sent. If false, the setpoint will be sent only if it changes.
 		 * @param {Boolean} ignoreLock If true, the setpoint will be sent even if hardlock is active.
+		 * @param {Boolean} ignoreWindow If true, the window position (and according security settings) will be ignored.
 		 */
-		function autoMoveFunc(sendNow, ignoreLock) {
+		function autoMoveFunc(sendNow, ignoreLock, ignoreWindow) {
 
 			const caller = autoMoveFunc.caller.name
 			const callee = arguments.callee.name
@@ -257,6 +258,7 @@ module.exports = function(RED) {
 					|| (context.windowState === window.tilted && config.allowLoweringWhenTilted)
 					|| context.windowState === window.closed
 					|| !config.winswitchEnable
+					|| ignoreWindow
 
 				if (context.hardlock && !ignoreLock) {													// Hardlock -> nothing will happen
 					if (node.debug) {that.log("Locked by hardlock, nothing will happen.")}
@@ -823,7 +825,8 @@ module.exports = function(RED) {
 			else if (shadeCommand) {
 				if (node.debug) {that.log("Received command to shade")}
 				context.setposHeight = shadingSetpos.shade
-				autoMoveFunc(true,true)
+				if (msg.payload === "force") {autoMoveFunc(true,true,true)}		// DOCME
+				else autoMoveFunc(true,true)
 				context.autoLocked = true
 				closeIfWinCloses = false
 			}
