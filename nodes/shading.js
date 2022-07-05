@@ -825,8 +825,11 @@ module.exports = function(RED) {
 			else if (shadeCommand) {
 				if (node.debug) {that.log("Received command to shade")}
 				context.setposHeight = shadingSetpos.shade
-				if (msg.payload === "force") {autoMoveFunc(true,true,true)}		// DOCME
-				else autoMoveFunc(true,true)
+				if (msg.payload === "force") {		// DOCME
+					autoMoveFunc(true,true,true)
+				} else {
+					autoMoveFunc(true,true)
+				}
 				context.autoLocked = true
 				closeIfWinCloses = false
 			}
@@ -873,7 +876,11 @@ module.exports = function(RED) {
 				} else {
 					context.setposHeight = shadingSetpos.close
 				}
-				autoMoveFunc(true,true)
+				if (msg.payload === "force") {		// DOCME
+					autoMoveFunc(true,true,true)
+				} else {
+					autoMoveFunc(true,true)
+				}
 				context.autoLocked = true
 			}
 
