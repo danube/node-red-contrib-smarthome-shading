@@ -124,7 +124,7 @@
             <h5><i class="fa fa-clock-o"></i> Doubleclick time</h5>
                 <p>Each button can be single- or double-pressed. A single press moves the blind between the three default positions (open/shade/close). A double-press will move the blind either completely up or completely down, depending on the button pressed. This is the time in miliseconds, the node waits between the presses. Default: "400".</p>
 
-        <h4>Command</h4>
+        <h4>Position commands</h4>
             <p>Commands are supported to move the shade in one of three predefined positions: open, shade and close. <code>msg.payload</code> will be ignored, as long as <code>msg.topic</code> contains one of the following strings.</p>
 
             <h5><i class="fa fa-envelope-open-o"></i> Topic: Open</h5>
@@ -198,6 +198,9 @@
 
             <h5><i class="fa fa-check-square-o"></i> Lowering allowed if window is opened</h5>
                 <p>The blind is allowed to lower, when the window is opened. Default: disabled.</p>
+            
+            <h5><i class="fa fa-check-square-o"></i> Ignore window state, if position command payload is 'commandforce'.</h5>
+                <p>With the position commands, you can send the drive to one of the pre-defined positions. If you have configured a window switch, going down may not be allowed, if the window is opened or tilted. Use this checkbox, to allow a position command message to override the window state. While <code>msg.topic</code> defines the position to go (see above), set <code>msg.payload</code> to <code>commandforce</code> in the position command message.</p>
             
         <h4>Events</h4>
             <h5>Re-enable automatic conditions</h5>

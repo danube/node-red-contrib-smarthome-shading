@@ -1,5 +1,3 @@
-// TODO Add possibility to set payload: "force" when sending topic: "commandXXX" to force movement, no matter the window position
-
 module.exports = function(RED) {
 
 	// Loading external modules
@@ -263,7 +261,7 @@ module.exports = function(RED) {
 				if (context.hardlock && !ignoreLock) {													// Hardlock -> nothing will happen
 					if (node.debug) {that.log("Locked by hardlock, nothing will happen.")}
 				} else if (context.autoLocked && !ignoreLock) {											// Softlock -> nothing will happen
-					if (node.debug) {that.log("Locked by application, nothing will happen.")}
+					if (node.debug) {that.log("Not in automatic mode, nothing will happen.")}
 				} else if (config.inmsgTopicActPosHeightType === "dis") {								// No shading position feedback -> always move
 					sendCommandFunc(null,null,null,context.setposHeight)
 				} else if (typeof context.actposHeight == "undefined" && context.setposHeight === 0) {	// Actual height position unknown but setpos is 0 -> move up
@@ -825,7 +823,8 @@ module.exports = function(RED) {
 			else if (shadeCommand) {
 				if (node.debug) {that.log("Received command to shade")}
 				context.setposHeight = shadingSetpos.shade
-				if (msg.payload === "force") {		// DOCME
+				if (config.allowLoweringCommandPayload && msg.payload === "commandforce") {
+					if (node.debug) {that.log("msg.payload contains 'commandforce', window position will be ignored!")}
 					autoMoveFunc(true,true,true)
 				} else {
 					autoMoveFunc(true,true)
@@ -876,7 +875,8 @@ module.exports = function(RED) {
 				} else {
 					context.setposHeight = shadingSetpos.close
 				}
-				if (msg.payload === "force") {		// DOCME
+				if (config.allowLoweringCommandPayload && msg.payload === "commandforce") {
+					if (node.debug) {that.log("msg.payload contains 'commandforce', window position will be ignored!")}
 					autoMoveFunc(true,true,true)
 				} else {
 					autoMoveFunc(true,true)

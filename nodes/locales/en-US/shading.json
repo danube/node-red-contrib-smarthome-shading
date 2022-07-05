@@ -60,8 +60,9 @@
     },
     "security": {
         "h": "Security",
-        "alwlowtilt": "Lowering allowed if window is tilted",
-        "alwlowopen": "Lowering allowed if window is opened"
+        "alwlowtilt": "Allow lowering if window is tilted",
+        "alwlowopen": "Allow lowering if window is opened",
+        "alwlowcmd": "Ignore window state, if position command payload is 'commandforce'."
     },
     "events": {
         "h": "Events",

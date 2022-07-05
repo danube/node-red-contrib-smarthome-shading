@@ -195,6 +195,9 @@
             <h5><i class="fa fa-check-square-o"></i> Abwärtsfahrt erlaubt wenn geöffnet</h5>
                 <p>Der Antrieb darf abwärts fahren, wenn das Fenster geöffnet ist. Standardwert: Deaktiviert.</p>
             
+            <h5><i class="fa fa-check-square-o"></i> Ignoriere Fensterposition, wenn msg.payload des Positionsbefehls 'commandforce' ist.</h5>
+                <p>Mit den Positionsbefehlen kannst Du den Antrieb in eine der definierten Positionen fahren lassen. Wenn Du einen Fensterschalter konfiguriert hast kann es sein, dass die Abwärtsfahrt nicht erlaubt ist, wenn das Fenster offen oder gekippt ist. Diese Blockade kannst Du mit dem Aktivieren dieser Option umgehen. Während <code>msg.topic</code> (wie oben beschrieben) die Zielposition des Antriebs angibt, setze das <code>msg.payload</code> der Nachricht auf <code>commandforce</code> innerhalb des Positionsbefehls.</p>
+
         <h4>Ereignisse</h4>
             <h5>Reaktiviere Automatik Ereignisse</h5>
                 <p><i class="fa fa-check-square-o"></i> <strong>Nachricht mit Topic 'auto'</strong></p>
