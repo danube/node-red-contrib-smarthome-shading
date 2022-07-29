@@ -1,3 +1,6 @@
+// TODO remove all DEBUS messages
+// TODO If button release is not seen, state stays on button pressed. Maybe a timeout may help?
+
 module.exports = function(RED) {
 
 	// Loading external modules
@@ -823,8 +826,8 @@ module.exports = function(RED) {
 			else if (shadeCommand) {
 				if (node.debug) {that.log("Received command to shade")}
 				context.setposHeight = shadingSetpos.shade
-				if (config.allowLoweringCommandPayload && msg.payload === "commandforce") {
-					if (node.debug) {that.log("msg.payload contains 'commandforce', window position will be ignored!")}
+				if (config.allowLoweringCommandPayload && msg.commandforce === true) {
+					if (node.debug) {that.log("msg.commandforce is set, window position will be ignored!")}
 					autoMoveFunc(true,true,true)
 				} else {
 					autoMoveFunc(true,true)
@@ -841,8 +844,13 @@ module.exports = function(RED) {
 						closeCommand = true
 					} else {
 						context.setposHeight = msg.payload
-						autoMoveFunc(true,true) // DOCME
 						context.autoLocked = true
+						if (config.allowLoweringCommandPayload && msg.commandforce === true) {
+							if (node.debug) {that.log("msg.commandforce is set, window position will be ignored!")}
+							autoMoveFunc(true,true,true)
+						} else {
+							autoMoveFunc(true,true)
+						}
 					}
 				}
 			}
@@ -875,8 +883,8 @@ module.exports = function(RED) {
 				} else {
 					context.setposHeight = shadingSetpos.close
 				}
-				if (config.allowLoweringCommandPayload && msg.payload === "commandforce") {
-					if (node.debug) {that.log("msg.payload contains 'commandforce', window position will be ignored!")}
+				if (config.allowLoweringCommandPayload && msg.commandforce === true) {
+					if (node.debug) {that.log("msg.commandforce is set, window position will be ignored!")}
 					autoMoveFunc(true,true,true)
 				} else {
 					autoMoveFunc(true,true)

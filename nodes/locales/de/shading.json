@@ -62,7 +62,7 @@
         "h": "Sicherheit",
         "alwlowtilt": "Abwärtsfahrt erlaubt wenn gekippt",
         "alwlowopen": "Abwärtsfahrt erlaubt wenn geöffnet",
-        "alwlowcmd": "Ignoriere Fensterposition, wenn msg.payload des Positionsbefehls 'commandforce' ist."
+        "alwlowcmd": "Ignoriere Fensterposition wenn msg.commandforce = true"
     },
     "events": {
         "h": "Ereignisse",
