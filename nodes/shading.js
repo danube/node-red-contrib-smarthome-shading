@@ -281,7 +281,7 @@ module.exports = function(RED) {
 					} else if (allowLowering) {
 						sendCommandFunc(null,null,null,context.setposHeight)
 					} else {
-						if (node.debug) {that.log("Actual window position prevents lowering")}
+						if (node.debug) {that.log("Actual window position prevents lowering, holding back command.")}
 					}
 				} else if (context.setposHeight <= context.actposHeight) {								// Rising or unchanged
 					sendCommandFunc(null,null,null,context.setposHeight)
@@ -589,7 +589,6 @@ module.exports = function(RED) {
 			clearInterval(handle)										// Clear eventual previous loop
 			handle = setInterval(mainLoopFunc, loopIntervalTime)		// Continuous interval run
 		} else {
-			if (node.debug) {that.log("Automatic not configured")}
 			clearTimeout(sunriseFuncTimeoutHandle)
 			clearTimeout(sunsetFuncTimeoutHandle)
 		}
@@ -634,25 +633,29 @@ module.exports = function(RED) {
 			/** Height drive position event based on incoming message topic */
 			var driveHeightEvent = config.inmsgTopicActPosHeightType != "dis" && msg.topic === config.inmsgTopicActPosHeight
 
-			if (config.autoActive) {
+			/** Open event based on incoming message topic */
+			var openCommand = msg.topic === config.openTopic
+			/** Shade event based on incoming message topic */
+			var shadeCommand = msg.topic === config.shadeTopic
+			/** Close event based on incoming message topic */
+			var closeCommand = msg.topic === config.closeTopic
+			/** Height setpoint command based on incoming message topic */
+			var heightSetposCommand = msg.topic === config.heightTopic
+
+			if (config.winswitchEnable) {
 				/** Window switch event based on incoming message topic */
-				var windowSwitchEvent = config.winswitchEnable && msg.topic === config.inmsgWinswitchTopic
+				var windowSwitchEvent = msg.topic === config.inmsgWinswitchTopic
 				/** Window switch open event based on incoming message payload */
 				var windowSwitchOpenEvent = msg.payload === config.inmsgWinswitchPayloadOpened
 				/** Window switch tilt event based on incoming message payload */
 				var windowSwitchTiltEvent = msg.payload === config.inmsgWinswitchPayloadTilted
 				/** Window switch close event based on incoming message payload */
 				var windowSwitchCloseEvent = msg.payload === config.inmsgWinswitchPayloadClosed
+			}
+
+			if (config.autoActive) {
 				/** Auto re-enable event based on incoming message topic */
 				var autoReenableEvent = config.autoIfMsgTopic && msg.topic === "auto"		// TODO make topic configurable? --> DOCME
-				/** Open event based on incoming message topic */
-				var openCommand = msg.topic === config.openTopic
-				/** Shade event based on incoming message topic */
-				var shadeCommand = msg.topic === config.shadeTopic
-				/** Close event based on incoming message topic */
-				var closeCommand = msg.topic === config.closeTopic
-				/** Height setpoint command based on incoming message topic */
-				var heightSetposCommand = msg.topic === config.heightTopic
 			}
 
 			if (buttonEvent) {
@@ -932,7 +935,7 @@ module.exports = function(RED) {
 		// CLOSE EVENTS ====>
 
 		this.on('close', function() {
-			if (node.debug && !context.autoLocked) {that.log("Stopping automatic interval")}
+			if (node.debug && !context.autoLocked && config.autoActive) {that.log("Stopping automatic interval")}
 			clearInterval(handle)
 		})
 

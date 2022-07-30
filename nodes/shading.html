@@ -318,7 +318,7 @@
         <input type="hidden" id="node-config-input-inmsgTopicActPosHeightType">
         <input type="text" id="node-config-input-inmsgTopicActPosHeight" data-i18n="[placeholder]blind.heightfbtopic_ph">
     </div>
-<hr>
+    <hr>
     <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md#pushbutton-configuration" target="_blank"> <span data-i18n="pushbutton.h"></span></a></h3>
     <div class="form-row">
         <label for="node-config-input-inmsgButtonTopicOpen"><i class="fa fa-envelope-open-o"></i> <span data-i18n="pushbutton.topicmoveup"></span></label>
@@ -368,6 +368,66 @@
         <input type="text" id="node-config-input-payloadStopCmd">
     </div>
     <hr>
+
+
+    <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/automatic.md#window-switch" target="_blank"> <span data-i18n="windowswitch.h"></span></a></h3>
+    <div class="form-row">
+        <label><i class="fa fa-power-off"></i> <span data-i18n="windowswitch.enable"></span></label>
+        <input type="checkbox" id="node-config-input-winswitchEnable" style="display:inline-block; width:auto;">
+    </div>
+    <div class="winswitch">
+        <div class="form-row">
+            <label for="node-config-input-inmsgWinswitchTopic"><i class="fa fa-envelope-open-o"></i> <span data-i18n="windowswitch.topic"></span></label>
+            <input type="text" id="node-config-input-inmsgWinswitchTopic" data-i18n="[placeholder]windowswitch.topic_ph">
+        </div>
+        <div class="form-row">
+            <label for="node-config-input-inmsgWinswitchPayloadOpened"><i class="fa fa-rocket"></i> <span data-i18n="windowswitch.payloadopened"></span></label>
+            <input type="hidden" id="node-config-input-inmsgWinswitchPayloadOpenedType">
+            <input type="text" id="node-config-input-inmsgWinswitchPayloadOpened">
+        </div>
+        <div class="form-row">
+            <label for="node-config-input-inmsgWinswitchPayloadClosed"><i class="fa fa-rocket"></i> <span data-i18n="windowswitch.payloadclosed"></span></label>
+            <input type="hidden" id="node-config-input-inmsgWinswitchPayloadClosedType">
+            <input type="text" id="node-config-input-inmsgWinswitchPayloadClosed">
+        </div>
+        <div class="form-row">
+            <label><i class="fa fa-power-off"></i> <span data-i18n="windowswitch.tiltedsensor"></span></label>
+            <input type="checkbox" id="node-config-input-winswitchTiltedEnable" style="display:inline-block; width:auto;">
+        </div>
+        <div class="form-row tiltswitch">
+            <label for="node-config-input-inmsgWinswitchPayloadTilted"><i class="fa fa-rocket"></i> <span data-i18n="windowswitch.payloadtilted"></span></label>
+            <input type="hidden" id="node-config-input-inmsgWinswitchPayloadTiltedType">
+                <input type="text" id="node-config-input-inmsgWinswitchPayloadTilted">
+        </div>
+        <div class="form-row checkbox-row">
+            <input type="checkbox" id="node-config-input-preventClosing"><label style="width: 350px" for="node-config-input-preventClosing"> <span data-i18n="windowswitch.presshadepos"></span></label>
+            <!-- DOCME
+                Wenn das Rollo zu ist und das Fenster gekippt oder geöffnet wird, fährt das Rollo auf Schlitze.
+                Wenn das Rollo oberhalb der shade Position ist und das Kommando schließen erhält, wird bei gekipptem oder geöffnetem Fenster stattdessen die shade position angefahren.
+                Beim Schließen fährt auch das Rollo wieder zu. -->
+        </div>
+    <hr>
+        <div>
+            <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/automatic.md#security-configuration" target="_blank"> <span data-i18n="security.h"></span></a></h3>
+            <div class="form-row checkbox-row tiltswitch">
+                <input type="checkbox" id="node-config-input-allowLoweringWhenTilted" class="winswitch-checkbox"><label style="width: 300px" for="node-config-input-allowLoweringWhenTilted"> <span data-i18n="security.alwlowtilt"></span></label>
+            </div>
+            <div class="form-row checkbox-row">
+                <input type="checkbox" id="node-config-input-allowLoweringWhenOpened" class="winswitch-checkbox"><label style="width: 300px" for="node-config-input-allowLoweringWhenOpened"> <span data-i18n="security.alwlowopen"></span></label>
+            </div>
+            <div class="form-row checkbox-row">
+                <input type="checkbox" id="node-config-input-allowLoweringCommandPayload" class="winswitch-checkbox"><label style="width: 300px" for="node-config-input-allowLoweringCommandPayload"> <span data-i18n="security.alwlowcmd"></span></label>
+            </div>
+        </div>
+    </div>
+    <hr>
+
+
+
+
+
+
+
     <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md#automatic" target="_blank"> <span data-i18n="automatic.h"></span></a></h3>
     <div class="form-row">
         <label><i class="fa fa-power-off"></i> <span data-i18n="automatic.enable"></span></label>
@@ -388,57 +448,11 @@
             <input type="text" id="node-config-input-hardlock">
         </div>
         <hr>
-        <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/automatic.md#window-switch" target="_blank"> <span data-i18n="windowswitch.h"></span></a></h3>
-        <div class="form-row">
-            <label><i class="fa fa-power-off"></i> <span data-i18n="windowswitch.enable"></span></label>
-            <input type="checkbox" id="node-config-input-winswitchEnable" style="display:inline-block; width:auto;">
-        </div>
-        <div class="winswitch">
-            <div class="form-row">
-                <label for="node-config-input-inmsgWinswitchTopic"><i class="fa fa-envelope-open-o"></i> <span data-i18n="windowswitch.topic"></span></label>
-                <input type="text" id="node-config-input-inmsgWinswitchTopic" data-i18n="[placeholder]windowswitch.topic_ph">
-            </div>
-            <div class="form-row">
-                <label for="node-config-input-inmsgWinswitchPayloadOpened"><i class="fa fa-rocket"></i> <span data-i18n="windowswitch.payloadopened"></span></label>
-                <input type="hidden" id="node-config-input-inmsgWinswitchPayloadOpenedType">
-                <input type="text" id="node-config-input-inmsgWinswitchPayloadOpened">
-            </div>
-            <div class="form-row">
-                <label for="node-config-input-inmsgWinswitchPayloadClosed"><i class="fa fa-rocket"></i> <span data-i18n="windowswitch.payloadclosed"></span></label>
-                <input type="hidden" id="node-config-input-inmsgWinswitchPayloadClosedType">
-                <input type="text" id="node-config-input-inmsgWinswitchPayloadClosed">
-            </div>
-            <div class="form-row">
-                <label><i class="fa fa-power-off"></i> <span data-i18n="windowswitch.tiltedsensor"></span></label>
-                <input type="checkbox" id="node-config-input-winswitchTiltedEnable" style="display:inline-block; width:auto;">
-            </div>
-            <div class="form-row tiltswitch">
-                <label for="node-config-input-inmsgWinswitchPayloadTilted"><i class="fa fa-rocket"></i> <span data-i18n="windowswitch.payloadtilted"></span></label>
-                <input type="hidden" id="node-config-input-inmsgWinswitchPayloadTiltedType">
-                    <input type="text" id="node-config-input-inmsgWinswitchPayloadTilted">
-            </div>
-            <div class="form-row checkbox-row">
-                <input type="checkbox" id="node-config-input-preventClosing"><label style="width: 350px" for="node-config-input-preventClosing"> <span data-i18n="windowswitch.presshadepos"></span></label>
-                <!-- DOCME
-                    Wenn das Rollo zu ist und das Fenster gekippt oder geöffnet wird, fährt das Rollo auf Schlitze.
-                    Wenn das Rollo oberhalb der shade Position ist und das Kommando schließen erhält, wird bei gekipptem oder geöffnetem Fenster stattdessen die shade position angefahren.
-                    Beim Schließen fährt auch das Rollo wieder zu. -->
-            </div>
-        <hr>
-            <div>
-                <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/automatic.md#security-configuration" target="_blank"> <span data-i18n="security.h"></span></a></h3>
-                <div class="form-row checkbox-row tiltswitch">
-                    <input type="checkbox" id="node-config-input-allowLoweringWhenTilted" class="winswitch-checkbox"><label style="width: 300px" for="node-config-input-allowLoweringWhenTilted"> <span data-i18n="security.alwlowtilt"></span></label>
-                </div>
-                <div class="form-row checkbox-row">
-                    <input type="checkbox" id="node-config-input-allowLoweringWhenOpened" class="winswitch-checkbox"><label style="width: 300px" for="node-config-input-allowLoweringWhenOpened"> <span data-i18n="security.alwlowopen"></span></label>
-                </div>
-                <div class="form-row checkbox-row">
-                    <input type="checkbox" id="node-config-input-allowLoweringCommandPayload" class="winswitch-checkbox"><label style="width: 300px" for="node-config-input-allowLoweringCommandPayload"> <span data-i18n="security.alwlowcmd"></span></label>
-                </div>
-            </div>
-        </div>
-        <hr>
+
+
+
+
+
         <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/automatic.md#events-configuration" target="_blank"> <span data-i18n="events.h"></span></a></h3>
         <h4><span data-i18n="events.reautoconds"></span></h4>
         <div class="form-row checkbox-row">
