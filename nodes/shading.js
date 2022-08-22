@@ -221,7 +221,7 @@ module.exports = function(RED) {
 				}
 				
 				// Sending console message
-				else if (node.debug) {that.log("setposHeight: " + context.setposHeightPrev + " -> " + context.setposHeight)}
+				else if (node.debug) {that.log("["+callee+"] " + "setposHeight: " + context.setposHeightPrev + " -> " + context.setposHeight)}
 
 				// Getting hardlock state
 				if (config.autoActive) {
@@ -374,7 +374,7 @@ module.exports = function(RED) {
 					if (node.debug) {that.log("Re-enabeling automatic")}
 					autoReenableFunc()
 				}
-				calcSetposHeight()
+				calcSetposHeight()	// FIXME (!!!) wird hier zweimal aufgerufen, einmal drüber in autoReenableFunc und noch einmal hier.
 				updateNodeStatus()
 			}
 			
