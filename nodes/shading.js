@@ -373,8 +373,9 @@ module.exports = function(RED) {
 				if (config.autoIfSunrise) {
 					if (node.debug) {that.log("Re-enabeling automatic")}
 					autoReenableFunc()
+				} else {
+					calcSetposHeight()
 				}
-				calcSetposHeight()	// FIXME (!!!) wird hier zweimal aufgerufen, einmal drüber in autoReenableFunc und noch einmal hier.
 				updateNodeStatus()
 			}
 			
@@ -384,8 +385,9 @@ module.exports = function(RED) {
 				if (config.autoIfSunset) {
 					if (node.debug) {that.log("Re-enabeling automatic")}
 					autoReenableFunc()
+				} else {
+					calcSetposHeight()
 				}
-				calcSetposHeight()
 				updateNodeStatus()
 			}
 
