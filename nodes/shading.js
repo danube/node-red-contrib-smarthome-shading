@@ -276,7 +276,7 @@ module.exports = function(RED) {
 					that.log("W007: Unknown actual position")
 					sendCommandFunc(null,null,null,context.setposHeight)
 				} else if (context.setposHeight > context.actposHeight) {								// Lowering -> check conditions
-					if (config.winswitchEnable && (!context.windowState || context.windowState < 1 || context.windowState > 3)) {		// Check plausibility of window switch
+					if (!ignoreWindow && config.winswitchEnable && (!context.windowState || context.windowState < 1 || context.windowState > 3)) {		// Check plausibility of window switch
 						that.warn("W008: Unknown or invalid window State. Nothing will happen.")
 					} else if (allowLowering) {
 						sendCommandFunc(null,null,null,context.setposHeight)
