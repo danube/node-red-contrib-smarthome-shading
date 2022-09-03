@@ -1,4 +1,4 @@
-// TODO remove all DEBUS messages
+// TODO remove all DEBUG messages
 // TODO If button release is not seen, state stays on button pressed. Maybe a timeout may help?
 
 module.exports = function(RED) {
@@ -279,6 +279,7 @@ module.exports = function(RED) {
 					if (!ignoreWindow && config.winswitchEnable && (!context.windowState || context.windowState < 1 || context.windowState > 3)) {		// Check plausibility of window switch
 						that.warn("W008: Unknown or invalid window State. Nothing will happen.")
 					} else if (allowLowering) {
+  					if (node.debug) {that.log("DEBUG: Sending command now. setposHeight = " + context.setposHeight)}
 						sendCommandFunc(null,null,null,context.setposHeight)
 					} else {
 						if (node.debug) {that.log("Actual window position prevents lowering, holding back command.")}
@@ -374,7 +375,7 @@ module.exports = function(RED) {
 					if (node.debug) {that.log("Re-enabeling automatic")}
 					autoReenableFunc()
 				} else {
-					calcSetposHeight()
+				  calcSetposHeight()	// FIXME (!!!) wird hier zweimal aufgerufen, einmal drüber in autoReenableFunc und noch einmal hier.
 				}
 				updateNodeStatus()
 			}
@@ -386,7 +387,7 @@ module.exports = function(RED) {
 					if (node.debug) {that.log("Re-enabeling automatic")}
 					autoReenableFunc()
 				} else {
-					calcSetposHeight()
+				  calcSetposHeight()	// FIXME (!!!) wird hier zweimal aufgerufen, einmal drüber in autoReenableFunc und noch einmal hier.
 				}
 				updateNodeStatus()
 			}
@@ -881,21 +882,25 @@ module.exports = function(RED) {
 
 			if (closeCommand) {		// TODO If blind is below shading position and command is received, it will move up. Clarify what should happen then.
 				if (node.debug) {that.log("Received command to close")}
-				if (config.preventClosing && context.windowState != window.closed) {
+
+				if (config.allowLoweringCommandPayload && msg.commandforce === true) {
+					if (node.debug) {that.log("msg.commandforce is set, window position will be ignored!")}
+					context.setposHeight = shadingSetpos.close
+					autoMoveFunc(true,true,true)
+        } else if (config.preventClosing && context.windowState != window.closed) {
 					if (node.debug) {that.log("Window is not closed, going to shade position instead.")}
 					context.setposHeight = shadingSetpos.shade
 					closeIfWinCloses = true
+					autoMoveFunc(true,true)
 				} else {
 					context.setposHeight = shadingSetpos.close
-				}
-				if (config.allowLoweringCommandPayload && msg.commandforce === true) {
-					if (node.debug) {that.log("msg.commandforce is set, window position will be ignored!")}
-					autoMoveFunc(true,true,true)
-				} else {
 					autoMoveFunc(true,true)
 				}
+
 				context.autoLocked = true
 			}
+
+
 
 			if (autoReenableEvent && config.autoActive) {
 				if (node.debug) {that.log("Re-enabeling automatic due to manual request")}		// TODO vielleicht eigene message, wenn autoReenableEvent gesetzt wird durch drücken beider buttons
