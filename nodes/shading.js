@@ -151,27 +151,26 @@ module.exports = function(RED) {
 		 * @param {String} d Payload for output 4 (setpointcommand)
 		 */
 		function sendCommandFunc(a,b,c,d) {
-			
+
+			const callee = arguments.callee.name
+
 			let msgA, msgB, msgC, msgD, msgE = null
 
 			if (a != null) {
 				msgA = {topic: "open", payload: a}
-				// that.log("msgA has content")
 			} else msgA = null
 			
 			if (b != null) {
 				msgB = {topic: "close", payload: b}
-				// that.log("msgB has content")
 			} else msgB = null
 			
 			if (c != null) {
 				msgC = {topic: "stop", payload: c}
-				// that.log("msgC has content")
 			} else msgC = null
 			
 			if (d != null) {
+  			if (node.debug) {that.log(callee + ": Sending setposHeight " + context.setposHeight)}
 				msgD = {topic: "command", payload: d}
-				// that.log("msgD has content")
 			} else msgD = null
 
 			msgE = {
@@ -226,7 +225,6 @@ module.exports = function(RED) {
 				// Getting hardlock state
 				if (config.autoActive) {
 
-
 					if (config.hardlockType === "flow") {
 						context.hardlock = flowContext.get(config.hardlock)
 					} else if (config.hardlockType === "global") {
@@ -247,7 +245,6 @@ module.exports = function(RED) {
 
 				
 				// Check if movement is allowed
-				
 				} else {
 					context.hardlock = false
 				}
@@ -263,23 +260,22 @@ module.exports = function(RED) {
 
 				if (context.hardlock && !ignoreLock) {													// Hardlock -> nothing will happen
 					if (node.debug) {that.log("Locked by hardlock, nothing will happen.")}
-				} else if (context.autoLocked && !ignoreLock) {											// Softlock -> nothing will happen
+				} else if (context.autoLocked && !ignoreLock) {											// Auto locked (off) -> nothing will happen
 					if (node.debug) {that.log("Not in automatic mode, nothing will happen.")}
-				} else if (config.inmsgTopicActPosHeightType === "dis") {								// No shading position feedback -> always move
+				} else if (config.inmsgTopicActPosHeightType === "dis") {								// No shading position feedback configured -> always move
 					sendCommandFunc(null,null,null,context.setposHeight)
 				} else if (typeof context.actposHeight == "undefined" && context.setposHeight === 0) {	// Actual height position unknown but setpos is 0 -> move up
 					that.warn("W005: Unknown actual position, but rising is allowed.")
 					sendCommandFunc(null,null,null,context.setposHeight)
 				} else if (typeof context.actposHeight == "undefined" && !allowLowering) {				// Actual height position unknown where lowering is not allowed
 					that.warn("W006: Unknown actual position. Nothing will happen.")
-				} else if (typeof context.actposHeight == "undefined") {
+				} else if (typeof context.actposHeight == "undefined") {        // Actual height position unknown (setpos must be > 0)
 					that.log("W007: Unknown actual position")
 					sendCommandFunc(null,null,null,context.setposHeight)
 				} else if (context.setposHeight > context.actposHeight) {								// Lowering -> check conditions
 					if (!ignoreWindow && config.winswitchEnable && (!context.windowState || context.windowState < 1 || context.windowState > 3)) {		// Check plausibility of window switch
 						that.warn("W008: Unknown or invalid window State. Nothing will happen.")
 					} else if (allowLowering) {
-  					if (node.debug) {that.log("DEBUG: Sending command now. setposHeight = " + context.setposHeight)}
 						sendCommandFunc(null,null,null,context.setposHeight)
 					} else {
 						if (node.debug) {that.log("Actual window position prevents lowering, holding back command.")}
@@ -304,7 +300,8 @@ module.exports = function(RED) {
 			const caller = calcSetposHeight.caller.name
 			const callee = arguments.callee.name
 			// console.log("DEBUG: "+callee+" called from '"+caller+"'")
-			if (context.sunInSky) {
+		
+			if (context.sunInSky) {   			// This is the routine for daytime
 				if (node.debug) {that.log("Checking configuration for daytime")}
 				if (config.openIfSunrise) {
 					context.setposHeight = shadingSetpos.open
@@ -321,7 +318,7 @@ module.exports = function(RED) {
 				} else {
 					if (node.debug) {that.log("Nothing configured to happen on daytime")}
 				}
-			} else {
+			} else {        // This is the routine for nighttime
 				if (node.debug) {that.log("Checking configuration for nighttime")}
 				if (config.openIfSunset) {
 					context.setposHeight = shadingSetpos.open
@@ -375,7 +372,7 @@ module.exports = function(RED) {
 					if (node.debug) {that.log("Re-enabeling automatic")}
 					autoReenableFunc()
 				} else {
-				  calcSetposHeight()	// FIXME (!!!) wird hier zweimal aufgerufen, einmal drüber in autoReenableFunc und noch einmal hier.
+				  calcSetposHeight()
 				}
 				updateNodeStatus()
 			}
@@ -387,7 +384,7 @@ module.exports = function(RED) {
 					if (node.debug) {that.log("Re-enabeling automatic")}
 					autoReenableFunc()
 				} else {
-				  calcSetposHeight()	// FIXME (!!!) wird hier zweimal aufgerufen, einmal drüber in autoReenableFunc und noch einmal hier.
+				  calcSetposHeight()
 				}
 				updateNodeStatus()
 			}
@@ -403,6 +400,9 @@ module.exports = function(RED) {
 			if (context.setposHeight) {
 				autoMoveFunc()
 			}
+
+			// Backing up context
+			contextBackup()
 
 		}
 
@@ -571,7 +571,18 @@ module.exports = function(RED) {
 			// }
 
 		}
+
+
+
+
+
+		function contextBackup() {
+			nodeContext.set("context", context)		// Backing up context
+		}
 	
+
+
+		
 		// <==== FUNCTIONS
 
 
@@ -691,7 +702,6 @@ module.exports = function(RED) {
 						
 					} else {																// no handle present -> must be first click
 						context.buttonOpenTimeoutHandle = setTimeout(function(){			// set timeout with function
-							if (node.debug) {that.log("Open singleclick detected")}
 							if (!context.autoLocked) {
 								context.autoLocked = true
 								if (node.debug) {that.log("Automatic disabled")}
@@ -701,13 +711,15 @@ module.exports = function(RED) {
 							if (context.stateButtonOpen) {									// button is still pressed -> must be a long click
 
 								// LONG CLICK ACTIONS ==>
-								sendCommandFunc(config.payloadOpenCmd,null,null,null)
+								if (node.debug) {that.log("Open longclick detected")}
+  							sendCommandFunc(config.payloadOpenCmd,null,null,null)
 								context.stateButtonRunning = true
 								// <== LONG CLICK ACTIONS
 								
 							} else {														// button not pressed anymore -> must be a single click
 								
 								// SINGLE CLICK ACTIONS ==>
+  							if (node.debug) {that.log("Open singleclick detected")}
 								if (context.actposHeight > shadingSetpos.shade) {
 									sendCommandFunc(null,null,null,shadingSetpos.shade)
 								} else {
@@ -744,7 +756,6 @@ module.exports = function(RED) {
 						
 					} else {
 						context.buttonCloseTimeoutHandle = setTimeout(function(){
-							if (node.debug) {that.log("Close singleclick detected")}
 							if (!context.autoLocked) {
 								context.autoLocked = true
 								if (node.debug) {that.log("Automatic disabled")}
@@ -754,6 +765,7 @@ module.exports = function(RED) {
 							if (context.stateButtonClose) {
 								
 								// LONG CLICK ACTIONS ==>
+  							if (node.debug) {that.log("Close longclick detected")}
 								sendCommandFunc(null,config.payloadCloseCmd,null,null)
 								context.stateButtonRunning = true
 								// <== LONG CLICK ACTIONS
@@ -761,6 +773,7 @@ module.exports = function(RED) {
 							} else {
 								
 								// SINGLE CLICK ACTIONS ==>
+  							if (node.debug) {that.log("Close singleclick detected")}
 								if (context.actposHeight < shadingSetpos.shade) {
 									sendCommandFunc(null,null,null,shadingSetpos.shade)
 								} else {
@@ -775,6 +788,7 @@ module.exports = function(RED) {
 				} else if (buttonReleaseEvent && context.stateButtonRunning) {
 					
 					// BUTTONS RELEASED ACTIONS ==>
+					if (node.debug) {that.log("Button released")}
 					context.stateButtonRunning = false
 					sendCommandFunc(null,null,config.payloadStopCmd,null)
 					// <== BUTTONS RELEASED ACTIONS
@@ -818,6 +832,9 @@ module.exports = function(RED) {
 				
 				// Sending debug message
 				if (node.debug) {that.log("Window switch event detected: " + oldStateStr + " -> "  + context.windowStateStr)}
+
+				console.log("DEBUG: context:")
+				console.log(context)
 
 			}
 
@@ -924,18 +941,19 @@ module.exports = function(RED) {
 			// Providing status
 			sendCommandFunc()
 
+			// Backing up context
+			contextBackup()
+
 		})
+
+
+
 
 
 		// <==== MESSAGE EVENT ACTIONS
 		
 
 
-
-
-		nodeContext.set("context", context)		// Backing up context
-
-		
 
 
 
