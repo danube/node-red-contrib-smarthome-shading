@@ -8,6 +8,7 @@ TODO
 * Debug Option später verstecken oder entfernen
 * Links in den MD Dateien checken, nachdem das Repo veröffentlicht wurde
 * Position feedback muss optional sein
+* Status output {{msg.payload.context.windowStateStr}} is english, make somehow int'l
 
 
 # Credits & 3rd party software
