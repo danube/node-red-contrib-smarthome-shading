@@ -78,15 +78,15 @@ Wenn Du manuell den Antrieb verfährst (entweder mit den Tastern oder einem Posi
 ### Ereignisse zum Öffnen
 | Parameter | Beschreibung | Standart-Wert |
 |-|-|-|
-| Sonnenaufgang | Wenn gesetzt und Automatikmodus aktiv, fährt der Antrieb in die Offen-Position bei Sonnenaufgang. | Deaktiviert |
-| Sonnenuntergang | Wenn gesetzt und Automatikmodus aktiv, fährt der Antrieb in die Offen-Position bei Sonnenuntergang. | Deaktiviert |
+| Sonnenaufgang | Wenn gewählt und Automatik aktiv, wird der Antrieb bei Sonnenaufgang nach oben fahren. | Deaktiviert |
+| Sonnenuntergang | Wenn gewählt und Automatik aktiv, wird der Antrieb bei Sonnenuntergang nach oben fahren. | Deaktiviert |
 ### Ereignisse zur Schattenfahrt
 | Parameter | Beschreibung | Standart-Wert |
 |-|-|-|
-| Sonnenaufgang | Wenn gesetzt und Automatikmodus aktiv, fährt der Antrieb in die Beschattungs-Position bei Sonnenaufgang. | Deaktiviert |
-| Sonnenuntergang | Wenn gesetzt und Automatikmodus aktiv, fährt der Antrieb in die Beschattungs-Position bei Sonnenuntergang. | Deaktiviert |
+| Sonnenaufgang | Wenn gewählt und Automatik aktiv, wird der Antrieb bei Sonnenaufgang in die Schatten-Position fahren. | Deaktiviert |
+| Sonnenuntergang | Wenn gewählt und Automatik aktiv, wird der Antrieb bei Sonnenuntergang in die Schatten-Position fahren. | Deaktiviert |
 ### Ereignisse zum Schließen
 | Parameter | Beschreibung | Standart-Wert |
 |-|-|-|
-| Sonnenaufgang | Wenn gesetzt und Automatikmodus aktiv, fährt der Antrieb in die Geschlossen-Position bei Sonnenaufgang. | Deaktiviert |
-| Sonnenuntergang | Wenn gesetzt und Automatikmodus aktiv, fährt der Antrieb in die Geschlossen-Position bei Sonnenuntergang. | Deaktiviert |
+| Sonnenaufgang | Wenn gewählt und Automatik aktiv, wird der Antrieb bei Sonnenaufgang nach unten fahren. | Deaktiviert |
+| Sonnenuntergang | Wenn gewählt und Automatik aktiv, wird der Antrieb bei Sonnenuntergang nach unten fahren. | Deaktiviert |

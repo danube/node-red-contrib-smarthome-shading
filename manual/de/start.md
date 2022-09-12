@@ -16,4 +16,4 @@ Bitte kontaktiere mich, wenn Du irgendwelche Fragen hast. Lass mich wissen, wenn
 - [schreibe mit mir auf Discord](https://rebrand.ly/cb4glqq)
 
 # Wenn Du meine Arbeit magst
-[![spendiere mir einen Kaffee](../../files/bmc-white-button.png)](https://rebrand.ly/zm4k1c6)
+<a href="https://rebrand.ly/zm4k1c6" target="_blank"><img src="../../files/bmc-white-button.png" alt="Spendiere mir einen Kaffee" width="300"/></a>

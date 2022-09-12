@@ -16,4 +16,4 @@ Please contact me, if you have any question. Let me know, if something is not cl
 - [Talk to me in Discord](https://rebrand.ly/cb4glqq)
 
 # If you're satisfied
-[![Buy me a coffee](../../files/bmc-white-button.png)](https://rebrand.ly/zm4k1c6)
+<a href="https://rebrand.ly/zm4k1c6" target="_blank"><img src="../../files/bmc-white-button.png" alt="Buy me a coffee" width="300"/></a>

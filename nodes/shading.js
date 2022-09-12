@@ -1,6 +1,3 @@
-// TODO remove all DEBUG messages
-// TODO If button release is not seen, state stays on button pressed. Maybe a timeout may help?
-
 module.exports = function(RED) {
 
 	// Loading external modules
@@ -91,7 +88,7 @@ module.exports = function(RED) {
 		// Variable declaration
 		
 		/** Main loop interval [ms] in which the environment (sun position, temperatures, ...) will be checked. */
-		const loopIntervalTime = 20000		// TODO make configurable
+		const loopIntervalTime = 20000
 
 		/** Positions [%] for shading commands
 		 * @property {number} open Constant 0
@@ -337,12 +334,12 @@ module.exports = function(RED) {
 			}
 		}
 
-		/** TODO Function description */
+		/** This function is called on sunrise */
 		function sunriseFunc(){
 			suncalcFunc()
 		}
 		
-		/** TODO Function description */
+		/** This function is called on sunset */
 		function sunsetFunc(){
 			suncalcFunc()
 		}
@@ -557,32 +554,14 @@ module.exports = function(RED) {
 				sunEventTimeoutHandle = setTimeout(sunsetFunc, sunTimes.msToSunset)
 			}
 
-
-
-			// Setting timeout trigger for sunrise and sunset
-			// TODO hier hatte ich aufgehört, weiß grad nimmer was das werden sollte
-			
-			// clearTimeout(sunriseFuncTimeoutHandle)
-			// clearTimeout(sunsetFuncTimeoutHandle)
-			// if (sunTimes.msToSunrise >= 0) {
-			// 	sunriseFuncTimeoutHandle = 
-			// }
-			// if (sunTimes.msToSunset >= 0) {
-			// }
-
 		}
 
-
-
-
-
+		/** This function writes back the context */
 		function contextBackup() {
 			nodeContext.set("context", context)		// Backing up context
 		}
 	
 
-
-		
 		// <==== FUNCTIONS
 
 
@@ -832,9 +811,6 @@ module.exports = function(RED) {
 				
 				// Sending debug message
 				if (node.debug) {that.log("Window switch event detected: " + oldStateStr + " -> "  + context.windowStateStr)}
-
-				console.log("DEBUG: context:")
-				console.log(context)
 
 			}
 
