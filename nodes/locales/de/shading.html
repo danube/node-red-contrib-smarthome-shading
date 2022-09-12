@@ -1,207 +1,16 @@
 <script type="text/html" data-help-name="shading">
-
-    <style>
-        .red-ui-help h3, .red-ui-help h4, .red-ui-help h5 {
-            font-weight: bolder;
-        }
-    </style>
-
-    <p>Steuere Deine Beschattung mit diesem Node. Verbinde Fensterschalter und Taster. Konfiguriere automatische Bewegungen und Sicherheitsmaßnahmen.</p>
-
-    <h3><i class="fa fa-cog"></i> Eigenschaften</h3>
-
-        <h4><i class="fa fa-tag"></i> Name</h4>
-            <p>Falls das Feld leer gelassen wird, wird am Board "Shading" angezeigt. Andernfalls steht dort das, was Du hier eingibst.</p>
-
-        <h4><i class="fa fa-sliders"></i> Konfiguration</h4>
-            <p>Verwende das Dropdown Feld, um entweder ein bestehendes Konfigurationsset zu verwenden oder ein neues zu erstellen.</p>
-
-        <h4><i class="fa fa-bug"></i> Debugging</h4>
-            <p>Falls dies aktiviert ist, werden zusätzliche Meldungen im Node-RED Logbuch sowie in der Debugging Konsole angezeigt.</p>
-
-    <h3><i class="fa fa-exclamation-circle"></i> Warnung und Fehlercodes</h3>
-        <p>Warnungen und Fehler werden sowohl an das Node-RED Logbuch als auch die Debugging Konsole gesendet. Es ist also eine gute Idee, immer eines davon im Auge zu behalten. Falls ein Ereignis eintritt, wird ein kurzer Text mit einer vorangestellten Identifikationsziffer ausgegeben. Diese startet entweder mit einem "W" für Warnungen oder "E" für Fehler (Error). Beispiel: "E007: Ungültiger James Bond erkant, ersetzen!". Hier ist die Liste mit unterstützten Codes.</p>
-
-        <h4>Warnungen (Wxxx)</h4>
-
-            <h5>W001: Cannot restore sensor states</h5>
-                <p>Im Betrieb empfängt der Node Sensordaten und legt diese im lokalen Speicher ab. Dieser Speicher geht verloren, wenn der Node (oder Node-RED) neugestartet wird. Anschließend sind die Sensordaten unbekannt. Um das zu lösen, hat Node-RED das Speichern des Context-Stores mit der Option "localfilesystem" eingeführt. Mit dieser Option wird der Speicher permanent in Dateiform abgespeichert. Bei einem Neustart wird diese Datei eingelesen, somit stehen die zuvor gespeicherten Daten wieder zur Verfügung. <a href="https://nodered.org/docs/user-guide/context#saving-context-data-to-the-file-system" target="_blank">Erfahre hier, wie Du diese Option aktivierst.</a></p>
-            
-            <h5>W002: Received invalid drive position '<code>msg.payload</code>'.</h5>
-                <p>Dein Antrieb hat eine Istposition gesendet. Der Wert lag allerdings außerhalb des gültigen Bereichs. Dieser muss zwischen 0 (offen/oben) und 100 (geschlossen/unten) liegen. Der empfangene Wert wird in der Meldung anstelle von <code>msg.payload</code> dargestellt.</p>
-            
-            <h5>W003: Undefined hardlock variable at '<code>location.variable</code>'.</h5>
-                <p>Die hardlock Variable (in der Konfiguration "Sperre" genannt) muss als Variable in den flow oder global Context Daten verfügbar sein. Das bedeutet, Du musst an einer stelle diese Variable setzen, bevor sie hier aufgerufen wird. Wenn die konfigurierte Variable nicht existiert, wird diese Warnung ausgegeben. Außerdem <strong>nimmt der Node an, dass die Sperre gesetzt ist</strong>. Optional kannst Du die Sperre in der Konfiguration deaktivieren.</p>
-            
-            <h5>W004: Hard lock variable not a boolean</h5>
-                <p>Die gute Nachricht: Deine Sperre Variable konnte in den Context Daten gefunden werden. Die schlechte Nachricht: Der Wert ist kein <code>bool</code>, also weder <code>true</code> noch <code>false</code>. Prüfe und behebe das. Bis dahin <strong>nimmt der Node an, dass die Sperre gesetzt ist</strong>. Optional kannst Du die Sperre in der Konfiguration deaktivieren.</p>
-            
-            <h5>W005: Unknown actual position, but rising is allowed.</h5>
-                <p>Du hast konfiguriert, dass der Node eine Istposition vom Antrieb erwartet (Konfigurationsparameter: "Topic: Istposition"). Bis zu diesem Zeitpunkt wurde keine Istposition empfangen. Der Antrieb soll nun ganz öffnen / nach oben fahren. Das ist sicherheitstechnisch unkritisch, da hier keine Klemmgefahr entsteht. Allerdings erhältst Du diese Warnung, bis eine gültige Istposition eingegangen ist. Optional kannst Du mit der Einstellung "Disabled" einstellen, dass keine Istposition erwartet wird.</p>
-            
-            <h5>W006: Unknown actual position. Nothing will happen.</h5>
-                <p>Du hast konfiguriert, dass der Node eine Istposition vom Antrieb erwartet (Konfigurationsparameter: "Topic: Istposition"). Bis zu diesem Zeitpunkt wurde keine Istposition empfangen. Der Antrieb soll sich nun in Bewegung setzen, es ist allerdings nicht sicher, ob er nach oben oder nach unten fährt (die Sollposition ist nicht 0%). Aus sicherheitstechnischer Sicht und entsprechend der Node Konfiguration kann hier eine Gefahr entstehen. Deshalb wird der Antrieb nicht angesteuert. Allerdings erhältst Du diese Warnung, bis eine gültige Istposition eingegangen ist. Optional kannst Du mit der Einstellung "Disabled" einstellen, dass keine Istposition erwartet wird.</p>
-
-            <h5>W007: Unknown actual position</h5>
-                <p>Du hast konfiguriert, dass der Node eine Istposition vom Antrieb erwartet (Konfigurationsparameter: "Topic: Istposition"). Bis zu diesem Zeitpunkt wurde keine Istposition empfangen. Die getroffenen Sicherheitseinstellungen sehen vor, dass der Antrieb in jeder Situation verfahren darf. Allerdings erhältst Du diese Warnung, bis eine gültige Istposition eingegangen ist. Optional kannst Du mit der Einstellung "Disabled" einstellen, dass keine Istposition erwartet wird.</p>
-            
-            <h5>W008: Unknown or invalid window State. Nothing will happen.</h5>
-                <p>In den Einstellungen hast Du einen Fensterschalter konfiguriert. Um ein ordnungsgemäßes Verfahren des Antriebs zu gewährleisten, muss die Fensterposition bekannt sein. Um eine Gefahr zu vermeiden, wird aus sicherheitstechnischen Gründen der Antrieb nur aufwärts, nicht jedoch abwärts fahren. Du erhältst diese Warnung, bis eine gültige Fensterposition bekannt ist. Optional kannst Du den Fensterschalter in der Konfiguration deaktivieren.</p>
-
-        <h4>Fehler/Errors (Exxx)</h4>
-
-            <h5>E001: invalid setposHeight type ('type') [caller]</h5>
-                <p>Die Sollposition sollte vom Datentyp <code>number</code> sein. Aus irgendeinem Grund ist das nicht der Fall (anstelle von <code>'type'</code> wird der empfangene Datentyp angezeigt). Wende Dich bitte an den Entwickler.</p>
-
-            <h5>E002: negative setposHeight ('value') [caller]</h5>
-                <p>Die Sollposition muss positiv sein. Aus irgendeinem Grund ist das nicht der Fall (anstelle von <code>'value'</code> wird der empfangene Wert angezeigt). Bitte wende Dich an den Entwickler.</p>
-
-            <h5>E003: setposHeight above 100 ('value') [caller]</h5>
-                <p>Die Sollposition darf nicht größer als 100 sein. Aus irgendeinem Grund ist das der Fall (anstelle von <code>'value'</code> wird der empfangene Wert angezeigt). Bitte wende Dich an den Entwickler.</p>
-
-            <h5>E004: Suntimes Berechnung defekt</h5>
-                <p>Die externe Bibliothek "<a href="https://www.npmjs.com/package/suncalc" target="_blank">suncalc</a>" wird geladen, um sonnenrelevante Berechnungen durchzuführen. Diese Funktion hat keine gültigen Werte geliefert. Bitte wende Dich an den Entwickler.</p>
-
-            <h5>E005: Undefined hardlock type</h5>
-                <p>Der Datentyp der Sperre (hardlock) kann in der Node Konfiguration definiert werden. Zur Auswahl stehen "Disabled", "Flow" und "Global". Diese Fehlermeldung erscheint, wenn der Node einen anderen Datentyp zur Bearbeitung erhalten hat (was nicht möglich sein sollte). Bitte wende Dich an den Entwickler.</p>
-
-            <h5>E006: Cannot find valid sunrise or sunset times</h5>
-                <p>Die externe Bibliothek "<a href="https://www.npmjs.com/package/suncalc" target="_blank">suncalc</a>" wird geladen, um die Berechnung von Sonnenaufgang und -untergang zu berechnen. Diese Funktion hat keine gültigen Werte geliefert. Bitte wende Dich an den Entwickler.</p>
-
-    <h3 style="font-weight: bolder">Fragen oder Wünsche</h3>
-        <p>Bitte kontaktiere mich, wenn Du irgendwelche Fragen hast. Lass mich wissen, wenn etwas unklar ist oder Du der Meinung bist, einen Bug oder einen Tippfehler gefunden zu haben. Ich freue mich über jede Gelegenheit, meine Lösungen zu verbessern, da ich die auch selbst verwende. <a href="https://rebrand.ly/y2k9c7y" target="_blank">Erstelle einen Issue auf GitHub</a> oder <a href="https://rebrand.ly/cb4glqq" target="_blank">schreibe mit mir auf Discord</a>.</p>
-        <p>Wenn Du magst, <a href="https://rebrand.ly/zm4k1c6" target="_blank">spendiere mir einen Kaffee.</p>
-        <img src="https://raw.githubusercontent.com/danube/node-red-contrib-smarthome-monitor/main/files/bmc-white-button.png" onerror="this.onerror=null; this.remove();"></a>
-        
-                
-        
+    TODO Link to online / offline manual
 </script>
 
 
 
 <script type="text/html" data-help-name="shading configuration">
+    TODO Link to online / offline manual
 
-    <style>
-        .red-ui-help h3, .red-ui-help h4, .red-ui-help h5 {
-            font-weight: bolder;
-        }
-        .red-ui-help h4 {
-            text-decoration: underline;
-        }
-        .iconpadding {
-            padding-left: 20px;
-        }
-    </style>
-
-    <p>Die Konfiguration enthält alle Parameter für Deine Beschattung. Du kannst verschiedene solche Konfigurationen erstellen und diese anschließend Deinen Nodes zuweisen.</p>
-
-    <h3><i class="fa fa-cog"></i> Eigenschaften</h3>
-
-            <h5><i class="fa fa-tag"></i> Name</h5>
-                <p>Das ist der Name, mit dem Du kein Konfigurations-Set identifizierst. Wenn Du mit mehreren solcher Sets planst empfiehlt sich, dem einen aussagekräftigen Namen zu geben. Verwende beispielsweise konkrete Werte im Namen. Wenn Du nur ein Set verwenden wirst, kannst Du dieses Feld leer lassen. Stattdessen wird automatisch "Shading configuration" verwendet.</p>
-
-        <h4>Beschattung</h4>
-
-            <h5><i class="fa fa-window-maximize"></i> Schatten-Position</h5>
-                <p>Dieser Wert gibt die Position zwischen komplett offen (0%) und komplett geschlossen (100%) an. Üblicherweise ist das die Position, an dem das Rollo nur so weit geschlossen ist, dass die Schlitze noch offen sind. Diese Position bietet einen Sonnenschutz und gewährleistet die Durchlüftung.Standardwert: 80</p>
-
-            <h5><i class="fa fa-envelope-open-o"></i> Topic: Istposition</h5>
-                <p>Wähle zwischen <code>Disabled</code> und <code>string</code> aus dem Typenselektor. Wenn <code>string</code> gewählt ist, fülle aus, was als <code>msg.topic</code> erwartet wird, wenn eine Istposition im <code>msg.payload</code> vom verbundenen Antrieb eingeht. Der Wert selbst muss zwischen <code>0</code> (für komplett offen/oben) und <code>100</code> (für komplett geschlossen/unten) liegen. Standardwert (wenn das Feld frei gelassen wird): Disabled.</p>
-            
-        <h4>Taster</h4>
-            <p>Ein verbundener Drucktaster muss eine Nachricht senden, deren <code>msg.payload</code> den Wert <code>true</code> bei gedrücktem bzw. <code>false</code> bei losgelassenem Tastendruck enthält. <code>msg.topic</code> kann konfiguriert werden. Wenn Du keinen Taster hast, kannst Du diesen Bereich ignorieren.</p>
-
-            <h5><i class="fa fa-envelope-open-o"></i> Topic: Fahre hoch</h5>
-                <p><code>msg.topic</code> der Nachricht, wenn der Taster zum Hochfahren betätigt wird. Standardwert (wenn das Feld frei gelassen wird): "buttonup".</p>
-                
-            <h5><i class="fa fa-envelope-open-o"></i> Topic: Fahre runter</h5>
-                <p><code>msg.topic</code> der Nachricht, wenn der Taster zum Runterfahren betätigt wird. Standardwert (wenn das Feld frei gelassen wird): "buttondown".</p>
-            
-            <h5><i class="fa fa-clock-o"></i> Doppelklick Zeit</h5>
-                <p>Jeder Taster kann ein- oder zweimal betätigt werden. Eine einfache Betätigung fährt den Antrieb in die jeweils nächste Position in der gewählten Richtung (offen/schatten/zu). Eine zweifache Betätigung fährt den Antrieb entweder komplett auf oder zu, je nach betätigtem Taster. Diese Zeit in Milisekunden wird nach dem ersten Tastendruck gewartet, ob sich ein zweiter Tastendruck ereignet. Standardwert: 400.</p>
-
-        <h4>Positionsbefehle</h4>
-            <p>Positionsbefehle lassen den Antrieb in eine der drei definierten Positionen fahren (offen/schatten/zu). <code>msg.payload</code> wird ignoriert, solange <code>msg.topic</code> einen der folgenden Werte enthält.</p>
-
-            <h5><i class="fa fa-envelope-open-o"></i> Topic: Öffnen</h5>
-                <p><code>msg.topic</code> der Nachricht, um den Antrieb auf die Offen-Position zu fahren. Standardwert (wenn das Feld frei gelassen wird): "commandopen".</p>
-                
-            <h5><i class="fa fa-envelope-open-o"></i> Topic: Beschatten</h5>
-            <p><code>msg.topic</code> der Nachricht, um den Antrieb auf die Schatten-Position zu fahren. Standardwert (wenn das Feld frei gelassen wird): "commandshade".</p>
-                
-            <h5><i class="fa fa-envelope-open-o"></i> Topic: Schließen</h5>
-            <p><code>msg.topic</code> der Nachricht, um den Antrieb auf die Geschlossen-Position zu fahren. Standardwert (wenn das Feld frei gelassen wird): "commandclose".</p>
-
-        <h4>Ausgänge</h4>
-            <p>Der Node hat verschiedene Ausgänge. Drei stehen für den Tippbetrieb zur Verfügung: Open, close und stop. Diese werden verwendet, um den Antrieb per Tastendruck in Bewegung zu versetzen und wiederum anzuhalten.
-            <ul>
-                <li>Eine lange Betätigung des "Öffnen"-Tasters wird den Ausgang "open" ansteuern.</li>
-                <li>Eine lange Betätigung des "Schließen"-Tasters wird den Ausgang "close" ansteuern.</li>
-                <li>Das Loslassen eines der betätigten Tasters nach langer Betätigung wird den Ausgang "stop" ansteuern.</li>
-            </ul>
-            Konfiguriere das <code>msg.payload</code> eines jeden Ausgangs.</p>
-
-            <h5><i class="fa fa-rocket"></i> Payload: Auf</h5>
-                <p><code>msg.payload</code> der Nachricht am Ausgang "open", wenn der "Öffnen"-Taster lange gedrückt wird. Standardwert: boolean, true.</p>
-
-            <h5><i class="fa fa-rocket"></i> Payload: Ab</h5>
-            <p><code>msg.payload</code> der Nachricht am Ausgang "close", wenn der "Schließen"-Taster lange gedrückt wird. Standardwert: boolean, true.</p>
-
-            <h5><i class="fa fa-rocket"></i> Payload: Stop</h5>
-                <p><code>msg.payload</code> der Nachricht am Ausgang "stop", wenn ein lange gedrückter Taster losgelassen wird. Standardwert: boolean, true.</p>
-
-        <h4>Automatik</h4>
-            <p>Das Automatisieren einer Beschattung kann bei manchen Installationen erwünscht sein. Mit den unten stehenden Parametern kannst Du ein automatisches Verhalten aktivieren und beeinflussen.</p>
-
-            <h5><i class="fa fa-power-off"></i> Aktivieren</h5>
-                <p>Wenn aktiviert, prüft der Node periodisch die Sonnenposition anhand der eingestellten Koordinaten. Du kannst einstellen, was bei Sonnenaufgang bzw. -untergang passiert. Aktiviere diese Option, um die folgenden Parameter sichtbar zu machen. Standardwert: Deaktiviert.</p>
-
-            <h5><i class="fa fa-compass"></i> Breitengrad / Längengrad</h5>
-                <p>Gib hier die Koordinaten der Installation an. Wenn diese nicht bekannt sind, verwende eines der Kartentools im Internet, das hier zum Beispiel: <a href="https://www.latlong.net/" target="_blank">latlong.net</a>.</p>
-
-            <h5><i class="fa fa-sliders"></i> Sperre</h5>
-                <p>Die Sperre-Variable gibt Dir die Möglichkeit, jede automatische Bewegung zu unterbinden. Die Variable muss entweder im flow oder global Daten Context verfügbar sein und muss den Wert <code>true</code> oder <code>false</code> haben. Beachte, dass es immer noch möglich ist, den Antrieb mit den Tastern oder den Positionsbefehlen zu betreiben. Es wird allerdings eine Meldung in der Konsole ausgegeben. Standardwert: disabled.</p>
-
-        <h4>Fensterschalter</h4>
-            <p>Wenn Du einen Fensterschalter hast, kannst Du hier angeben, wie die Nachricht dieses Schalters erwartet wird. Mit diesem und zusätzlichen Sicherheitseinstellungen kannst Du das automatische Verfahren des Antriebs beeinflussen.</p>
-
-            <h5><i class="fa fa-power-off"></i> Aktivieren</h5>
-                <p>Um die Nachricht des Fensterschalters zu konfigurieren, musst Du diese Option aktivieren.Standardwert: Deaktiviert.</p>
-
-            <h5><i class="fa fa-envelope-open-o"></i> Topic</h5>
-                <p><code>msg.topic</code> der Nachricht vom Fensterschalter. Standardwert (wenn das Feld frei gelassen wird): switch.</p>
-
-            <h5><i class="fa fa-rocket"></i> Payload: Geöffnet</h5>
-                <p><code>msg.payload</code> der Nachricht vom Fensterschalter, welcher die Position "Geöffnet" repräsentiert. Standardwert: number, 1.</p>
-
-            <h5><i class="fa fa-rocket"></i> Payload: Geschlossen</h5>
-                <p><code>msg.payload</code> der Nachricht vom Fensterschalter, welcher die Position "Geschlossen" repräsentiert. Standardwert: number, 1.</p>
-
-            <h5><i class="fa fa-power-off"></i> Kippsensor</h5>
-                <p>Aktiviere diese Option, wen Dein Fenster mit einem Kippsensor ausgestattet ist. Standardwert: Deaktiviert.</p>
-
-            <h5><i class="fa fa-rocket"></i> Payload: Gekippt</h5>
-                <p><code>msg.payload</code> der Nachricht vom Fensterschalter, welcher die Position "Gekippt" repräsentiert. Standardwert: number, 1.</p>
-
-            <h5><i class="fa fa-check-square-o"></i> Bewahre Schatten-Position</h5>
-                <p>Wenn diese Option nicht gewählt ist und der Node einen Befehl zum Schließen erhält, fährt der Antrieb ganz zu. Szenario 1: Wenn diese Option gewählt ist und das Fenster nicht geschlossen ist, fährt der Antrieb statt in die Geschlossen- nur in die Schatten-Position. Wird später das Fenster geschlossen, fährt auch der Antrieb in die Geschlossen-Position. Szenario 2: Wenn die Option gewählt, das Fenster geschlossen und der Antrieb in der Geschlossen-Position ist, wird dieser in die Schatten-Position fahren, wenn das Fenster gekippt oder geöffnet wird. Durch das Schließen des Fensters fährt auch der Antrieb wieder in die Geschlossen-Position. Standardwert: Deaktiviert.</p>
-        
-        <h4>Sicherheit</h4>
-            <p>Diese Parameter sind wichtig, um Unfälle zu vermeiden und zu verhindern, dass Dich die Beschattung ungewollt aus dem Haus aussperrt.</p>
-
-            <h5><i class="fa fa-check-square-o"></i> Abwärtsfahrt erlaubt wenn gekippt</h5>
-                <p>Der Antrieb darf abwärts fahren, wenn das Fenster gekippt ist. Standardwert: Deaktiviert.</p>
-
-            <h5><i class="fa fa-check-square-o"></i> Abwärtsfahrt erlaubt wenn geöffnet</h5>
-                <p>Der Antrieb darf abwärts fahren, wenn das Fenster geöffnet ist. Standardwert: Deaktiviert.</p>
-            
-            <h5><i class="fa fa-check-square-o"></i> Ignoriere Fensterposition, wenn msg.payload des Positionsbefehls 'commandforce' ist.</h5>
-                <p>Mit den Positionsbefehlen kannst Du den Antrieb in eine der definierten Positionen fahren lassen. Wenn Du einen Fensterschalter konfiguriert hast kann es sein, dass die Abwärtsfahrt nicht erlaubt ist, wenn das Fenster offen oder gekippt ist. Diese Blockade kannst Du mit dem Aktivieren dieser Option umgehen. Während <code>msg.topic</code> (wie oben beschrieben) die Zielposition des Antriebs angibt, setze das <code>msg.payload</code> der Nachricht auf <code>commandforce</code> innerhalb des Positionsbefehls.</p>
+    
 
         <h4>Ereignisse</h4>
-            <h5>Reaktiviere Automatik Ereignisse</h5>
-                <p><i class="fa fa-check-square-o"></i> <strong>Nachricht mit Topic 'auto'</strong></p>
-                    <p class="iconpadding">Wenn Du den Antrieb händisch verfährst (entweder mit den Tastern oder mit dem Senden eines Positionsbefehls), wird die Automatik deaktiviert. Der Node zeigt dies an, indem am Statusausgang <code>payload.context.autoLocked</code> auf <code>true</code> wechselt.</p> Wenn diese Option ausgewählt ist und eine Nachricht mit <code>auto</code> im <code>msg.topic</code> eingeht, wird die Automatik wieder aktiviert. Standardwert: Deaktiviert.
+
             <h5>Ereignisse zum Öffnen</h5>
                 <p><i class="fa fa-check-square-o"></i> <strong>Sonnenaufgang</strong></p>
                     <p class="iconpadding">Wenn gewählt und Automatik aktiv, wird der Antrieb bei Sonnenaufgang nach oben fahren. Standardwert: Deaktiviert.</p>
@@ -218,11 +27,5 @@
                 <p><i class="fa fa-check-square-o"></i> <strong>Sonnenuntergang</strong></p>
                     <p class="iconpadding">Wenn gewählt und Automatik aktiv, wird der Antrieb bei Sonnenuntergang nach unten fahren. Standardwert: Deaktiviert.</p>
 
-    <h3 style="font-weight: bolder">Fragen oder Wünsche</h3>
-        <p>Bitte kontaktiere mich, wenn Du irgendwelche Fragen hast. Lass mich wissen, wenn etwas unklar ist oder Du der Meinung bist, einen Bug oder einen Tippfehler gefunden zu haben. Ich freue mich über jede Gelegenheit, meine Lösungen zu verbessern, da ich die auch selbst verwende. <a href="https://rebrand.ly/y2k9c7y" target="_blank">Erstelle einen Issue auf GitHub</a> oder <a href="https://rebrand.ly/cb4glqq" target="_blank">schreibe mit mir auf Discord</a>.</p>
-        <p>Wenn Du magst, <a href="https://rebrand.ly/zm4k1c6" target="_blank">spendiere mir einen Kaffee.</p>
-        <img src="https://raw.githubusercontent.com/danube/node-red-contrib-smarthome-monitor/main/files/bmc-white-button.png" onerror="this.onerror=null; this.remove();"></a>
-        
-        
         
 </script>
