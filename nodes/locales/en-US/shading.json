@@ -67,7 +67,8 @@
     "events": {
         "h": "Events",
         "reautoconds": "Re-enable automatic events",
-        "msgauto": "Message with topic 'auto'",
+        "msgauto": "Message with msg.topic = 'auto'",
+        "autoIfBothBtns": "Both pushbuttons are pressed simultaneously",
         "openconds": "Open events",
         "shadeconds": "Shade events",
         "closeconds": "Close events",

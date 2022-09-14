@@ -25,6 +25,7 @@ Commands are supported to move the shade in one of three predefined positions: o
 | Topic: Open | `msg.topic` of the message, to move to open position. | if left blank: "commandopen" |
 | Topic: Shade | `msg.topic` of the message, to move to shade position. | if left blank: "commandshade" |
 | Topic: Close | `msg.topic` of the message, to move to close position. | if left blank: "commandclose" |
+| Topic: Height position | `msg.topic` of the message, to move the drive to a designated position. `msg.payload` of the same message must be of type 'number' and has to contain a value between 0 (up) und 100 (down).  | if left blank: "commandheight" |
 
 ## Output
 The node has several outputs. Three of them provide jog control signals: Open, close and stop. They are used for jogging the drive with the pushbuttons.
@@ -72,7 +73,8 @@ This parameters are essential to prevent accidents or lock you out of your house
 When you manually move the blind (either with the pushbuttons or by sending a command message), automatic mode is disabled. The node icon will change and `payload.context.autoLocked` in the status-output is `true`. Check, with which of the options below you allow automatic mode to be re-enabled.
 | Option | Description | Default |
 |-|-|-|
-| Message with topic 'auto' | Automatic will be re-enabled, if `msg.topic = auto`. | Disabled |
+| Message with msg.topic = 'auto' | Automatic will be re-enabled, if `msg.topic = auto`. | Disabled |
+| Both pushbuttons are pressed simultaneously | Automatic will be re-enabled, when you press both pushbuttons at the same time. As a fact, you will first press and hold one button and then press the other one. As you may also long-press a pushbutton, you only have a limited time between pressing the first and the second pushbutton. This time is defined in the "Pushbutton" section above as "Doubleclick time". I.e. if it is set to 500ms, you must press the second pushbutton not later than 500ms after you pressed the first pushbutton. | Disabled |
 | Sunrise | Automatic will be re-enabled on sunrise. | Disabled |
 | Sunset | Automatic will be re-enabled on sunset. | Disabled |
 ### Open conditions

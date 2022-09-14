@@ -67,7 +67,8 @@
     "events": {
         "h": "Ereignisse",
         "reautoconds": "Reaktiviere Automatik Ereignisse",
-        "msgauto": "Nachricht mit Topic 'auto'",
+        "msgauto": "Nachricht mit msg.topic = 'auto'",
+        "autoIfBothBtns": "Beide Taster werden gleichzeitig gedrückt",
         "openconds": "Ereignisse zum Öffnen",
         "shadeconds": "Ereignisse zur Schattenfahrt",
         "closeconds": "Ereignisse zum Schließen",

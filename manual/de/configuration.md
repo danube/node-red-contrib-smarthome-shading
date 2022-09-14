@@ -25,6 +25,7 @@ Positionsbefehle lassen den Antrieb in eine der drei definierten Positionen fahr
 | Topic: Öffnen | `msg.topic` der Nachricht, um den Antrieb auf die Offen-Position zu fahren. | Wenn leer: "commandopen" |
 | Topic: Beschatten | `msg.topic` der Nachricht, um den Antrieb auf die Schatten-Position zu fahren. | Wenn leer: "commandshade" |
 | Topic: Schließen | `msg.topic` der Nachricht, um den Antrieb auf die Geschlossen-Position zu fahren. | Wenn leer: "commandclose" |
+| Topic: Vorgabe Höhe | `msg.topic` der Nachricht, um den Antrieb auf eine gewünschte Zielposition zu fahren. `msg.payload` der Nachricht muss vom Typ 'number' sein und eine Zahl zwischen 0 (oben) und 100 (unten) enthalten. | Wenn leer: "commandheight" |
 
 ## Ausgänge
 Der Node hat verschiedene Ausgänge. Drei stehen für den Tippbetrieb zur Verfügung: Open, close und stop. Diese werden verwendet, um den Antrieb per Tastendruck in Bewegung zu versetzen und wiederum anzuhalten.
@@ -72,7 +73,8 @@ Diese Parameter sind wichtig, um Unfälle zu vermeiden und zu verhindern, dass D
 Wenn Du manuell den Antrieb verfährst (entweder mit den Tastern oder einem Positionsbefehl), wird der Automatikmodus deaktiviert. Das Node Symbol wird sich ändern und `payload.context.autoLocked` im Status-Ausgang wird `true`. Mit den unten stehenden Optionen kannst Du angeben, wann der Automatikmodus wieder aktiviert werden kann.
 | Parameter | Beschreibung | Standart-Wert |
 |-|-|-|
-| Nachricht mit Topic 'auto' | Wenn diese Option ausgewählt ist und eine Nachricht mit `auto` im `msg.topic` eingeht, wird die Automatik wieder aktiviert. | Deaktiviert |
+| Nachricht mit msg.topic = 'auto' | Wenn diese Option ausgewählt ist und eine Nachricht mit `auto` im `msg.topic` eingeht, wird die Automatik wieder aktiviert. | Deaktiviert |
+| Beide Taster werden gleichzeitig gedrückt | Reaktiviere die Automatik, wenn Du beide Taster gleichzeitig drückst. In der Praxis wirst Du zuerst einen Taster drücken und während Du diesen gedrückt hältst, betätigst Du den zweiten Taster. Da auch eine lange Betätigung eines Tasters eine Aktion ausführt, steht Dir zum Betätigen des zweiten Tasters, nachdem Du den ersten Taster gedrückt hast, nur ein gewisses Zeitfenster zur Verfügung. Diese Zeit legst Du fest in der Sektion "Taster" weiter oben unter "Doppelklick Zeit". Wenn diese Zeit bspw. 500ms beträgt, hast Du nach dem Drücken des ersten Tasters 500ms Zeit, um den zweiten Taster zu drücken. | Deaktiviert |
 | Sonnenaufgang | Reaktiviere die Automatik bei Sonnenaufgang. | Deaktiviert |
 | Sonnenuntergang | Reaktiviere die Automatik bei Sonnenuntergang. | Deaktiviert |
 ### Ereignisse zum Öffnen

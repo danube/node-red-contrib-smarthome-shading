@@ -119,7 +119,7 @@ module.exports = function(RED) {
 		/** The backed up state of sunet being in the future */
 		let sunsetAheadPrev = null
 		/** The actual time as date object */
-		let actDate = new Date()
+		// let actDate = new Date()		// TODO kann weg??
 		// Loading external modules
 
 
@@ -166,7 +166,7 @@ module.exports = function(RED) {
 			} else msgC = null
 			
 			if (d != null) {
-  			if (node.debug) {that.log(callee + ": Sending setposHeight " + context.setposHeight)}
+  			if (node.debug) {that.log("["+callee+"] Sending command value " + d)}
 				msgD = {topic: "command", payload: d}
 			} else msgD = null
 
@@ -187,10 +187,10 @@ module.exports = function(RED) {
 		/** Checks if automatic movement is allowed and sends setpos values. Prior to that, context.setposHeight must be made available.
 		 * This function must be called each time an automatic movement should processed.
 		 * @param {Boolean} sendNow If true, the setpoint value will be sent. If false, the setpoint will be sent only if it changes.
-		 * @param {Boolean} ignoreLock If true, the setpoint will be sent even if hardlock is active.
+		 * @param {Boolean} ignoreAutoLocked If true, the setpoint will be sent even if context.autoLocked is active.
 		 * @param {Boolean} ignoreWindow If true, the window position (and according security settings) will be ignored.
 		 */
-		function autoMoveFunc(sendNow, ignoreLock, ignoreWindow) {
+		function autoMoveFunc(sendNow, ignoreAutoLocked, ignoreWindow) {
 
 			const caller = autoMoveFunc.caller.name
 			const callee = arguments.callee.name
@@ -232,7 +232,7 @@ module.exports = function(RED) {
 						that.error("E005: Undefined hardlock type")
 					}
 
-					if (typeof context.hardlock === "undefined") {		// FIXME das funktioniert nicht, nachdem der node initialisiert wurde (ohne context)
+					if (typeof context.hardlock === "undefined") {
 						that.warn("W003: Undefined hardlock variable at '" + config.hardlockType + "." + config.hardlock + "'.")
 						context.hardlock = true
 					} else if (typeof context.hardlock !== "boolean") {
@@ -246,8 +246,6 @@ module.exports = function(RED) {
 					context.hardlock = false
 				}
 
-				if (ignoreLock && context.hardlock) {if (node.debug) {that.log("Ignoring active hardlock")}}
-
 				let allowLowering = 																// Check security conditions
 					(context.windowState === window.opened && config.allowLoweringWhenOpened)
 					|| (context.windowState === window.tilted && config.allowLoweringWhenTilted)
@@ -255,9 +253,9 @@ module.exports = function(RED) {
 					|| !config.winswitchEnable
 					|| ignoreWindow
 
-				if (context.hardlock && !ignoreLock) {													// Hardlock -> nothing will happen
+				if (context.hardlock) {																	// Hardlock -> nothing will happen
 					if (node.debug) {that.log("Locked by hardlock, nothing will happen.")}
-				} else if (context.autoLocked && !ignoreLock) {											// Auto locked (off) -> nothing will happen
+				} else if (context.autoLocked && !ignoreAutoLocked) {									// Auto locked (off) -> nothing will happen
 					if (node.debug) {that.log("Not in automatic mode, nothing will happen.")}
 				} else if (config.inmsgTopicActPosHeightType === "dis") {								// No shading position feedback configured -> always move
 					sendCommandFunc(null,null,null,context.setposHeight)
@@ -294,12 +292,13 @@ module.exports = function(RED) {
 		 * @param {Boolean} sendNow Will be forwarded to autoMoveFunc
 		 */
 		function calcSetposHeight(sendNow) {
-			const caller = calcSetposHeight.caller.name
+
 			const callee = arguments.callee.name
-			// console.log("DEBUG: "+callee+" called from '"+caller+"'")
 		
+			sunInSkyFunc()
+			
 			if (context.sunInSky) {   			// This is the routine for daytime
-				if (node.debug) {that.log("Checking configuration for daytime")}
+				if (node.debug) {that.log("["+callee+"] Checking configuration for daytime")}
 				if (config.openIfSunrise) {
 					context.setposHeight = shadingSetpos.open
 					autoMoveFunc(sendNow)
@@ -313,10 +312,10 @@ module.exports = function(RED) {
 					autoMoveFunc(sendNow)
 					return
 				} else {
-					if (node.debug) {that.log("Nothing configured to happen on daytime")}
+					if (node.debug) {that.log("["+callee+"] Nothing configured to happen on daytime")}
 				}
 			} else {        // This is the routine for nighttime
-				if (node.debug) {that.log("Checking configuration for nighttime")}
+				if (node.debug) {that.log("["+callee+"] Checking configuration for nighttime")}
 				if (config.openIfSunset) {
 					context.setposHeight = shadingSetpos.open
 					autoMoveFunc(sendNow)
@@ -330,25 +329,28 @@ module.exports = function(RED) {
 					autoMoveFunc(sendNow)
 					return
 				}
-				if (node.debug) {that.log("Nothing configured to happen on nighttime")}
+				if (node.debug) {that.log("["+callee+"] Nothing configured to happen on nighttime")}
 			}
 		}
 
 		/** This function is called on sunrise */
-		function sunriseFunc(){
+		function sunriseFunc() {
 			suncalcFunc()
 		}
 		
 		/** This function is called on sunset */
-		function sunsetFunc(){
+		function sunsetFunc() {
 			suncalcFunc()
 		}
 
-		/** This is the loop function which will be processed only if automatic is enabled. It provides the almighty context.setposHeight. */
-		function mainLoopFunc() {
-
+		
+		/** This function determines:
+		 * @property {bool} context.sunriseAhead Sunrise is in the future
+		 * @property {bool} context.sunsetAhead Sunset is in the future
+		 * @property {bool} context.sunInSky Sun is in the sky (daytime) or not (nighttime) */
+		function sunInSkyFunc() {
 			actDate = new Date()								// Set to actual time
-
+			
 			if (!isValidDate(sunTimes.sunrise) || !isValidDate(sunTimes.sunset)) {
 				that.error("E004: Suntimes calculator broken")
 			}
@@ -356,6 +358,14 @@ module.exports = function(RED) {
 			context.sunriseAhead = sunTimes.sunrise > actDate					// Sunrise is in the future
 			context.sunsetAhead = sunTimes.sunset > actDate						// Sunset is in the future
 			context.sunInSky = !context.sunriseAhead && context.sunsetAhead		// It's daytime
+
+		}
+		
+		
+		/** This is the loop function which will be processed only if automatic is enabled. It provides the almighty context.setposHeight. */
+		function mainLoopFunc() {
+
+			sunInSkyFunc()
 
 			// -- DEBUG: some useful lines for debugging -->
 			// that.log("DEBUG: actdate = " + actDate)
@@ -369,7 +379,7 @@ module.exports = function(RED) {
 					if (node.debug) {that.log("Re-enabeling automatic")}
 					autoReenableFunc()
 				} else {
-				  calcSetposHeight()
+					calcSetposHeight()
 				}
 				updateNodeStatus()
 			}
@@ -381,7 +391,7 @@ module.exports = function(RED) {
 					if (node.debug) {that.log("Re-enabeling automatic")}
 					autoReenableFunc()
 				} else {
-				  calcSetposHeight()
+					calcSetposHeight()
 				}
 				updateNodeStatus()
 			}
@@ -577,6 +587,7 @@ module.exports = function(RED) {
 		if (config.autoActive) {
 			if (node.debug) {that.log("Automatic configured, starting interval.")}
 			suncalcFunc()
+			// sunInSkyFunc()		// Versuchsweise in calcsetposheight verschoben, kann dann weg wenn das passt.
 			calcSetposHeight()
 			mainLoopFunc()												// Trigger once as setInterval will fire first after timeout
 			clearInterval(handle)										// Clear eventual previous loop
@@ -610,7 +621,7 @@ module.exports = function(RED) {
 			else if (msg.topic === config.inmsgButtonTopicClose) {context.stateButtonClose = msg.payload}
 
 			/** Resend event */
-			var resendEvent = msg.topic === "resend"										// TODO in documentation
+			var resendEvent = msg.topic === "resend"
 			/** Button open/close event based on incoming message topic */
 			var buttonEvent = msg.topic === config.inmsgButtonTopicOpen || msg.topic === config.inmsgButtonTopicClose
 			/** Button press event based on incoming message topic, if payload is TRUE */
@@ -648,7 +659,7 @@ module.exports = function(RED) {
 
 			if (config.autoActive) {
 				/** Auto re-enable event based on incoming message topic */
-				var autoReenableEvent = config.autoIfMsgTopic && msg.topic === "auto"		// TODO make topic configurable? --> DOCME
+				var autoReenableEvent = config.autoIfMsgTopic && msg.topic === "auto"
 			}
 
 			if (buttonEvent) {
@@ -660,8 +671,9 @@ module.exports = function(RED) {
 					clearTimeout(context.buttonCloseTimeoutHandle)
 					context.buttonCloseTimeoutHandle = null
 
-					// Both buttons pressed detection -> enable automatic		// DOCME wenn beide buttons gedrückt werden, reaktiviert das die Automatik
-					if (context.stateButtonClose) {
+					// Both buttons pressed detection -> enable automatic
+					if (context.stateButtonClose && config.autoIfBothBtns) {
+						if (node.debug) {that.log("Both buttons pressed (first 'down' then 'up')")}
 						autoReenableEvent = true
 					}
 					
@@ -715,7 +727,8 @@ module.exports = function(RED) {
 					context.buttonOpenTimeoutHandle = null
 				
 					// Both buttons pressed detection -> enable automatic
-					if (context.stateButtonOpen) {
+					if (context.stateButtonOpen && config.autoIfBothBtns) {
+						if (node.debug) {that.log("Both buttons pressed (first 'up' then 'down')")}
 						autoReenableEvent = true
 					}
 
@@ -753,7 +766,7 @@ module.exports = function(RED) {
 								
 								// SINGLE CLICK ACTIONS ==>
   							if (node.debug) {that.log("Close singleclick detected")}
-								if (context.actposHeight < shadingSetpos.shade) {
+							  if (context.actposHeight < shadingSetpos.shade) {
 									sendCommandFunc(null,null,null,shadingSetpos.shade)
 								} else {
 									sendCommandFunc(null,null,null,shadingSetpos.close)
@@ -836,7 +849,8 @@ module.exports = function(RED) {
 			}
 			
 			else if (heightSetposCommand) {
-				if (msg.payload < 0 || msg.payload > 100 || typeof msg.payload != "number") {that.error("E007: Invalid height setpoint ('" + msg.payload + "')")} // TODO eigene meldung wenn datentyp != number
+				if (typeof msg.payload != "number") {that.error("E008: Setpoint in message must be of type 'number' (but is '" + typeof msg.payload + "')")}
+				else if (msg.payload < 0 || msg.payload > 100) {that.error("E007: Setpoint in message must be between 0-100 (but is '" + msg.payload + "')")}
 				else {
 					if (node.debug) {that.log("Received height setpoint command '" + msg.payload + "'")}
 					if (msg.payload == 100) {
@@ -864,7 +878,7 @@ module.exports = function(RED) {
 				}
 			}
 
-			else if (resendEvent) {
+			else if (resendEvent && false) {		// Disabled for now. No idea if and when this may be useful.
 				if (node.debug) {that.log("Saw request to resend values")}
 				autoMoveFunc(true)
 			}
@@ -880,7 +894,7 @@ module.exports = function(RED) {
 					if (node.debug) {that.log("msg.commandforce is set, window position will be ignored!")}
 					context.setposHeight = shadingSetpos.close
 					autoMoveFunc(true,true,true)
-        } else if (config.preventClosing && context.windowState != window.closed) {
+        		} else if (config.preventClosing && context.windowState != window.closed) {
 					if (node.debug) {that.log("Window is not closed, going to shade position instead.")}
 					context.setposHeight = shadingSetpos.shade
 					closeIfWinCloses = true
