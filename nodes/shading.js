@@ -124,8 +124,6 @@ module.exports = function(RED) {
 		let sunriseAheadPrev = null
 		/** The backed up state of sunet being in the future */
 		let sunsetAheadPrev = null
-		/** The actual time as date object */
-		// let actDate = new Date()		// TODO kann weg??
 		// Loading external modules
 
 
@@ -172,7 +170,7 @@ module.exports = function(RED) {
 			} else msgC = null
 			
 			if (d != null) {
-  			if (node.debug) {that.log("["+callee+"] Sending command value " + d)}
+  			if (node.debug) {that.log("["+callee+"] Sending command value '" + d + "'")}
 				msgD = {topic: "command", payload: d}
 			} else msgD = null
 
@@ -439,67 +437,50 @@ module.exports = function(RED) {
 
 		/** This function updates the node status. See https://nodered.org/docs/creating-nodes/status for more details.
 		 * 
+		 * // DOCME
 		 * Description "shape"
 		 * always "dot"
 		 * 
 		 * Description "fill"
 		 * grey: Automatic is disabled in configuration
-		 * green: Automatic is configured but inactive
-		 * red: Automatic is configured and active
+		 * green: Automatic is configured but active
+		 * red: Automatic is configured and inactive
 		 * 
 		 * Description "text"
-		 * 
+		 * If automatic is configured: Part 1 = next sunrise or sunset. Else = Auto off.
+		 * If drive feedback is enabled and a valid feedback has been received: Part 2 = that value.
 		*/
 		function updateNodeStatus() {
 
-			let fill = "grey"
-			let text = "Auto off "
 
 			function addZero(i) {
 				if (i < 10) {i = "0" + i}
 				return i
 			}
 
+			let fill, text
+			let shape = "dot"
+
 			if (config.autoActive) {
-				
-				if (context.autoLocked) {
-					if (context.actposHeight) {
-						text = context.actposHeight + "% | "
-					} else {
-						text = context.setposHeight + "% | "
-					}
-					fill = "red"
-				} else if (typeof context.setposHeight == "number") {
-					text = context.setposHeight + "% | "
-					fill = "green"
-				} else if (typeof context.actposHeight == "number") {
-					text = context.actposHeight + "% | "
-					fill = "green"
-				} else {
-					text = "Unknown height | "
-					fill = "green"
-				}
+
+				if (context.autoLocked === false) {fill = "green"} else {fill = "red"}
 
 				if (context.sunInSky) {
-					text = text + "🌜 " + addZero(sunTimes.sunset.getHours()) + ":" + addZero(sunTimes.sunset.getMinutes())
+					text = "🌜 " + addZero(sunTimes.sunset.getHours()) + ":" + addZero(sunTimes.sunset.getMinutes())
 				} else {
-					text = text + "🌞 " + addZero(sunTimes.sunrise.getHours()) + ":" + addZero(sunTimes.sunrise.getMinutes())
+					text = "🌞 " + addZero(sunTimes.sunrise.getHours()) + ":" + addZero(sunTimes.sunrise.getMinutes())
 				}
 
-				if (config.winswitchEnable) {
-					if (context.windowStateStr) {
-						text = text + " | " + context.windowStateStr
-					} else {
-						text = text + " | Unknown"
-					}
-				}
-
-			} else if (typeof context.actposHeight == "number") {
-				text = context.actposHeight + "% | " + text
+			} else {
+				fill = "grey"
+				text = "Auto off"
 			}
-			
-			
-			that.status({fill: fill, shape: "dot", text: text})
+
+
+			if (config.inmsgTopicActPosHeightType != "dis" && typeof context.actposHeight === "number") {
+				text = text + " | Drive at " + context.actposHeight + "%"
+			}
+
 
 		}
 
@@ -709,14 +690,14 @@ module.exports = function(RED) {
 
 								// LONG CLICK ACTIONS ==>
 								if (node.debug) {that.log("Open longclick detected")}
-  							sendCommandFunc(config.payloadOpenCmd,null,null,null)
+								sendCommandFunc(config.payloadOpenCmd,null,null,null)
 								context.stateButtonRunning = true
 								// <== LONG CLICK ACTIONS
 								
 							} else {														// button not pressed anymore -> must be a single click
 								
 								// SINGLE CLICK ACTIONS ==>
-  							if (node.debug) {that.log("Open singleclick detected")}
+  								if (node.debug) {that.log("Open singleclick detected")}
 								if (context.actposHeight > shadingSetpos.shade) {
 									sendCommandFunc(null,null,null,shadingSetpos.shade)
 								} else {
@@ -763,7 +744,7 @@ module.exports = function(RED) {
 							if (context.stateButtonClose) {
 								
 								// LONG CLICK ACTIONS ==>
-  							if (node.debug) {that.log("Close longclick detected")}
+  								if (node.debug) {that.log("Close longclick detected")}
 								sendCommandFunc(null,config.payloadCloseCmd,null,null)
 								context.stateButtonRunning = true
 								// <== LONG CLICK ACTIONS
@@ -771,8 +752,8 @@ module.exports = function(RED) {
 							} else {
 								
 								// SINGLE CLICK ACTIONS ==>
-  							if (node.debug) {that.log("Close singleclick detected")}
-							  if (context.actposHeight < shadingSetpos.shade) {
+  								if (node.debug) {that.log("Close singleclick detected")}
+								if (context.actposHeight < shadingSetpos.shade) {
 									sendCommandFunc(null,null,null,shadingSetpos.shade)
 								} else {
 									sendCommandFunc(null,null,null,shadingSetpos.close)
@@ -874,7 +855,7 @@ module.exports = function(RED) {
 				}
 			}
 			
-			else if (driveHeightEvent) {				// TODO Was wenn es das nicht gibt??
+			else if (driveHeightEvent) {
 				if (msg.payload >= 0 && msg.payload <= 100 && typeof msg.payload === "number") {
 					let prevPos = context.actposHeight
 					context.actposHeight = msg.payload
@@ -893,7 +874,7 @@ module.exports = function(RED) {
 				printConsoleDebug("Debug requested, so here we go.")
 			}
 
-			if (closeCommand) {		// TODO If blind is below shading position and command is received, it will move up. Clarify what should happen then.
+			if (closeCommand) {
 				if (node.debug) {that.log("Received command to close")}
 
 				if (config.allowLoweringCommandPayload && msg.commandforce === true) {
@@ -916,7 +897,7 @@ module.exports = function(RED) {
 
 
 			if (autoReenableEvent && config.autoActive) {
-				if (node.debug) {that.log("Re-enabeling automatic due to manual request")}		// TODO vielleicht eigene message, wenn autoReenableEvent gesetzt wird durch drücken beider buttons
+				if (node.debug) {that.log("Re-enabeling automatic due to manual request")}
 				autoReenableFunc()
 			}
 			
