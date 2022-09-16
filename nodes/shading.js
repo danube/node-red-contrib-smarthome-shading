@@ -1,3 +1,9 @@
+// TODO Workaround for drives, which do not permanently send a position feedback.
+// Scenario: Drive is closed. Pushbutton to open is pressed twice -> Drive will move to open position.
+// During movement, the window will be opened. If "preserve shade position" is active,
+// as there has no actual position feedback been received, the node still thinks that the drive is closed.
+// Hence, it will stop the movement and bring the drive in shade position.
+
 module.exports = function(RED) {
 
 	// Loading external modules
@@ -634,7 +640,7 @@ module.exports = function(RED) {
 			var buttonReleaseEvent = buttonEvent && msg.payload === false
 			/** Debug on console request */
 			var printConsoleDebugEvent = msg.debug
-			/** Height drive position event based on incoming message topic */
+			/** This event happens, when the drive sends the actual position. */
 			var driveHeightEvent = config.inmsgTopicActPosHeightType != "dis" && msg.topic === config.inmsgTopicActPosHeight
 
 			/** Open event based on incoming message topic */
