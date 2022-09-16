@@ -824,15 +824,19 @@ module.exports = function(RED) {
 			
 			else if (shadeCommand) {
 				if (node.debug) {that.log("Received command to shade")}
-				context.setposHeight = shadingSetpos.shade
-				if (config.allowLoweringCommandPayload && msg.commandforce === true) {
-					if (node.debug) {that.log("msg.commandforce is set, window position will be ignored!")}
-					autoMoveFunc(true,true,true)
+				if (typeof context.windowState == "undefined") {
+					if (node.debug) {that.log("Unknown window position. Nothing will happen.")}
 				} else {
-					autoMoveFunc(true,true)
+					context.setposHeight = shadingSetpos.shade
+					if (config.allowForce && msg.commandforce === true) {
+						if (node.debug) {that.log("msg.commandforce is set, window position will be ignored!")}
+						autoMoveFunc(true,true,true)
+					} else {
+						autoMoveFunc(true,true)
+					}
+					context.autoLocked = true
+					closeIfWinCloses = false
 				}
-				context.autoLocked = true
-				closeIfWinCloses = false
 			}
 			
 			else if (heightSetposCommand) {
@@ -845,7 +849,7 @@ module.exports = function(RED) {
 					} else {
 						context.setposHeight = msg.payload
 						context.autoLocked = true
-						if (config.allowLoweringCommandPayload && msg.commandforce === true) {
+						if (config.allowForce && msg.commandforce === true) {
 							if (node.debug) {that.log("msg.commandforce is set, window position will be ignored!")}
 							autoMoveFunc(true,true,true)
 						} else {
@@ -877,11 +881,13 @@ module.exports = function(RED) {
 			if (closeCommand) {
 				if (node.debug) {that.log("Received command to close")}
 
-				if (config.allowLoweringCommandPayload && msg.commandforce === true) {
+				if (config.allowForce && msg.commandforce === true) {
 					if (node.debug) {that.log("msg.commandforce is set, window position will be ignored!")}
 					context.setposHeight = shadingSetpos.close
 					autoMoveFunc(true,true,true)
-        		} else if (config.preventClosing && context.windowState != window.closed) {
+				} else if (typeof context.windowState == "undefined") {
+					if (node.debug) {that.log("Unknown window position. Nothing will happen.")}
+				} else if (config.preventClosing && context.windowState != window.closed) {
 					if (node.debug) {that.log("Window is not closed, going to shade position instead.")}
 					context.setposHeight = shadingSetpos.shade
 					closeIfWinCloses = true

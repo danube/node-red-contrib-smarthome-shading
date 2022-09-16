@@ -62,7 +62,7 @@
         "h": "Security",
         "alwlowtilt": "Allow lowering if window is tilted",
         "alwlowopen": "Allow lowering if window is opened",
-        "alwlowcmd": "Ignore window state if msg.commandforce = true"
+        "allowForce": "Ignore window state if msg.commandforce = true"
     },
     "events": {
         "h": "Events",
