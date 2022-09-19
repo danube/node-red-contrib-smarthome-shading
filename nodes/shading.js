@@ -4,6 +4,8 @@
 // as there has no actual position feedback been received, the node still thinks that the drive is closed.
 // Hence, it will stop the movement and bring the drive in shade position.
 
+
+
 module.exports = function(RED) {
 
 	// Loading external modules
@@ -39,7 +41,7 @@ module.exports = function(RED) {
 		this.config.shadingSetposShade = typeToNumFunc("num", node.shadingSetposShade)
 		this.config.inmsgButtonDblclickTime = typeToNumFunc("num", node.inmsgButtonDblclickTime)
 		
-		this.config.inmsgTopicActPosHeight = node.inmsgTopicActPosHeight || "heightfeedback"
+		this.config.heightFbTopic = node.heightFbTopic || "heightfeedback"
 		this.config.inmsgButtonTopicOpen = node.inmsgButtonTopicOpen || "buttonup"
 		this.config.inmsgButtonTopicClose = node.inmsgButtonTopicClose || "buttondown"
 		this.config.openTopic = node.openTopic || "commandopen"
@@ -261,7 +263,7 @@ module.exports = function(RED) {
 					if (node.debug) {that.log("Locked by hardlock, nothing will happen.")}
 				} else if (context.autoLocked && !ignoreAutoLocked) {									// Auto locked (off) -> nothing will happen
 					if (node.debug) {that.log("Not in automatic mode, nothing will happen.")}
-				} else if (config.inmsgTopicActPosHeightType === "dis") {								// No shading position feedback configured -> always move
+				} else if (!config.heightFbEnable) {								// No shading position feedback configured -> always move
 					sendCommandFunc(null,null,null,context.setposHeight)
 				} else if (typeof context.actposHeight == "undefined" && context.setposHeight === 0) {	// Actual height position unknown but setpos is 0 -> move up
 					that.warn("W005: Unknown actual position, but rising is allowed.")
@@ -477,7 +479,7 @@ module.exports = function(RED) {
 			}
 
 
-			if (config.inmsgTopicActPosHeightType != "dis" && typeof context.actposHeight === "number") {
+			if (config.heightFbEnable && typeof context.actposHeight === "number") {
 				text = text + " | Drive at " + context.actposHeight + "%"
 			}
 
@@ -567,7 +569,7 @@ module.exports = function(RED) {
 
 		// FIRST RUN ACTIONS (INIT) ====>
 		
-		if (config.inmsgTopicActPosHeightType == "dis") {
+		if (!config.heightFbEnable) {
 			delete context.actposHeight
 		}
 		
@@ -622,7 +624,7 @@ module.exports = function(RED) {
 			/** Debug on console request */
 			var printConsoleDebugEvent = msg.debug
 			/** This event happens, when the drive sends the actual position. */
-			var driveHeightEvent = config.inmsgTopicActPosHeightType != "dis" && msg.topic === config.inmsgTopicActPosHeight
+			var driveHeightEvent = config.heightFbEnable && msg.topic === config.heightFbTopic
 
 			/** Open event based on incoming message topic */
 			var openCommand = msg.topic === config.openTopic
@@ -776,15 +778,11 @@ module.exports = function(RED) {
 
 			else if (windowSwitchEvent) {
 				
+				// Store previous states
 				let oldState = context.windowState
 				let oldStateStr = context.windowStateStr
 
-				if ((windowSwitchOpenEvent || windowSwitchTiltEvent) && context.actposHeight > shadingSetpos.shade && config.preventClosing) {
-					context.setposHeight = shadingSetpos.shade
-					autoMoveFunc(true, true)
-					closeIfWinCloses = true
-				}
-
+				// Storing new state
 				if (windowSwitchOpenEvent) {
 					context.windowState = window.opened
 					context.windowStateStr = "Opened"
@@ -794,23 +792,27 @@ module.exports = function(RED) {
 				} else if (windowSwitchCloseEvent) {
 					context.windowState = window.closed
 					context.windowStateStr = "Closed"
-					if (closeIfWinCloses) {
-						if (node.debug) {that.log("Held back closing command, now executing.")}
-						context.setposHeight = shadingSetpos.close
-						autoMoveFunc(true, true)
-						closeIfWinCloses = false
-					}
 				} else {
 					context.windowState = null
 					context.windowStateStr = "Unknown"
 				}
-
-				// Return if window switch state is unknown or unchanged (filter)
-				// Enable the following line to prevent equal events (like open -> open)
-				// if (oldState == context.windowState || !oldState) {return}
 				
 				// Sending debug message
 				if (node.debug) {that.log("Window switch event detected: " + oldStateStr + " -> "  + context.windowStateStr)}
+
+				// Preserve shade position when window is opened or tilted
+				if ((windowSwitchOpenEvent || windowSwitchTiltEvent) && context.actposHeight > shadingSetpos.shade && config.preventClosing) {
+					context.setposHeight = shadingSetpos.shade
+					autoMoveFunc(true, true)
+					closeIfWinCloses = true
+				}
+
+				// Close shade if shade position was preserved
+				else if (windowSwitchCloseEvent && closeIfWinCloses) {
+					context.setposHeight = shadingSetpos.close
+					autoMoveFunc(true, true)
+					closeIfWinCloses = false
+				}	
 
 			}
 
