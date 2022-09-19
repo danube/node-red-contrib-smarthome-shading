@@ -10,8 +10,9 @@
     "blind": {
         "h": "Beschattung",
         "shadepos": "Schatten-Position",
-        "heightfbtopic": "Topic: Istposition",
-        "heightfbtopic_ph": "heightfeedback"
+        "heightFbEnable": "Istposition Höhe",
+        "heightFbTopic": "Topic",
+        "heightFbTopic_ph": "Leer lassen für 'heightfeedback'"
     },
     "pushbutton": {
         "h": "Taster",

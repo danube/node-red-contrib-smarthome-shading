@@ -10,8 +10,9 @@
     "blind": {
         "h": "Blind",
         "shadepos": "Shading position",
-        "heightfbtopic": "Height feedback topic",
-        "heightfbtopic_ph": "heightfeedback"
+        "heightFbEnable": "Height feedback",
+        "heightFbTopic": "Topic",
+        "heightFbTopic_ph": "Leave blank to use 'heightfeedback'"
     },
     "pushbutton": {
         "h": "Pushbutton",
