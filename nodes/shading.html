@@ -11,8 +11,8 @@
         defaults: {
             name: {value: "Shading configuration"},
             shadingSetposShade: {value: 80, required: true},
-            inmsgTopicActPosHeight: {},
-            inmsgTopicActPosHeightType: {},
+            heightFbEnable: {value: false},
+            heightFbTopic: {},
             inmsgButtonTopicOpen: {},
             inmsgButtonTopicClose: {},
             inmsgButtonDblclickTime: {value: 400, required: true},
@@ -62,12 +62,6 @@
 
             var optionNothing = {value: "dis", label: "Disabled", hasValue: false}
 
-            $("#node-config-input-inmsgTopicActPosHeight").typedInput({
-                default: "dis",
-                typeField: $("#node-config-input-inmsgTopicActPosHeightType"),
-                types: ["str",optionNothing]
-            })
-
             if (this.payloadOpenCmdType === "initval") {
                 $("#node-config-input-payloadOpenCmdType").val("bool");
             }   // TODO Diesen workaround auch überall anders noch nachziehen
@@ -92,12 +86,21 @@
                 types: ["bool","num","str"]
             })
 
-            // hide complete automatic area
+            // Hide complete automatic area
             $("#node-config-input-autoActive").on('change', function() {
                 if ($("#node-config-input-autoActive").prop("checked")) {
                     $('#autoConfig').show('fast')
                 } else {
                     $('#autoConfig').hide('fast')
+                }
+            })
+
+            // Hide height feedback topic input
+            $("#node-config-input-heightFbEnable").on('change', function() {
+                if ($("#node-config-input-heightFbEnable").prop("checked")) {
+                    $('#heightfbtopic').show('fast')
+                } else {
+                    $('#heightfbtopic').hide('fast')
                 }
             })
 
@@ -263,8 +266,6 @@
             //     }
             // })
 
-
-
         }
     })
 </script>
@@ -315,9 +316,14 @@
         <input type="number" step="1" min="0" max="100" id="node-config-input-shadingSetposShade"> %
     </div>
     <div class="form-row">
-        <label for="node-config-input-inmsgTopicActPosHeight"><i class="fa fa-envelope-open-o"></i>  <span data-i18n="blind.heightfbtopic"></span></label>
-        <input type="hidden" id="node-config-input-inmsgTopicActPosHeightType">
-        <input type="text" id="node-config-input-inmsgTopicActPosHeight" data-i18n="[placeholder]blind.heightfbtopic_ph">
+        <label><i class="fa fa-power-off"></i> <span data-i18n="blind.heightFbEnable"></span></span></label>
+        <input type="checkbox" id="node-config-input-heightFbEnable" style="display:inline-block; width:auto;">
+    </div>
+    <div id="heightfbtopic">
+        <div class="form-row">
+            <label for="node-config-input-heightFbTopic"><i class="fa fa-rocket"></i> <span data-i18n="blind.heightFbTopic"></span></label>
+            <input type="text" id="node-config-input-heightFbTopic" data-i18n="[placeholder]blind.heightFbTopic_ph">
+        </div>
     </div>
     <hr>
     <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md#pushbutton-configuration" target="_blank"> <span data-i18n="pushbutton.h"></span></a></h3>
@@ -400,7 +406,7 @@
             <input type="hidden" id="node-config-input-inmsgWinswitchPayloadTiltedType">
                 <input type="text" id="node-config-input-inmsgWinswitchPayloadTilted">
         </div>
-        <div class="form-row checkbox-row">
+        <div class="form-row checkbox-row presshadepos">
             <input type="checkbox" id="node-config-input-preventClosing"><label style="width: 350px" for="node-config-input-preventClosing"> <span data-i18n="windowswitch.presshadepos"></span></label>
             <!-- DOCME
                 Wenn das Rollo zu ist und das Fenster gekippt oder geöffnet wird, fährt das Rollo auf Schlitze.
