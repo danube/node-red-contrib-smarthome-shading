@@ -30,6 +30,7 @@ module.exports = function(RED) {
 			return -1
 		}
 
+		this.config.preventClosing = node.preventClosing && node.heightFbEnable
 		this.config.inmsgWinswitchPayloadOpened = typeToNumFunc(node.inmsgWinswitchPayloadOpenedType, node.inmsgWinswitchPayloadOpened)
 		this.config.inmsgWinswitchPayloadTilted = typeToNumFunc(node.inmsgWinswitchPayloadTiltedType, node.inmsgWinswitchPayloadTilted)
 		this.config.inmsgWinswitchPayloadClosed = typeToNumFunc(node.inmsgWinswitchPayloadClosedType, node.inmsgWinswitchPayloadClosed)
@@ -65,7 +66,7 @@ module.exports = function(RED) {
 		config = RED.nodes.getNode(node.configSet).config
 
 		// Definition of persistant variables
-		let handle, sunTimes, lat, lon = null
+		let handle, handleRtHeight, handleRtHeightStarttime, sunTimes, lat, lon = null
 		let sunriseFuncTimeoutHandle, sunsetFuncTimeoutHandle = null
 		/** If set, the shade closes as soon as the window closes */
 		let closeIfWinCloses = false
@@ -174,6 +175,12 @@ module.exports = function(RED) {
 			if (d != null) {
   			if (node.debug) {that.log("["+callee+"] Sending command value '" + d + "'")}
 				msgD = {topic: "command", payload: d}
+
+				handleRtHeightStarttime = new Date().getTime()
+				handleRtHeight = setTimeout(() => {		// TODO was soll beim timeout passieren
+					that.log("DEBUG: timeout!!")
+				}, 10000)		// TODO Die Zeit muss konfigurierbar sein
+
 			} else msgD = null
 
 			msgE = {
@@ -865,7 +872,13 @@ module.exports = function(RED) {
 				if (msg.payload >= 0 && msg.payload <= 100 && typeof msg.payload === "number") {
 					let prevPos = context.actposHeight
 					context.actposHeight = msg.payload
-					that.log("New shading position detected: " + prevPos + " -> " + context.actposHeight)
+					if (handleRtHeight) {
+						clearTimeout(handleRtHeight)
+						handleRtHeight = null
+						if (node.debug) {
+							that.log("New shading position detected after " + ((new Date().getTime()) - handleRtHeightStarttime) + "ms: " + prevPos + " -> " + context.actposHeight)
+						}
+					} else if (node.debug) {that.log("New shading position detected: " + prevPos + " -> " + context.actposHeight)}
 				} else {
 					that.warn("W002: Received invalid drive position '" + msg.payload + "'.")
 				}
