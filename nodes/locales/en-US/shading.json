@@ -9,10 +9,15 @@
     },
     "blind": {
         "h": "Blind",
-        "shadepos": "Shading position",
-        "heightFbEnable": "Height feedback",
-        "heightFbTopic": "Topic",
-        "heightFbTopic_ph": "Leave blank to use 'heightfeedback'"
+        "shadepos": "Shading position"
+    },
+    "heightfb": {
+        "h": "Height Feedback",
+        "enable": "Enable",
+        "topic": "Topic",
+        "topic_ph": "Leave blank to use 'heightfeedback'",
+        "maxrt": "Maximum runtime",
+        "sec": "seconds"
     },
     "pushbutton": {
         "h": "Pushbutton",

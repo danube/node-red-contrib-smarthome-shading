@@ -9,10 +9,15 @@
     },
     "blind": {
         "h": "Beschattung",
-        "shadepos": "Schatten-Position",
-        "heightFbEnable": "Istposition Höhe",
-        "heightFbTopic": "Topic",
-        "heightFbTopic_ph": "Leer lassen für 'heightfeedback'"
+        "shadepos": "Schatten-Position"
+    },
+    "heightfb": {
+        "h": "Istposition Höhe",
+        "enable": "Aktivieren",
+        "topic": "Topic",
+        "topic_ph": "Leer lassen für 'heightfeedback'",
+        "maxrt": "Maximale Fahrdauer",
+        "sec": "Sekunden"
     },
     "pushbutton": {
         "h": "Taster",
