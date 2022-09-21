@@ -1,6 +1,6 @@
 <!-- 
     TODO i18n
-    TODO update manual and h3 links in headings
+    TODO update manual and h3 links in headings (some h3 have no link)
 -->
 
 <!-- BEGIN configuration -->
@@ -13,6 +13,9 @@
             shadingSetposShade: {value: 80, required: true},
             heightFbEnable: {value: false},
             heightFbTopic: {},
+            heightFbRt: {value: 60, validate: function() {
+                return !this.heightFbEnable || (!isNaN(this.heightFbRt) && this.heightFbRt > 0)
+            }},
             inmsgButtonTopicOpen: {},
             inmsgButtonTopicClose: {},
             inmsgButtonDblclickTime: {value: 400, required: true},
@@ -85,7 +88,7 @@
                 typeField: $("#node-config-input-payloadStopCmdType"),
                 types: ["bool","num","str"]
             })
-
+            
             // Hide complete automatic area
             $("#node-config-input-autoActive").on('change', function() {
                 if ($("#node-config-input-autoActive").prop("checked")) {
@@ -281,6 +284,7 @@
             width: 250px
         }
         .red-ui-editor .form-row #node-config-input-shadingSetposShade,
+        .red-ui-editor .form-row #node-config-input-heightFbRt,
         .red-ui-editor .form-row #node-config-input-inmsgButtonDblclickTime {
             width: 100px
         }
@@ -317,14 +321,21 @@
         <label for="node-config-input-shadingSetposShade"><i class="fa fa-window-maximize"></i>  <span data-i18n="blind.shadepos"></span></label>
         <input type="number" step="1" min="0" max="100" id="node-config-input-shadingSetposShade"> %
     </div>
+    <hr>
+    <h3><span data-i18n="heightfb.h"></span></h3>
     <div class="form-row">
-        <label><i class="fa fa-power-off"></i> <span data-i18n="blind.heightFbEnable"></span></span></label>
+        <label><i class="fa fa-power-off"></i> <span data-i18n="heightfb.enable"></span></span></label>
         <input type="checkbox" id="node-config-input-heightFbEnable" style="display:inline-block; width:auto;">
     </div>
+
     <div id="heightfbtopic">
         <div class="form-row">
-            <label for="node-config-input-heightFbTopic"><i class="fa fa-rocket"></i> <span data-i18n="blind.heightFbTopic"></span></label>
-            <input type="text" id="node-config-input-heightFbTopic" data-i18n="[placeholder]blind.heightFbTopic_ph">
+            <label for="node-config-input-heightFbTopic"><i class="fa fa-rocket"></i> <span data-i18n="heightfb.topic"></span></label>
+            <input type="text" id="node-config-input-heightFbTopic" data-i18n="[placeholder]heightfb.topic_ph">
+        </div>
+        <div class="form-row">
+            <label for="node-config-input-heightFbRt"><i class="fa fa-clock-o"></i> <span data-i18n="heightfb.maxrt"></span></label>
+            <input type="number" step="1" min="1" id="node-config-input-heightFbRt"> <span data-i18n="heightfb.sec"></span>
         </div>
     </div>
     <hr>
@@ -340,7 +351,7 @@
     <div class="form-row">
         <label for="node-config-input-inmsgButtonDblclickTime"><i class="fa fa-clock-o"></i> <span data-i18n="pushbutton.dblclktime"></span></label>
         <input type="number" step="100" min="100" max="5000" id="node-config-input-inmsgButtonDblclickTime"> ms
-    </div>
+    </div>      <!-- TODO i18n "ms" -->
     <hr>
     <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md#command-configuration" target="_blank"> <span data-i18n="command.h"></span></a></h3>
     <div class="form-row">
