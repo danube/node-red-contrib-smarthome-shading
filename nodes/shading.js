@@ -1,11 +1,3 @@
-// TODO Workaround for drives, which do not permanently send a position feedback.
-// Scenario: Drive is closed. Pushbutton to open is pressed twice -> Drive will move to open position.
-// During movement, the window will be opened. If "preserve shade position" is active,
-// as there has no actual position feedback been received, the node still thinks that the drive is closed.
-// Hence, it will stop the movement and bring the drive in shade position.
-
-
-
 module.exports = function(RED) {
 
 	// Loading external modules
@@ -20,28 +12,36 @@ module.exports = function(RED) {
 		/**
 		 * Converts input string to typed defined value
 		 * @param {String} type Announced type which to convert to. Allowed: "num", "bool", "str".
-		 * @param value Input value to convert
-		 * @returns Converted value
+		 * @param {Any} value Input value to convert
+		 * @returns {Any} Converted value
 		 */
-		function typeToNumFunc(type, value) {		// TODO why did i name this ToNum but it can convert also to other types than num?? doh...
-			if ((type === "num" && typeof value === "number") || (type === "str" && typeof value === "string") || (type === "bool" && typeof value === "bool")) {return value}		// No need to convert
-			if (type === "num" && typeof value === "string" && !isNaN(Number(value))) {return Number(value)}		// Convert number to string
-			if (type === "bool" && (value === "true" || value === "false")) {return value === "true"}				// Convert bool to string
+		function strToTypeFunc(type, value) {
+			if ((type === "num" && typeof value === "number")
+			|| (type === "str" && typeof value === "string")
+			|| (type === "bool" && typeof value === "bool")) {
+				return value				// Value already in destination format -> no need to convert
+			}
+			if (type === "num" && typeof value === "string" && !isNaN(Number(value))) {
+				return Number(value)		// Return number converted from string
+			}
+			if (type === "bool" && (value === "true" || value === "false")) {
+				return value === "true"		// Return boolean TRUE if string is "true"
+			}
 			return -1
 		}
 
-		this.config.heightFbRt = typeToNumFunc("num", node.heightFbRt)
+		this.config.heightFbRt = strToTypeFunc("num", node.heightFbRt)
 		this.config.preventClosing = node.preventClosing && node.heightFbEnable
-		this.config.inmsgWinswitchPayloadOpened = typeToNumFunc(node.inmsgWinswitchPayloadOpenedType, node.inmsgWinswitchPayloadOpened)
-		this.config.inmsgWinswitchPayloadTilted = typeToNumFunc(node.inmsgWinswitchPayloadTiltedType, node.inmsgWinswitchPayloadTilted)
-		this.config.inmsgWinswitchPayloadClosed = typeToNumFunc(node.inmsgWinswitchPayloadClosedType, node.inmsgWinswitchPayloadClosed)
-		this.config.lat = typeToNumFunc("num", node.lat)
-		this.config.lon = typeToNumFunc("num", node.lon)
-		this.config.payloadOpenCmd = typeToNumFunc(node.payloadOpenCmdType, node.payloadOpenCmd)
-		this.config.payloadCloseCmd = typeToNumFunc(node.payloadCloseCmdType, node.payloadCloseCmd)
-		this.config.payloadStopCmd = typeToNumFunc(node.payloadStopCmdType, node.payloadStopCmd)
-		this.config.shadingSetposShade = typeToNumFunc("num", node.shadingSetposShade)
-		this.config.inmsgButtonDblclickTime = typeToNumFunc("num", node.inmsgButtonDblclickTime)
+		this.config.inmsgWinswitchPayloadOpened = strToTypeFunc(node.inmsgWinswitchPayloadOpenedType, node.inmsgWinswitchPayloadOpened)
+		this.config.inmsgWinswitchPayloadTilted = strToTypeFunc(node.inmsgWinswitchPayloadTiltedType, node.inmsgWinswitchPayloadTilted)
+		this.config.inmsgWinswitchPayloadClosed = strToTypeFunc(node.inmsgWinswitchPayloadClosedType, node.inmsgWinswitchPayloadClosed)
+		this.config.lat = strToTypeFunc("num", node.lat)
+		this.config.lon = strToTypeFunc("num", node.lon)
+		this.config.payloadOpenCmd = strToTypeFunc(node.payloadOpenCmdType, node.payloadOpenCmd)
+		this.config.payloadCloseCmd = strToTypeFunc(node.payloadCloseCmdType, node.payloadCloseCmd)
+		this.config.payloadStopCmd = strToTypeFunc(node.payloadStopCmdType, node.payloadStopCmd)
+		this.config.shadingSetposShade = strToTypeFunc("num", node.shadingSetposShade)
+		this.config.inmsgButtonDblclickTime = strToTypeFunc("num", node.inmsgButtonDblclickTime)
 		
 		this.config.heightFbTopic = node.heightFbTopic || "heightfeedback"
 		this.config.inmsgButtonTopicOpen = node.inmsgButtonTopicOpen || "buttonup"
@@ -463,15 +463,14 @@ module.exports = function(RED) {
 		 * 
 		 * Description "fill"
 		 * grey: Automatic is disabled in configuration
-		 * green: Automatic is configured but active
-		 * red: Automatic is configured and inactive
+		 * green dot: Automatic is configured and active (context.autoLocked is FALSE)
+		 * red ring: Automatic is configured but inactive (context.autoLocked is TRUE)
 		 * 
 		 * Description "text"
 		 * If automatic is configured: Part 1 = next sunrise or sunset. Else = Auto off.
 		 * If drive feedback is enabled and a valid feedback has been received: Part 2 = that value.
 		*/
 		function updateNodeStatus() {
-
 
 			function addZero(i) {
 				if (i < 10) {i = "0" + i}
@@ -483,7 +482,13 @@ module.exports = function(RED) {
 
 			if (config.autoActive) {
 
-				if (context.autoLocked === false) {fill = "green"} else {fill = "red"}
+				if (context.autoLocked === false) {
+					fill = "green"
+					shape = "dot"
+				} else {
+					fill = "red"
+					shape = "ring"
+				}
 
 				if (context.sunInSky) {
 					text = "🌜 " + addZero(sunTimes.sunset.getHours()) + ":" + addZero(sunTimes.sunset.getMinutes())
@@ -500,7 +505,8 @@ module.exports = function(RED) {
 			if (config.heightFbEnable && typeof context.actposHeight === "number") {
 				text = text + " | Drive at " + context.actposHeight + "%"
 			}
-
+			
+			that.status({fill: fill, shape: shape, text: text})
 
 		}
 
@@ -817,8 +823,7 @@ module.exports = function(RED) {
 				// Sending debug message
 				if (node.debug) {that.log("Window switch event detected: " + oldStateStr + " -> "  + context.windowStateStr)}
 
-				// Preserve shade position when window position comes from closed to opened or tilted
-				// TODO (windowSwitchOpenEvent || windowSwitchTiltEvent) ==> What if coming from open to tilt??
+				// Preserve shade position
 				if ((windowSwitchOpenEvent || windowSwitchTiltEvent)		// AND Window was opened or tilted
 				&& context.actposHeight > shadingSetpos.shade				// AND Actual position is below shade position
 				&& config.preventClosing) {									// AND Preserve config parameter is set
