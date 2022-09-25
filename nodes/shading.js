@@ -67,16 +67,18 @@ module.exports = function(RED) {
 		config = RED.nodes.getNode(node.configSet).config
 
 		// Definition of persistant variables
-		let handle, handleRtHeight, handleRtHeightStarttime, sunTimes, lat, lon = null
+		let handle, handleRtHeightStarttime, sunTimes, lat, lon = null
 		let sunriseFuncTimeoutHandle, sunsetFuncTimeoutHandle = null
-		/** If set, the shade closes as soon as the window closes */
-		let closeIfWinCloses, shadeIfTimeout = false
-		/** Configuration node variables */
-		// let config = {}
-
 		let nodeContext = that.context()
 		let flowContext = that.context().flow
 		let globalContext = that.context().global
+
+		/** If this handle is not null, the drive runtime is running (aka drive is running). */
+		let handleRtHeight = null
+		/** This variable defines, if the blind closes, as soon as the window closes (due to config parameter 'preserve shade position'). */
+		let closeIfWinCloses  = false
+		/** If the configured runtime has elapsed, the drive will be sent to shade position. */
+		let shadeIfTimeout  = false
 		
 		/**
 		 * The nodes context object
@@ -174,16 +176,17 @@ module.exports = function(RED) {
 			} else msgC = null
 			
 			if (d != null) {
-  			if (node.debug) {that.log("["+callee+"] Sending command value '" + d + "'")}
+				if (node.debug) {that.log("["+callee+"] Sending height setpoint '" + d + "'")}
 				msgD = {topic: "command", payload: d}
 
 				handleRtHeightStarttime = new Date().getTime()
 				handleRtHeight = setTimeout(() => {
-					if (node.debug) {that.log("W009: Height runtime elapsed")}
+					that.warn("W009: Height runtime elapsed")
 					if (shadeIfTimeout) {
 						shadeIfTimeout = false
-						context.setposHeight = shadingSetpos.shade
 						closeIfWinCloses = true
+						if (node.debug) {that.log("Going to shade position")}
+						context.setposHeight = shadingSetpos.shade
 						autoMoveFunc(true, true)
 					}
 				}, config.heightFbRt * 1000)
@@ -285,10 +288,11 @@ module.exports = function(RED) {
 				} else if (typeof context.actposHeight == "undefined" && !allowLowering) {				// Actual height position unknown where lowering is not allowed
 					that.warn("W006: Unknown actual position. Nothing will happen.")
 				} else if (typeof context.actposHeight == "undefined") {        // Actual height position unknown (setpos must be > 0)
-					that.log("W007: Unknown actual position")
+					that.warn("W007: Unknown actual position")
 					sendCommandFunc(null,null,null,context.setposHeight)
 				} else if (context.setposHeight > context.actposHeight) {								// Lowering -> check conditions
-					if (!ignoreWindow && config.winswitchEnable && (!context.windowState || context.windowState < 1 || context.windowState > 3)) {		// Check plausibility of window switch
+					// Check plausibility of window switch
+					if (!ignoreWindow && config.winswitchEnable && (!context.windowState || context.windowState < 1 || context.windowState > 3)) {
 						that.warn("W008: Unknown or invalid window State. Nothing will happen.")
 					} else if (allowLowering) {
 						sendCommandFunc(null,null,null,context.setposHeight)
@@ -792,8 +796,7 @@ module.exports = function(RED) {
 
 			else if (windowSwitchEvent) {
 				
-				// Store previous states
-				let oldState = context.windowState
+				// Store previous state
 				let oldStateStr = context.windowStateStr
 
 				// Storing new state
@@ -814,15 +817,17 @@ module.exports = function(RED) {
 				// Sending debug message
 				if (node.debug) {that.log("Window switch event detected: " + oldStateStr + " -> "  + context.windowStateStr)}
 
-				// Preserve shade position when window is opened or tilted
+				// Preserve shade position when window position comes from closed to opened or tilted
 				// TODO (windowSwitchOpenEvent || windowSwitchTiltEvent) ==> What if coming from open to tilt??
-				if ((windowSwitchOpenEvent || windowSwitchTiltEvent) && context.actposHeight > shadingSetpos.shade && config.preventClosing) {
-					if (!handleRtHeight) {								// Drive is not moving
-						context.setposHeight = shadingSetpos.shade
-						closeIfWinCloses = true
-						autoMoveFunc(true, true)
-					} else {											// Drive is moving
-						shadeIfTimeout = true
+				if ((windowSwitchOpenEvent || windowSwitchTiltEvent)		// AND Window was opened or tilted
+				&& context.actposHeight > shadingSetpos.shade				// AND Actual position is below shade position
+				&& config.preventClosing) {									// AND Preserve config parameter is set
+					if (!handleRtHeight) {									// Drive is not moving
+						context.setposHeight = shadingSetpos.shade			// New setpos is shade position
+						closeIfWinCloses = true								// Set marker to close blind when window closes
+						autoMoveFunc(true, true)							// Send command
+					} else {												// Drive is moving
+						shadeIfTimeout = true								// Set marker to shade blind when runtime elapses
 					}
 				}
 
@@ -890,7 +895,7 @@ module.exports = function(RED) {
 						// closeIfWinCloses = false
 						shadeIfTimeout = false
 						if (node.debug) {
-							that.log("Received new position: " + prevPos + " -> " + context.actposHeight + " (" + ((new Date().getTime()) - handleRtHeightStarttime) + " ms)")
+							that.log("Received new position: " + prevPos + " -> " + context.actposHeight + " (runtime " + ((new Date().getTime()) - handleRtHeightStarttime) + " ms)")
 						}
 					} else if (node.debug) {that.log("Received new position: " + prevPos + " -> " + context.actposHeight)}
 				} else {
