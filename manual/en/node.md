@@ -9,3 +9,6 @@ Use the dropdown to either select one of the already composed configuration sets
 
 ### Debugging
 If enabled, additional messages will be printed in the Node-RED Log and the debugging console of the web UI.
+
+## Node status
+TODO

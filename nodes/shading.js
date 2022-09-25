@@ -458,10 +458,7 @@ module.exports = function(RED) {
 		/** This function updates the node status. See https://nodered.org/docs/creating-nodes/status for more details.
 		 * 
 		 * // DOCME
-		 * Description "shape"
-		 * always "dot"
-		 * 
-		 * Description "fill"
+		 * Description "fill" / "shape"
 		 * grey: Automatic is disabled in configuration
 		 * green dot: Automatic is configured and active (context.autoLocked is FALSE)
 		 * red ring: Automatic is configured but inactive (context.autoLocked is TRUE)
