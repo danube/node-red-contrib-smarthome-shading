@@ -1,11 +1,3 @@
-// TODO Workaround for drives, which do not permanently send a position feedback.
-// Scenario: Drive is closed. Pushbutton to open is pressed twice -> Drive will move to open position.
-// During movement, the window will be opened. If "preserve shade position" is active,
-// as there has no actual position feedback been received, the node still thinks that the drive is closed.
-// Hence, it will stop the movement and bring the drive in shade position.
-
-
-
 module.exports = function(RED) {
 
 	// Loading external modules
@@ -20,28 +12,36 @@ module.exports = function(RED) {
 		/**
 		 * Converts input string to typed defined value
 		 * @param {String} type Announced type which to convert to. Allowed: "num", "bool", "str".
-		 * @param value Input value to convert
-		 * @returns Converted value
+		 * @param {Any} value Input value to convert
+		 * @returns {Any} Converted value
 		 */
-		function typeToNumFunc(type, value) {		// TODO why did i name this ToNum but it can convert also to other types than num?? doh...
-			if ((type === "num" && typeof value === "number") || (type === "str" && typeof value === "string") || (type === "bool" && typeof value === "bool")) {return value}		// No need to convert
-			if (type === "num" && typeof value === "string" && !isNaN(Number(value))) {return Number(value)}		// Convert number to string
-			if (type === "bool" && (value === "true" || value === "false")) {return value === "true"}				// Convert bool to string
+		function strToTypeFunc(type, value) {
+			if ((type === "num" && typeof value === "number")
+			|| (type === "str" && typeof value === "string")
+			|| (type === "bool" && typeof value === "bool")) {
+				return value				// Value already in destination format -> no need to convert
+			}
+			if (type === "num" && typeof value === "string" && !isNaN(Number(value))) {
+				return Number(value)		// Return number converted from string
+			}
+			if (type === "bool" && (value === "true" || value === "false")) {
+				return value === "true"		// Return boolean TRUE if string is "true"
+			}
 			return -1
 		}
 
-		this.config.heightFbRt = typeToNumFunc("num", node.heightFbRt)
+		this.config.heightFbRt = strToTypeFunc("num", node.heightFbRt)
 		this.config.preventClosing = node.preventClosing && node.heightFbEnable
-		this.config.inmsgWinswitchPayloadOpened = typeToNumFunc(node.inmsgWinswitchPayloadOpenedType, node.inmsgWinswitchPayloadOpened)
-		this.config.inmsgWinswitchPayloadTilted = typeToNumFunc(node.inmsgWinswitchPayloadTiltedType, node.inmsgWinswitchPayloadTilted)
-		this.config.inmsgWinswitchPayloadClosed = typeToNumFunc(node.inmsgWinswitchPayloadClosedType, node.inmsgWinswitchPayloadClosed)
-		this.config.lat = typeToNumFunc("num", node.lat)
-		this.config.lon = typeToNumFunc("num", node.lon)
-		this.config.payloadOpenCmd = typeToNumFunc(node.payloadOpenCmdType, node.payloadOpenCmd)
-		this.config.payloadCloseCmd = typeToNumFunc(node.payloadCloseCmdType, node.payloadCloseCmd)
-		this.config.payloadStopCmd = typeToNumFunc(node.payloadStopCmdType, node.payloadStopCmd)
-		this.config.shadingSetposShade = typeToNumFunc("num", node.shadingSetposShade)
-		this.config.inmsgButtonDblclickTime = typeToNumFunc("num", node.inmsgButtonDblclickTime)
+		this.config.inmsgWinswitchPayloadOpened = strToTypeFunc(node.inmsgWinswitchPayloadOpenedType, node.inmsgWinswitchPayloadOpened)
+		this.config.inmsgWinswitchPayloadTilted = strToTypeFunc(node.inmsgWinswitchPayloadTiltedType, node.inmsgWinswitchPayloadTilted)
+		this.config.inmsgWinswitchPayloadClosed = strToTypeFunc(node.inmsgWinswitchPayloadClosedType, node.inmsgWinswitchPayloadClosed)
+		this.config.lat = strToTypeFunc("num", node.lat)
+		this.config.lon = strToTypeFunc("num", node.lon)
+		this.config.payloadOpenCmd = strToTypeFunc(node.payloadOpenCmdType, node.payloadOpenCmd)
+		this.config.payloadCloseCmd = strToTypeFunc(node.payloadCloseCmdType, node.payloadCloseCmd)
+		this.config.payloadStopCmd = strToTypeFunc(node.payloadStopCmdType, node.payloadStopCmd)
+		this.config.shadingSetposShade = strToTypeFunc("num", node.shadingSetposShade)
+		this.config.inmsgButtonDblclickTime = strToTypeFunc("num", node.inmsgButtonDblclickTime)
 		
 		this.config.heightFbTopic = node.heightFbTopic || "heightfeedback"
 		this.config.inmsgButtonTopicOpen = node.inmsgButtonTopicOpen || "buttonup"
@@ -67,16 +67,18 @@ module.exports = function(RED) {
 		config = RED.nodes.getNode(node.configSet).config
 
 		// Definition of persistant variables
-		let handle, handleRtHeight, handleRtHeightStarttime, sunTimes, lat, lon = null
+		let handle, handleRtHeightStarttime, sunTimes, lat, lon = null
 		let sunriseFuncTimeoutHandle, sunsetFuncTimeoutHandle = null
-		/** If set, the shade closes as soon as the window closes */
-		let closeIfWinCloses, shadeIfTimeout = false
-		/** Configuration node variables */
-		// let config = {}
-
 		let nodeContext = that.context()
 		let flowContext = that.context().flow
 		let globalContext = that.context().global
+
+		/** If this handle is not null, the drive runtime is running (aka drive is running). */
+		let handleRtHeight = null
+		/** This variable defines, if the blind closes, as soon as the window closes (due to config parameter 'preserve shade position'). */
+		let closeIfWinCloses  = false
+		/** If the configured runtime has elapsed, the drive will be sent to shade position. */
+		let shadeIfTimeout  = false
 		
 		/**
 		 * The nodes context object
@@ -174,16 +176,17 @@ module.exports = function(RED) {
 			} else msgC = null
 			
 			if (d != null) {
-  			if (node.debug) {that.log("["+callee+"] Sending command value '" + d + "'")}
+				if (node.debug) {that.log("["+callee+"] Sending height setpoint '" + d + "'")}
 				msgD = {topic: "command", payload: d}
 
 				handleRtHeightStarttime = new Date().getTime()
 				handleRtHeight = setTimeout(() => {
-					if (node.debug) {that.log("W009: Height runtime elapsed")}
+					that.warn("W009: Height runtime elapsed")
 					if (shadeIfTimeout) {
 						shadeIfTimeout = false
-						context.setposHeight = shadingSetpos.shade
 						closeIfWinCloses = true
+						if (node.debug) {that.log("Going to shade position")}
+						context.setposHeight = shadingSetpos.shade
 						autoMoveFunc(true, true)
 					}
 				}, config.heightFbRt * 1000)
@@ -285,10 +288,11 @@ module.exports = function(RED) {
 				} else if (typeof context.actposHeight == "undefined" && !allowLowering) {				// Actual height position unknown where lowering is not allowed
 					that.warn("W006: Unknown actual position. Nothing will happen.")
 				} else if (typeof context.actposHeight == "undefined") {        // Actual height position unknown (setpos must be > 0)
-					that.log("W007: Unknown actual position")
+					that.warn("W007: Unknown actual position")
 					sendCommandFunc(null,null,null,context.setposHeight)
 				} else if (context.setposHeight > context.actposHeight) {								// Lowering -> check conditions
-					if (!ignoreWindow && config.winswitchEnable && (!context.windowState || context.windowState < 1 || context.windowState > 3)) {		// Check plausibility of window switch
+					// Check plausibility of window switch
+					if (!ignoreWindow && config.winswitchEnable && (!context.windowState || context.windowState < 1 || context.windowState > 3)) {
 						that.warn("W008: Unknown or invalid window State. Nothing will happen.")
 					} else if (allowLowering) {
 						sendCommandFunc(null,null,null,context.setposHeight)
@@ -454,20 +458,16 @@ module.exports = function(RED) {
 		/** This function updates the node status. See https://nodered.org/docs/creating-nodes/status for more details.
 		 * 
 		 * // DOCME
-		 * Description "shape"
-		 * always "dot"
-		 * 
-		 * Description "fill"
+		 * Description "fill" / "shape"
 		 * grey: Automatic is disabled in configuration
-		 * green: Automatic is configured but active
-		 * red: Automatic is configured and inactive
+		 * green dot: Automatic is configured and active (context.autoLocked is FALSE)
+		 * red ring: Automatic is configured but inactive (context.autoLocked is TRUE)
 		 * 
 		 * Description "text"
 		 * If automatic is configured: Part 1 = next sunrise or sunset. Else = Auto off.
 		 * If drive feedback is enabled and a valid feedback has been received: Part 2 = that value.
 		*/
 		function updateNodeStatus() {
-
 
 			function addZero(i) {
 				if (i < 10) {i = "0" + i}
@@ -479,7 +479,13 @@ module.exports = function(RED) {
 
 			if (config.autoActive) {
 
-				if (context.autoLocked === false) {fill = "green"} else {fill = "red"}
+				if (context.autoLocked === false) {
+					fill = "green"
+					shape = "dot"
+				} else {
+					fill = "red"
+					shape = "ring"
+				}
 
 				if (context.sunInSky) {
 					text = "🌜 " + addZero(sunTimes.sunset.getHours()) + ":" + addZero(sunTimes.sunset.getMinutes())
@@ -496,7 +502,8 @@ module.exports = function(RED) {
 			if (config.heightFbEnable && typeof context.actposHeight === "number") {
 				text = text + " | Drive at " + context.actposHeight + "%"
 			}
-
+			
+			that.status({fill: fill, shape: shape, text: text})
 
 		}
 
@@ -792,8 +799,7 @@ module.exports = function(RED) {
 
 			else if (windowSwitchEvent) {
 				
-				// Store previous states
-				let oldState = context.windowState
+				// Store previous state
 				let oldStateStr = context.windowStateStr
 
 				// Storing new state
@@ -814,15 +820,16 @@ module.exports = function(RED) {
 				// Sending debug message
 				if (node.debug) {that.log("Window switch event detected: " + oldStateStr + " -> "  + context.windowStateStr)}
 
-				// Preserve shade position when window is opened or tilted
-				// TODO (windowSwitchOpenEvent || windowSwitchTiltEvent) ==> What if coming from open to tilt??
-				if ((windowSwitchOpenEvent || windowSwitchTiltEvent) && context.actposHeight > shadingSetpos.shade && config.preventClosing) {
-					if (!handleRtHeight) {								// Drive is not moving
-						context.setposHeight = shadingSetpos.shade
-						closeIfWinCloses = true
-						autoMoveFunc(true, true)
-					} else {											// Drive is moving
-						shadeIfTimeout = true
+				// Preserve shade position
+				if ((windowSwitchOpenEvent || windowSwitchTiltEvent)		// AND Window was opened or tilted
+				&& context.actposHeight > shadingSetpos.shade				// AND Actual position is below shade position
+				&& config.preventClosing) {									// AND Preserve config parameter is set
+					if (!handleRtHeight) {									// Drive is not moving
+						context.setposHeight = shadingSetpos.shade			// New setpos is shade position
+						closeIfWinCloses = true								// Set marker to close blind when window closes
+						autoMoveFunc(true, true)							// Send command
+					} else {												// Drive is moving
+						shadeIfTimeout = true								// Set marker to shade blind when runtime elapses
 					}
 				}
 
@@ -890,7 +897,7 @@ module.exports = function(RED) {
 						// closeIfWinCloses = false
 						shadeIfTimeout = false
 						if (node.debug) {
-							that.log("Received new position: " + prevPos + " -> " + context.actposHeight + " (" + ((new Date().getTime()) - handleRtHeightStarttime) + " ms)")
+							that.log("Received new position: " + prevPos + " -> " + context.actposHeight + " (runtime " + ((new Date().getTime()) - handleRtHeightStarttime) + " ms)")
 						}
 					} else if (node.debug) {that.log("Received new position: " + prevPos + " -> " + context.actposHeight)}
 				} else {
