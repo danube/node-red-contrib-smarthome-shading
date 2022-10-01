@@ -209,7 +209,7 @@ module.exports = function(RED) {
 
 		/** Checks if automatic movement is allowed and sends setpos values. Prior to that, context.setposHeight must be made available.
 		 * This function must be called each time an automatic movement should processed.
-		 * @param {Boolean} sendNow If true, the setpoint value will be sent. If false, the setpoint will be sent only if it changes (context.setposHeightPrev <> context.setposHeight).
+		 * @param {Boolean} sendNow If true, the setpoint value will be sent. If false, the setpoint will be sent only if it differs from the actual position.
 		 * @param {Boolean} ignoreAutoLocked If true, the setpoint will be sent even if context.autoLocked is active.
 		 * @param {Boolean} ignoreWindow If true, the window position (and according security settings) will be ignored.
 		 */
@@ -891,6 +891,7 @@ module.exports = function(RED) {
 				if (msg.payload >= 0 && msg.payload <= 100 && typeof msg.payload === "number") {
 					let prevPos = context.actposHeight
 					context.actposHeight = msg.payload
+					context.setposHeightPrev = msg.payload
 					if (handleRtHeight) {
 						clearTimeout(handleRtHeight)
 						handleRtHeight = null
