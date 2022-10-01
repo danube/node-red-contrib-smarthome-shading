@@ -75,8 +75,10 @@ module.exports = function(RED) {
 
 		/** If this handle is not null, the drive runtime is running (aka drive is running). */
 		let handleRtHeight = null
-		/** This variable defines, if the blind closes, as soon as the window closes (due to config parameter 'preserve shade position'). */
+		/** This variable defines, if the blind closes, as soon as the window closes. */
 		let closeIfWinCloses  = false
+		/** This variable defines, if the blind goes to shade position, as soon as the window closes. */
+		let shadeIfWinCloses  = false
 		/** If the configured runtime has elapsed, the drive will be sent to shade position. */
 		let shadeIfTimeout  = false
 		
