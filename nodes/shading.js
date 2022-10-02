@@ -221,19 +221,21 @@ module.exports = function(RED) {
 			const callee = arguments.callee.name
 			// that.log("DEBUG: "+callee+" called from '"+caller+"'")
 
-			if (typeof context.setposHeight != "number") {				// setposHeight is not a number
+			// setposHeight is not a number
+			if (typeof context.setposHeight != "number") {
 				that.error("E001: invalid setposHeight type ('" + typeof context.setposHeight + "') [" + caller + "]")
 				return
 			}
-			else if (context.setposHeight < 0) {						// setposHeight is negative
+			// setposHeight is negative
+			else if (context.setposHeight < 0) {
 				that.error("E002: negative setposHeight ('" + context.setposHeight + "') [" + caller + "]")
 				return
 			}
-			else if (context.setposHeight > 100) {						// setposHeight is above 100
+			// setposHeight is above 100
+			else if (context.setposHeight > 100) {
 				that.error("E003: setposHeight above 100 ('" + context.setposHeight + "') [" + caller + "]")
 				return
 			} else {
-
 				// Check for new setposHeight and sendNow
 				if (context.setposHeightPrev == context.setposHeight && !sendNow) {
 					// -- DEBUG: some useful lines for debugging -->
@@ -246,7 +248,6 @@ module.exports = function(RED) {
 
 				// Getting hardlock state
 				if (config.autoActive) {
-
 					if (config.hardlockType === "flow") {
 						context.hardlock = flowContext.get(config.hardlock)
 					} else if (config.hardlockType === "global") {
@@ -256,7 +257,6 @@ module.exports = function(RED) {
 					} else {
 						that.error("E005: Undefined hardlock type")
 					}
-
 					if (typeof context.hardlock === "undefined") {
 						that.warn("W003: Undefined hardlock variable at '" + config.hardlockType + "." + config.hardlock + "'.")
 						context.hardlock = true
@@ -265,34 +265,48 @@ module.exports = function(RED) {
 						context.hardlock = true
 					}
 
-				
 				// Check if movement is allowed
 				} else {
 					context.hardlock = false
 				}
 
-				let allowLowering = 																// Check security conditions
+				/** Check if lowering is allowed according to security settings */
+				let allowLowering =
 					(context.windowState === window.opened && config.allowLoweringWhenOpened)
 					|| (context.windowState === window.tilted && config.allowLoweringWhenTilted)
 					|| context.windowState === window.closed
 					|| !config.winswitchEnable
 					|| ignoreWindow
 
-				if (context.hardlock) {																	// Hardlock -> nothing will happen
+				// Hardlock -> nothing will happen
+				if (context.hardlock) {
 					if (node.debug) {that.log("Locked by hardlock, nothing will happen.")}
-				} else if (context.autoLocked && !ignoreAutoLocked) {									// Auto locked (off) -> nothing will happen
+					
+				// Auto locked (off) -> nothing will happen
+				} else if (context.autoLocked && !ignoreAutoLocked) {
 					if (node.debug) {that.log("Not in automatic mode, nothing will happen.")}
-				} else if (!config.heightFbEnable) {								// No shading position feedback configured -> always move
+				
+				// No shading position feedback configured -> always move
+				} else if (!config.heightFbEnable) {
 					sendCommandFunc(null,null,null,context.setposHeight)
-				} else if (typeof context.actposHeight == "undefined" && context.setposHeight === 0) {	// Actual height position unknown but setpos is 0 -> move up
+				
+				// Actual height position unknown but setpos is 0 -> move up
+				} else if (typeof context.actposHeight == "undefined" && context.setposHeight === 0) {
 					that.warn("W005: Unknown actual position, but rising is allowed.")
 					sendCommandFunc(null,null,null,context.setposHeight)
-				} else if (typeof context.actposHeight == "undefined" && !allowLowering) {				// Actual height position unknown where lowering is not allowed
+				
+				// Actual height position unknown where lowering is not allowed
+				} else if (typeof context.actposHeight == "undefined" && !allowLowering) {
 					that.warn("W006: Unknown actual position. Nothing will happen.")
-				} else if (typeof context.actposHeight == "undefined") {        // Actual height position unknown (setpos must be > 0)
+				
+				// Actual height position unknown (setpos must be > 0)
+				} else if (typeof context.actposHeight == "undefined") {
 					that.warn("W007: Unknown actual position")
 					sendCommandFunc(null,null,null,context.setposHeight)
-				} else if (context.setposHeight > context.actposHeight) {								// Lowering -> check conditions
+				
+				// Lowering -> check conditions
+				} else if (context.setposHeight > context.actposHeight) {
+
 					// Check plausibility of window switch
 					if (!ignoreWindow && config.winswitchEnable && (!context.windowState || context.windowState < 1 || context.windowState > 3)) {
 						that.warn("W008: Unknown or invalid window State. Nothing will happen.")
@@ -301,7 +315,9 @@ module.exports = function(RED) {
 					} else {
 						if (node.debug) {that.log("Actual window position prevents lowering, holding back command.")}
 					}
-				} else if (context.setposHeight <= context.actposHeight) {								// Rising or unchanged
+
+				// Rising or unchanged
+				} else if (context.setposHeight <= context.actposHeight) {
 					sendCommandFunc(null,null,null,context.setposHeight)
 				}
 				context.setposHeightPrev = context.setposHeight
@@ -323,7 +339,8 @@ module.exports = function(RED) {
 		
 			sunInSkyFunc()
 			
-			if (context.sunInSky) {   			// This is the routine for daytime
+			// This is the routine for SUNRISE & DAYTIME
+			if (context.sunInSky) {
 				if (node.debug) {that.log("["+callee+"] Checking configuration for daytime")}
 				if (config.openIfSunrise) {
 					context.setposHeight = shadingSetpos.open
@@ -337,10 +354,11 @@ module.exports = function(RED) {
 					context.setposHeight = shadingSetpos.close
 					autoMoveFunc(sendNow)
 					return
-				} else {
-					if (node.debug) {that.log("["+callee+"] Nothing configured to happen on daytime")}
 				}
-			} else {        // This is the routine for nighttime
+				if (node.debug) {that.log("["+callee+"] Nothing configured to happen on daytime")}
+			
+			// This is the routine for SUNSET & NIGHTTIME
+			} else {
 				if (node.debug) {that.log("["+callee+"] Checking configuration for nighttime")}
 				if (config.openIfSunset) {
 					context.setposHeight = shadingSetpos.open
@@ -400,7 +418,7 @@ module.exports = function(RED) {
 
 			// Sunrise event
 			if (context.sunriseAhead === false && sunriseAheadPrev === true) {
-				if (node.debug) {that.log("Now it's sunrise")}								// -> Send debug message
+				if (node.debug) {that.log("Now it's sunrise")}
 				if (config.autoIfSunrise) {
 					if (node.debug) {that.log("Re-enabeling automatic")}
 					autoReenableFunc()
@@ -412,7 +430,7 @@ module.exports = function(RED) {
 			
 			// Sunset event
 			else if (context.sunsetAhead === false && sunsetAheadPrev === true) {
-				if (node.debug) {that.log("Now it's sunset")}								// -> Send debug message
+				if (node.debug) {that.log("Now it's sunset")}
 				if (config.autoIfSunset) {
 					if (node.debug) {that.log("Re-enabeling automatic")}
 					autoReenableFunc()
