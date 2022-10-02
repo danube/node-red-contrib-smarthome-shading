@@ -77,8 +77,6 @@ module.exports = function(RED) {
 		let handleRtHeight = null
 		/** This variable defines, if the blind closes, as soon as the window closes. */
 		let closeIfWinCloses  = false
-		/** This variable defines, if the blind goes to shade position, as soon as the window closes. */
-		let shadeIfWinCloses  = false
 		/** If the configured runtime has elapsed, the drive will be sent to shade position. */
 		let shadeIfTimeout  = false
 		
@@ -221,17 +219,17 @@ module.exports = function(RED) {
 			const callee = arguments.callee.name
 			// that.log("DEBUG: "+callee+" called from '"+caller+"'")
 
-			// setposHeight is not a number
+			// PLAUSIBILITY CHECK: setposHeight is not a number
 			if (typeof context.setposHeight != "number") {
 				that.error("E001: invalid setposHeight type ('" + typeof context.setposHeight + "') [" + caller + "]")
 				return
 			}
-			// setposHeight is negative
+			// PLAUSIBILITY CHECK: setposHeight is negative
 			else if (context.setposHeight < 0) {
 				that.error("E002: negative setposHeight ('" + context.setposHeight + "') [" + caller + "]")
 				return
 			}
-			// setposHeight is above 100
+			// PLAUSIBILITY CHECK: setposHeight is above 100
 			else if (context.setposHeight > 100) {
 				that.error("E003: setposHeight above 100 ('" + context.setposHeight + "') [" + caller + "]")
 				return
@@ -244,7 +242,7 @@ module.exports = function(RED) {
 				}
 				
 				// Sending console message
-				else if (node.debug) {that.log("["+callee+"] " + "setposHeight: " + context.setposHeightPrev + " -> " + context.setposHeight)}
+				else if (node.debug) {that.log("["+callee+"] " + "Preparing new height setpoint: " + context.setposHeightPrev + " -> " + context.setposHeight)}
 
 				// Getting hardlock state
 				if (config.autoActive) {
@@ -286,25 +284,25 @@ module.exports = function(RED) {
 				} else if (context.autoLocked && !ignoreAutoLocked) {
 					if (node.debug) {that.log("Not in automatic mode, nothing will happen.")}
 				
-				// No shading position feedback configured -> always move
+				// No shading position feedback configured -> always move up or down
 				} else if (!config.heightFbEnable) {
 					sendCommandFunc(null,null,null,context.setposHeight)
 				
-				// Actual height position unknown but setpos is 0 -> move up
+				// Actual height position unknown but setpos is 0 -> moving up is always secure
 				} else if (typeof context.actposHeight == "undefined" && context.setposHeight === 0) {
 					that.warn("W005: Unknown actual position, but rising is allowed.")
 					sendCommandFunc(null,null,null,context.setposHeight)
 				
-				// Actual height position unknown where lowering is not allowed
+				// Actual height position unknown and lowering is not allowed
 				} else if (typeof context.actposHeight == "undefined" && !allowLowering) {
 					that.warn("W006: Unknown actual position. Nothing will happen.")
-				
+					
 				// Actual height position unknown (setpos must be > 0)
 				} else if (typeof context.actposHeight == "undefined") {
 					that.warn("W007: Unknown actual position")
 					sendCommandFunc(null,null,null,context.setposHeight)
 				
-				// Lowering -> check conditions
+				// Lowering may be insecure -> check conditions
 				} else if (context.setposHeight > context.actposHeight) {
 
 					// Check plausibility of window switch
@@ -314,6 +312,7 @@ module.exports = function(RED) {
 						sendCommandFunc(null,null,null,context.setposHeight)
 					} else {
 						if (node.debug) {that.log("Actual window position prevents lowering, holding back command.")}
+						// FIXME store setpoint and re-send it on window swith event
 					}
 
 				// Rising or unchanged
