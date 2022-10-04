@@ -62,6 +62,7 @@ module.exports = function(RED) {
 	function ShadingNode(node) {
 		RED.nodes.createNode(this, node)
 		const that = this
+
 		/** This is the content of the associated configuration node, including all necessary conversions. */
 		let config = {}
 		config = RED.nodes.getNode(node.configSet).config
@@ -79,7 +80,9 @@ module.exports = function(RED) {
 		let closeIfWinCloses  = false
 		/** If the configured runtime has elapsed, the drive will be sent to shade position. */
 		let shadeIfTimeout  = false
-		
+		/** This flag is true, ff sending height setpoint is held back. */
+		let resendHeightSetpos = false
+
 		/**
 		 * The nodes context object
 		 * @property {Number} windowState 1 = opened, 2 = tilted, 3 = closed
@@ -130,7 +133,6 @@ module.exports = function(RED) {
 		let sunriseAheadPrev = null
 		/** The backed up state of sunet being in the future */
 		let sunsetAheadPrev = null
-		// Loading external modules
 
 
 		// FUNCTIONS ====>
@@ -218,6 +220,9 @@ module.exports = function(RED) {
 			const caller = autoMoveFunc.caller.name
 			const callee = arguments.callee.name
 			// that.log("DEBUG: "+callee+" called from '"+caller+"'")
+
+			// Resetting retry flag on function init
+			resendHeightSetpos = false
 
 			// PLAUSIBILITY CHECK: setposHeight is not a number
 			if (typeof context.setposHeight != "number") {
@@ -312,7 +317,7 @@ module.exports = function(RED) {
 						sendCommandFunc(null,null,null,context.setposHeight)
 					} else {
 						if (node.debug) {that.log("Actual window position prevents lowering, holding back command.")}
-						// FIXME store setpoint and re-send it on window swith event
+						resendHeightSetpos = true
 					}
 
 				// Rising or unchanged
@@ -818,7 +823,7 @@ module.exports = function(RED) {
 
 			else if (windowSwitchEvent) {
 				
-				// Store previous state
+				// Storing old state
 				let oldStateStr = context.windowStateStr
 
 				// Storing new state
@@ -839,8 +844,13 @@ module.exports = function(RED) {
 				// Sending debug message
 				if (node.debug) {that.log("Window switch event detected: " + oldStateStr + " -> "  + context.windowStateStr)}
 
+				// If sending setpoint has been held back, sending will be retried.
+				if (resendHeightSetpos) {
+					autoMoveFunc(true)
+				}
+
 				// Preserve shade position
-				if ((windowSwitchOpenEvent || windowSwitchTiltEvent)		// AND Window was opened or tilted
+				else if ((windowSwitchOpenEvent || windowSwitchTiltEvent)		// Window was opened or tilted
 				&& context.actposHeight > shadingSetpos.shade				// AND Actual position is below shade position
 				&& config.preventClosing) {									// AND Preserve config parameter is set
 					if (!handleRtHeight) {									// Drive is not moving
