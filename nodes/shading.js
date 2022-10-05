@@ -182,16 +182,18 @@ module.exports = function(RED) {
 				msgD = {topic: "command", payload: d}
 
 				handleRtHeightStarttime = new Date().getTime()
-				handleRtHeight = setTimeout(() => {
-					that.warn("W009: Height runtime elapsed")
-					if (shadeIfTimeout) {
-						shadeIfTimeout = false
-						closeIfWinCloses = true
-						if (node.debug) {that.log("Going to shade position")}
-						context.setposHeight = shadingSetpos.shade
-						autoMoveFunc(true, true)
-					}
-				}, config.heightFbRt * 1000)
+				if (d != context.setposHeightPrev) {
+					handleRtHeight = setTimeout(() => {
+						that.warn("W009: Height runtime elapsed")
+						if (shadeIfTimeout) {
+							shadeIfTimeout = false
+							closeIfWinCloses = true
+							if (node.debug) {that.log("Going to shade position")}
+							context.setposHeight = shadingSetpos.shade
+							autoMoveFunc(true, true)
+						}
+					}, config.heightFbRt * 1000)
+				}
 
 			} else msgD = null
 
