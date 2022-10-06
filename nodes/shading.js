@@ -181,8 +181,10 @@ module.exports = function(RED) {
 				if (node.debug) {that.log("["+callee+"] Sending height setpoint '" + d + "'")}
 				msgD = {topic: "command", payload: d}
 
-				handleRtHeightStarttime = new Date().getTime()
 				if (d != context.setposHeightPrev) {
+					clearTimeout(handleRtHeight)
+					if (node.debug) {that.log("Waiting " + config.heightFbRt + " ms for drive feedback...")}
+					handleRtHeightStarttime = new Date().getTime()
 					handleRtHeight = setTimeout(() => {
 						that.warn("W009: Height runtime elapsed")
 						if (shadeIfTimeout) {
