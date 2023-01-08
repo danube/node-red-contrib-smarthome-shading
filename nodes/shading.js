@@ -73,6 +73,7 @@ module.exports = function(RED) {
 		let nodeContext = that.context()
 		let flowContext = that.context().flow
 		let globalContext = that.context().global
+		let called
 
 		/** If this handle is not null, the drive runtime is running (aka drive is running). */
 		let handleRtHeight = null
@@ -161,6 +162,8 @@ module.exports = function(RED) {
 		 */
 		function sendCommandFunc(a,b,c,d) {
 
+			resendHeightSetpos = false
+
 			const callee = arguments.callee.name
 
 			let msgA, msgB, msgC, msgD, msgE = null
@@ -220,41 +223,38 @@ module.exports = function(RED) {
 		 * @param {Boolean} ignoreWindow If true, the window position (and according security settings) will be ignored.
 		 */
 		function autoMoveFunc(sendNow, ignoreAutoLocked, ignoreWindow) {
+			called = "[" + autoMoveFunc.caller.name + " > " + arguments.callee.name + "]"
 
-			const caller = autoMoveFunc.caller.name
-			const callee = arguments.callee.name
-			// that.log("DEBUG: "+callee+" called from '"+caller+"'")
-
-			// Resetting retry flag on function init
-			resendHeightSetpos = false
-
-			// PLAUSIBILITY CHECK: setposHeight is not a number
+			// PLAUSIBILITY CHECK FAILED: setposHeight is not a number
 			if (typeof context.setposHeight != "number") {
-				that.error("E001: invalid setposHeight type ('" + typeof context.setposHeight + "') [" + caller + "]")
+				that.error("E001: invalid setposHeight type ('" + typeof context.setposHeight + "') [" + called + "]")
 				return
 			}
-			// PLAUSIBILITY CHECK: setposHeight is negative
+			// PLAUSIBILITY CHECK FAILED: setposHeight is negative
 			else if (context.setposHeight < 0) {
-				that.error("E002: negative setposHeight ('" + context.setposHeight + "') [" + caller + "]")
+				that.error("E002: negative setposHeight ('" + context.setposHeight + "') [" + called + "]")
 				return
 			}
-			// PLAUSIBILITY CHECK: setposHeight is above 100
+			// PLAUSIBILITY CHECK FAILED: setposHeight is above 100
 			else if (context.setposHeight > 100) {
-				that.error("E003: setposHeight above 100 ('" + context.setposHeight + "') [" + caller + "]")
+				that.error("E003: setposHeight above 100 ('" + context.setposHeight + "') [" + called + "]")
 				return
+			// PLAUSIBILITY CONFIRMED: proceed
 			} else {
-				// Check for new setposHeight and sendNow
+				
+				// Check for new setposHeight and sendNow, otherwise return
 				if (context.setposHeightPrev == context.setposHeight && !sendNow) {
 					// -- DEBUG: some useful lines for debugging -->
 					// if (node.debug) {that.log("Not re-sending already sent setposHeight '" + context.setposHeight + "'")}
 					return
 				}
 				
-				// Sending console message
-				else if (node.debug) {that.log("["+callee+"] " + "Preparing new height setpoint: " + context.setposHeightPrev + " -> " + context.setposHeight)}
+				// Preparing new setpoint, sending console message
+				else if (node.debug) {that.log(called + " Preparing new height setpoint: " + context.setposHeightPrev + " -> " + context.setposHeight)}
 
 				// Getting hardlock state
 				if (config.autoActive) {
+
 					if (config.hardlockType === "flow") {
 						context.hardlock = flowContext.get(config.hardlock)
 					} else if (config.hardlockType === "global") {
@@ -262,8 +262,9 @@ module.exports = function(RED) {
 					} else if (config.hardlockType === "dis") {
 						context.hardlock = false
 					} else {
-						that.error("E005: Undefined hardlock type")
+						that.error("E005: Undefined hardlock type")		// Due to dropdown configuration, this should never happen.
 					}
+
 					if (typeof context.hardlock === "undefined") {
 						that.warn("W003: Undefined hardlock variable at '" + config.hardlockType + "." + config.hardlock + "'.")
 						context.hardlock = true
@@ -272,7 +273,8 @@ module.exports = function(RED) {
 						context.hardlock = true
 					}
 
-				// Check if movement is allowed
+				// If no automatic is configured, there is no hardlock configuration available.
+				// TODO This may be moved to the html section.
 				} else {
 					context.hardlock = false
 				}
@@ -311,7 +313,7 @@ module.exports = function(RED) {
 					that.warn("W007: Unknown actual position")
 					sendCommandFunc(null,null,null,context.setposHeight)
 				
-				// Lowering may be insecure -> check conditions
+				// Lowering may be insecure -> first check conditions
 				} else if (context.setposHeight > context.actposHeight) {
 
 					// Check plausibility of window switch
@@ -320,7 +322,7 @@ module.exports = function(RED) {
 					} else if (allowLowering) {
 						sendCommandFunc(null,null,null,context.setposHeight)
 					} else {
-						if (node.debug) {that.log("Actual window position prevents lowering, holding back command.")}
+						if (node.debug) {that.log(called + " Actual window position prevents lowering, holding back command.")}
 						resendHeightSetpos = true
 					}
 
