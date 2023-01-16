@@ -274,7 +274,6 @@ module.exports = function(RED) {
 					}
 
 				// If no automatic is configured, there is no hardlock configuration available.
-				// TODO This may be moved to the html section.
 				} else {
 					context.hardlock = false
 				}
@@ -485,18 +484,7 @@ module.exports = function(RED) {
 		}
 
 
-		/** This function updates the node status. See https://nodered.org/docs/creating-nodes/status for more details.
-		 * 
-		 * // DOCME
-		 * Description "fill" / "shape"
-		 * grey: Automatic is disabled in configuration
-		 * green dot: Automatic is configured and active (context.autoLocked is FALSE)
-		 * red ring: Automatic is configured but inactive (context.autoLocked is TRUE)
-		 * 
-		 * Description "text"
-		 * If automatic is configured: Part 1 = next sunrise or sunset. Else = Auto off.
-		 * If drive feedback is enabled and a valid feedback has been received: Part 2 = that value.
-		*/
+		/** This function updates the node status. See https://nodered.org/docs/creating-nodes/status for more details. */
 		function updateNodeStatus() {
 
 			function addZero(i) {
