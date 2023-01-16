@@ -5,8 +5,8 @@ module.exports = function(RED) {
 
 
 	/** Config node */
-    function ShadingConfigNode(node) {
-        RED.nodes.createNode(this, node)
+	function ShadingConfigNode(node) {
+		RED.nodes.createNode(this, node)
 		this.config = node
 
 		/**
@@ -53,9 +53,9 @@ module.exports = function(RED) {
 		this.config.inmsgWinswitchTopic = node.inmsgWinswitchTopic || "switch"
 		this.config.inmsgButtonDblclickTime = node.inmsgButtonDblclickTime || 500
 
-    }
+	}
 	
-    RED.nodes.registerType("shading configuration",ShadingConfigNode)
+	RED.nodes.registerType("shading configuration",ShadingConfigNode)
 
 	
 	/** Working node */
@@ -599,7 +599,6 @@ module.exports = function(RED) {
 			nodeContext.set("context", context)		// Backing up context
 		}
 	
-
 		// <==== FUNCTIONS
 
 
@@ -694,8 +693,7 @@ module.exports = function(RED) {
 
 				closeIfWinCloses = false
 
-				// Button open pressed
-				if (buttonPressOpenEvent) {
+				if (buttonPressOpenEvent) {		// Button open pressed
 					clearTimeout(context.buttonCloseTimeoutHandle)
 					context.buttonCloseTimeoutHandle = null
 
@@ -738,7 +736,7 @@ module.exports = function(RED) {
 							} else {														// button not pressed anymore -> must be a single click
 								
 								// SINGLE CLICK ACTIONS ==>
-  								if (node.debug) {that.log("Open singleclick detected")}
+								if (node.debug) {that.log("Open singleclick detected")}
 								if (context.actposHeight > shadingSetpos.shade) {
 									sendCommandFunc(null,null,null,shadingSetpos.shade)
 								} else {
@@ -749,8 +747,7 @@ module.exports = function(RED) {
 						}, config.inmsgButtonDblclickTime)
 					}
 					
-				// Button close pressed
-				} else if (buttonPressCloseEvent) {
+				} else if (buttonPressCloseEvent) {		// Button close pressed
 					clearTimeout(context.buttonOpenTimeoutHandle)
 					context.buttonOpenTimeoutHandle = null
 				
@@ -785,7 +782,7 @@ module.exports = function(RED) {
 							if (context.stateButtonClose) {
 								
 								// LONG CLICK ACTIONS ==>
-  								if (node.debug) {that.log("Close longclick detected")}
+								if (node.debug) {that.log("Close longclick detected")}
 								sendCommandFunc(null,config.payloadCloseCmd,null,null)
 								context.stateButtonRunning = true
 								// <== LONG CLICK ACTIONS
@@ -793,7 +790,7 @@ module.exports = function(RED) {
 							} else {
 								
 								// SINGLE CLICK ACTIONS ==>
-  								if (node.debug) {that.log("Close singleclick detected")}
+								if (node.debug) {that.log("Close singleclick detected")}
 								if (context.actposHeight < shadingSetpos.shade) {
 									sendCommandFunc(null,null,null,shadingSetpos.shade)
 								} else {
@@ -806,7 +803,6 @@ module.exports = function(RED) {
 					
 				// Any button released
 				} else if (buttonReleaseEvent && context.stateButtonRunning) {
-					
 					// BUTTONS RELEASED ACTIONS ==>
 					if (node.debug) {that.log("Button released")}
 					context.stateButtonRunning = false
@@ -1011,5 +1007,5 @@ module.exports = function(RED) {
 
 	}
 
-    RED.nodes.registerType("shading",ShadingNode)
+	RED.nodes.registerType("shading",ShadingNode)
 }
