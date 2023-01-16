@@ -25,7 +25,8 @@
         "topicmoveup_ph": "Leave blank to use 'buttonup'",
         "topicmovedwn": "Topic: Move down",
         "topicmovedwn_ph": "Leave blank to use 'buttondown'",
-        "dblclktime": "Doubleclick time"
+        "dblclktime": "Doubleclick time",
+        "ms": "ms"
     },
     "command": {
         "h": "Position commands",

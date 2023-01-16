@@ -25,7 +25,8 @@
         "topicmoveup_ph": "Leer lassen für 'buttonup'",
         "topicmovedwn": "Topic: Fahre runter",
         "topicmovedwn_ph": "Leer lassen für 'buttondown'",
-        "dblclktime": "Doppelklick Zeit"
+        "dblclktime": "Doppelklick Zeit",
+        "ms": "ms"
     },
     "command": {
         "h": "Positionsbefehle",

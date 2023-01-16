@@ -62,7 +62,7 @@
 
             if (this.payloadOpenCmdType === "initval") {
                 $("#node-config-input-payloadOpenCmdType").val("bool");
-            }   // TODO Diesen workaround auch überall anders noch nachziehen
+            }
             $("#node-config-input-payloadOpenCmd").typedInput({
                 typeField: $("#node-config-input-payloadOpenCmdType"),
                 types: ["bool","num","str"]
@@ -345,8 +345,8 @@
     </div>
     <div class="form-row">
         <label for="node-config-input-inmsgButtonDblclickTime"><i class="fa fa-clock-o"></i> <span data-i18n="pushbutton.dblclktime"></span></label>
-        <input type="number" step="100" min="100" max="5000" id="node-config-input-inmsgButtonDblclickTime"> ms
-    </div>      <!-- TODO i18n "ms" -->
+        <input type="number" step="100" min="100" max="5000" id="node-config-input-inmsgButtonDblclickTime"> <span data-i18n="pushbutton.ms"></span>
+    </div>
     <hr>
     <h3><a href="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/doc/configuration.md#command-configuration" target="_blank"> <span data-i18n="command.h"></span></a></h3>
     <div class="form-row">
@@ -443,7 +443,7 @@
     <div id="autoConfig">
         <div class="form-row">
             <label for="node-config-input-lat"><i class="fa fa-compass"></i> <span data-i18n="automatic.lat"></span></label>
-            <input type="text" id="node-config-input-lat" data-i18n="[placeholder]automatic.lat_ph" style="width: 150px;"> ° <!-- TODO Nach Eingabe eines leeren Feldes bleibt die Feldumrandung rot -->
+            <input type="text" id="node-config-input-lat" data-i18n="[placeholder]automatic.lat_ph" style="width: 150px;"> °
         </div>
         <div class="form-row">
             <label for="node-config-input-lon"><i class="fa fa-compass"></i> <span data-i18n="automatic.lon"></span></label>
@@ -544,11 +544,11 @@
         <input type="text" id="node-input-name" data-i18n="[placeholder]common.namenode_ph">
     </div>
     <div class="form-row">
-        <label for="node-input-configSet"><i class="fa fa-sliders"></i> <span data-i18n="common.configuration"></label>
+        <label for="node-input-configSet"><i class="fa fa-sliders"></i> <span data-i18n="common.configuration"></span></label>
         <input type="text" id="node-input-configSet">
     </div>
     <div class="form-row">
-        <label><i class="fa fa-bug"></i> <span data-i18n="common.debugging"></label>
+        <label><i class="fa fa-bug"></i> <span data-i18n="common.debugging"></span></label>
         <input type="checkbox" id="node-input-debug" style="display:inline-block; width:auto;">
     </div>
 </script>
