@@ -184,9 +184,9 @@ module.exports = function(RED) {
 				if (node.debug) {that.log("["+callee+"] Sending height setpoint '" + d + "'")}
 				msgD = {topic: "command", payload: d}
 
-				if (d != context.setposHeightPrev) {
+				if (d != context.setposHeightPrev && config.heightFbEnable) {
 					clearTimeout(handleRtHeight)
-					if (node.debug) {that.log("Waiting " + config.heightFbRt + " ms for drive feedback...")}
+					if (node.debug) {that.log("Waiting " + config.heightFbRt + " seconds for drive feedback...")}
 					handleRtHeightStarttime = new Date().getTime()
 					handleRtHeight = setTimeout(() => {
 						that.warn("W009: Height runtime elapsed")
@@ -622,6 +622,7 @@ module.exports = function(RED) {
 		} else {
 			clearTimeout(sunriseFuncTimeoutHandle)
 			clearTimeout(sunsetFuncTimeoutHandle)
+			context.autoLocked = true
 		}
 		
 		updateNodeStatus()		// Initially set node status
