@@ -1,3 +1,5 @@
+// TODO Sind die Security Einstellungen überhaupt relevant, wenn Automatik gar nicht aktiv ist??
+
 module.exports = function(RED) {
 
 	// Loading external modules
@@ -73,7 +75,7 @@ module.exports = function(RED) {
 		let nodeContext = that.context()
 		let flowContext = that.context().flow
 		let globalContext = that.context().global
-		let called
+		let fName
 
 		/** If this handle is not null, the drive runtime is running (aka drive is running). */
 		let handleRtHeight = null
@@ -223,21 +225,21 @@ module.exports = function(RED) {
 		 * @param {Boolean} ignoreWindow If true, the window position (and according security settings) will be ignored.
 		 */
 		function autoMoveFunc(sendNow, ignoreAutoLocked, ignoreWindow) {
-			called = "[" + autoMoveFunc.caller.name + " > " + arguments.callee.name + "]"
+			fName = "["+arguments.callee.name+"]"
 
 			// PLAUSIBILITY CHECK FAILED: setposHeight is not a number
 			if (typeof context.setposHeight != "number") {
-				that.error("E001: invalid setposHeight type ('" + typeof context.setposHeight + "') [" + called + "]")
+				that.error("E001: invalid setposHeight type ('" + typeof context.setposHeight + "')")
 				return
 			}
 			// PLAUSIBILITY CHECK FAILED: setposHeight is negative
 			else if (context.setposHeight < 0) {
-				that.error("E002: negative setposHeight ('" + context.setposHeight + "') [" + called + "]")
+				that.error("E002: negative setposHeight ('" + context.setposHeight + "')")
 				return
 			}
 			// PLAUSIBILITY CHECK FAILED: setposHeight is above 100
 			else if (context.setposHeight > 100) {
-				that.error("E003: setposHeight above 100 ('" + context.setposHeight + "') [" + called + "]")
+				that.error("E003: setposHeight above 100 ('" + context.setposHeight + "')")
 				return
 			// PLAUSIBILITY CONFIRMED: proceed
 			} else {
@@ -250,7 +252,7 @@ module.exports = function(RED) {
 				}
 				
 				// Preparing new setpoint, sending console message
-				else if (node.debug) {that.log(called + " Preparing new height setpoint: " + context.setposHeightPrev + " -> " + context.setposHeight)}
+				else if (node.debug) {that.log(fName + " Preparing new height setpoint: " + context.setposHeightPrev + " -> " + context.setposHeight)}
 
 				// Getting hardlock state
 				if (config.autoActive) {
@@ -321,7 +323,7 @@ module.exports = function(RED) {
 					} else if (allowLowering) {
 						sendCommandFunc(null,null,null,context.setposHeight)
 					} else {
-						if (node.debug) {that.log(called + " Actual window position prevents lowering, holding back command.")}
+						if (node.debug) {that.log(fName + " Actual window position prevents lowering, holding back command.")}
 						resendHeightSetpos = true
 					}
 
