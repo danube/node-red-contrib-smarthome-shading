@@ -29,7 +29,7 @@
         "ms": "ms"
     },
     "command": {
-        "h": "Position commands",
+        "h": "Position Commands",
         "topicopen": "Topic: Open",
         "topicopen_ph": "Leave blank to use 'commandopen'",
         "topicshade": "Topic: Shade",
@@ -55,7 +55,7 @@
         "hardlock": "Hard lock"
     },
     "windowswitch": {
-        "h": "Window switch",
+        "h": "Window Switch",
         "enable": "Enable",
         "topic": "Topic",
         "topic_ph": "Leave blank to use 'switch'",
