@@ -67,8 +67,8 @@
     },
     "security": {
         "h": "Security",
-        "alwlowtilt": "Allow lowering if window is tilted",
-        "alwlowopen": "Allow lowering if window is opened",
+        "allowLoweringWhenTilted": "Allow lowering if window is tilted",
+        "allowLoweringWhenOpened": "Allow lowering if window is opened",
         "allowForce": "Ignore window state if msg.commandforce = true"
     },
     "events": {

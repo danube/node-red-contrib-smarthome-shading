@@ -67,8 +67,8 @@
     },
     "security": {
         "h": "Sicherheit",
-        "alwlowtilt": "Abwärtsfahrt erlaubt wenn gekippt",
-        "alwlowopen": "Abwärtsfahrt erlaubt wenn geöffnet",
+        "allowLoweringWhenTilted": "Abwärtsfahrt erlaubt wenn gekippt",
+        "allowLoweringWhenOpened": "Abwärtsfahrt erlaubt wenn geöffnet",
         "alwlowcmd": "Ignoriere Fensterposition wenn msg.commandforce = true"
     },
     "events": {
