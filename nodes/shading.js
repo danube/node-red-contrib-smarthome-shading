@@ -872,6 +872,7 @@ module.exports = function(RED) {
 				closeIfWinCloses = false
 			}
 			
+			// TODO commandforce dokumentieren
 			else if (shadeCommand) {
 				if (node.debug) {that.log("Received command to shade")}
 				if (typeof context.windowState == "undefined") {
@@ -894,17 +895,13 @@ module.exports = function(RED) {
 				else if (msg.payload < 0 || msg.payload > 100) {that.error("E007: Setpoint in message must be between 0-100 (but is '" + msg.payload + "')")}
 				else {
 					if (node.debug) {that.log("Received height setpoint command '" + msg.payload + "'")}
-					if (msg.payload == 100) {
-						closeCommand = true
+					context.setposHeight = msg.payload
+					context.autoLocked = true
+					if (config.allowForce && msg.commandforce === true) {
+						if (node.debug) {that.log("msg.commandforce is set, window position will be ignored!")}
+						autoMoveFunc(true,true,true)
 					} else {
-						context.setposHeight = msg.payload
-						context.autoLocked = true
-						if (config.allowForce && msg.commandforce === true) {
-							if (node.debug) {that.log("msg.commandforce is set, window position will be ignored!")}
-							autoMoveFunc(true,true,true)
-						} else {
-							autoMoveFunc(true,true)
-						}
+						autoMoveFunc(true,true)
 					}
 				}
 			}
