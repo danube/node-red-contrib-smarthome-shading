@@ -98,7 +98,9 @@
 				if ($("#node-config-input-heightFbEnable").prop("checked")) {
 					$('#heightfbtopic').show('fast')
 					$('#presshadepos').show('fast')
-					$('#security-section-all').show('fast')
+					if ($("#node-config-input-winswitchEnable").prop("checked")) {
+						$('#security-section-all').show('fast')
+					}
 				} else {
 					$('#heightfbtopic').hide('fast')
 					$('#presshadepos').hide('fast')
@@ -134,11 +136,15 @@
 			$("#node-config-input-winswitchEnable").on('change', function() {
 				if ($("#node-config-input-winswitchEnable").prop("checked")) {
 					$('#winswitch-section-config').show('fast')
+					if ($("#node-config-input-heightFbEnable").prop("checked")) {
+						$('#security-section-all').show('fast')
+					}
 					if (!$("#node-config-input-winswitchTiltedEnable").prop("checked")) {
 						$(".tiltswitch-properties").hide("fast")
 					}
 				} else {
 					$('#winswitch-section-config').hide('fast')
+					$('#security-section-all').hide('fast')
 					$('.winswitch-checkbox').prop("checked", false)
 				}
 			})
@@ -427,10 +433,8 @@
 			<input type="hidden" id="node-config-input-inmsgWinswitchPayloadTiltedType">
 				<input type="text" id="node-config-input-inmsgWinswitchPayloadTilted">
 		</div>
-		<div id="presshadepos"> <!-- TODO Muss das ausgeblendet werden, wenn Window switch deaktiviert ist?? -->
-			<div class="form-row checkbox-row">
-				<input type="checkbox" id="node-config-input-preventClosing"><label style="width: 350px" for="node-config-input-preventClosing"> <span data-i18n="windowswitch.presshadepos"></span></label>
-			</div>
+		<div id="presshadepos" class="form-row checkbox-row">
+			<input type="checkbox" id="node-config-input-preventClosing"><label style="width: 350px" for="node-config-input-preventClosing"> <span data-i18n="windowswitch.presshadepos"></span></label>
 		</div>
 	</div>
 	<hr>
