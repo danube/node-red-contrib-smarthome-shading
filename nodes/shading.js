@@ -241,18 +241,16 @@ module.exports = function(RED) {
 			else if (context.setposHeight > 100) {
 				that.error("E003: setposHeight above 100 ('" + context.setposHeight + "')")
 				return
-			// PLAUSIBILITY CONFIRMED: proceed
-			} else {
-				
-				// Check for new setposHeight and sendNow, otherwise return
-				if (context.setposHeightPrev == context.setposHeight && !sendNow) {
-					// -- DEBUG: some useful lines for debugging -->
+			// Check for new setposHeight and sendNow, otherwise return
+			} else if (context.setposHeightPrev == context.setposHeight && !sendNow) {
+					// TODO some useful lines for debugging
 					// if (node.debug) {that.log("Not re-sending already sent setposHeight '" + context.setposHeight + "'")}
 					return
-				}
+			// proceed
+			} else {
 				
 				// Preparing new setpoint, sending console message
-				else if (node.debug) {that.log(fName + " Preparing new height setpoint: " + context.setposHeightPrev + " -> " + context.setposHeight)}
+				if (node.debug) {that.log(fName + " Preparing new height setpoint: " + context.setposHeightPrev + " -> " + context.setposHeight)}
 
 				// Getting hardlock state
 				if (config.autoActive) {
@@ -280,7 +278,7 @@ module.exports = function(RED) {
 					context.hardlock = false
 				}
 
-				/** Check if lowering is allowed according to security settings */
+				/** Lowering is allowed according to security settings */
 				let allowLowering =
 					(context.windowState === window.opened && config.allowLoweringWhenOpened)
 					|| (context.windowState === window.tilted && config.allowLoweringWhenTilted)
