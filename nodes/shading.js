@@ -738,7 +738,7 @@ module.exports = function(RED) {
 								
 								// SINGLE CLICK ACTIONS ==>
 								if (node.debug) {that.log("Open singleclick detected")}
-								if (context.actposHeight > shadingSetpos.shade) {
+									if (context.actposHeight > shadingSetpos.shade) {		// TODO prüfen was hier passiert, wenn es kein actposHeight gibt (Feedback nicht enabled)
 									sendCommandFunc(null,null,null,shadingSetpos.shade)
 								} else {
 									sendCommandFunc(null,null,null,shadingSetpos.open)
@@ -842,14 +842,14 @@ module.exports = function(RED) {
 
 				// Preserve shade position
 				else if ((windowSwitchOpenEvent || windowSwitchTiltEvent)		// Window was opened or tilted
-				&& context.actposHeight > shadingSetpos.shade				// AND Actual position is below shade position
-				&& config.preventClosing) {									// AND Preserve config parameter is set
-					if (!handleRtHeight) {									// Drive is not moving
-						context.setposHeight = shadingSetpos.shade			// New setpos is shade position
-						closeIfWinCloses = true								// Set marker to close blind when window closes
-						autoMoveFunc(true, true)							// Send command
-					} else {												// Drive is moving
-						shadeIfTimeout = true								// Set marker to shade blind when runtime elapses
+				&& context.actposHeight > shadingSetpos.shade								// AND Actual position is below shade position
+				&& config.preventClosing) {																	// AND Preserve config parameter is set
+					if (!handleRtHeight) {																		// Drive is not moving
+						context.setposHeight = shadingSetpos.shade							// New setpos is shade position
+						closeIfWinCloses = true																	// Set marker to close blind when window closes
+						autoMoveFunc(true, true)																// Send command
+					} else {																									// Drive is moving
+						shadeIfTimeout = true																		// Set marker to shade blind when runtime elapses
 					}
 				}
 
@@ -870,10 +870,9 @@ module.exports = function(RED) {
 				closeIfWinCloses = false
 			}
 			
-			// TODO commandforce dokumentieren
 			else if (shadeCommand) {
 				if (node.debug) {that.log("Received command to shade")}
-				if (typeof context.windowState == "undefined") {
+				if (config.winswitchEnable && typeof context.windowState == "undefined") {
 					if (node.debug) {that.log("Unknown window position. Nothing will happen.")}
 				} else {
 					context.setposHeight = shadingSetpos.shade
@@ -889,9 +888,11 @@ module.exports = function(RED) {
 			}
 			
 			else if (heightSetposCommand) {
-				if (typeof msg.payload != "number") {that.error("E008: Setpoint in message must be of type 'number' (but is '" + typeof msg.payload + "')")}
-				else if (msg.payload < 0 || msg.payload > 100) {that.error("E007: Setpoint in message must be between 0-100 (but is '" + msg.payload + "')")}
-				else {
+				if (typeof msg.payload != "number") {
+					that.error("E008: Setpoint in message must be of type 'number' (but is '" + typeof msg.payload + "')")
+				} else if (msg.payload < 0 || msg.payload > 100) {
+					that.error("E007: Setpoint in message must be between 0-100 (but is '" + msg.payload + "')")
+				} else {
 					if (node.debug) {that.log("Received height setpoint command '" + msg.payload + "'")}
 					context.setposHeight = msg.payload
 					context.autoLocked = true
@@ -934,12 +935,11 @@ module.exports = function(RED) {
 
 			if (closeCommand) {
 				if (node.debug) {that.log("Received command to close")}
-
 				if (config.allowForce && msg.commandforce === true) {
 					if (node.debug) {that.log("msg.commandforce is set, window position will be ignored!")}
 					context.setposHeight = shadingSetpos.close
 					autoMoveFunc(true,true,true)
-				} else if (typeof context.windowState == "undefined") {
+				} else if (config.winswitchEnable && typeof context.windowState == "undefined") {
 					if (node.debug) {that.log("Unknown window position. Nothing will happen.")}
 				} else if (config.preventClosing && context.windowState != window.closed) {
 					if (node.debug) {that.log("Window is not closed, going to shade position instead.")}
