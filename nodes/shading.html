@@ -101,6 +101,9 @@
 					if ($("#node-config-input-winswitchEnable").prop("checked")) {
 						$('#security-section-all').show('fast')
 					}
+					if ($("#node-config-input-winswitchTiltedEnable").prop("checked")) {
+						$('#security-param-allowloweringwhentilted').show('fast')
+					}
 				} else {
 					$('#heightfbtopic').hide('fast')
 					$('#presshadepos').hide('fast')
@@ -136,25 +139,31 @@
 			$("#node-config-input-winswitchEnable").on('change', function() {
 				if ($("#node-config-input-winswitchEnable").prop("checked")) {
 					$('#winswitch-section-config').show('fast')
-					if ($("#node-config-input-heightFbEnable").prop("checked")) {
-						$('#security-section-all').show('fast')
-					}
 					if (!$("#node-config-input-winswitchTiltedEnable").prop("checked")) {
-						$(".tiltswitch-properties").hide("fast")
+						$("#winswitch-param-payloadTilted").hide("fast")
+					}
+					if ($("#node-config-input-heightFbEnable").prop("checked")) {
+						$("#security-section-all").show("fast")
 					}
 				} else {
 					$('#winswitch-section-config').hide('fast')
 					$('#security-section-all').hide('fast')
+					$('#security-param-allowloweringwhentilted').hide('fast')
 					$('.winswitch-checkbox').prop("checked", false)
+					$('#node-config-input-preventClosing').prop("checked", false)
 				}
 			})
 
 			// Hide tilt switch class and relevant options
 			$("#node-config-input-winswitchTiltedEnable").on("change", function() {
 				if ($("#node-config-input-winswitchTiltedEnable").prop("checked")) {
-					$(".tiltswitch-properties").show("fast")
+					$("#winswitch-param-payloadTilted").show("fast")
+					if ($("#node-config-input-heightFbEnable").prop("checked")) {
+						$('#security-param-allowloweringwhentilted').show('fast')
+					}
 				} else {
-					$(".tiltswitch-properties").hide("fast")
+					$("#winswitch-param-payloadTilted").hide("fast")
+					$('#security-param-allowloweringwhentilted').hide('fast')
 				}
 			})
 
@@ -428,7 +437,7 @@
 			<label><i class="fa fa-power-off"></i> <span data-i18n="windowswitch.tiltedsensor"></span></label>
 			<input type="checkbox" id="node-config-input-winswitchTiltedEnable" class="winswitch-checkbox" style="display:inline-block; width:auto;">
 		</div>
-		<div class="form-row tiltswitch-properties">
+		<div class="form-row" id="winswitch-param-payloadTilted">
 			<label for="node-config-input-inmsgWinswitchPayloadTilted"><i class="fa fa-rocket"></i> <span data-i18n="windowswitch.payloadtilted"></span></label>
 			<input type="hidden" id="node-config-input-inmsgWinswitchPayloadTiltedType">
 				<input type="text" id="node-config-input-inmsgWinswitchPayloadTilted">
@@ -442,12 +451,15 @@
 	<!-- SECTION: Security -->
 	<div id="security-section-all">
 		<h3><span data-i18n="security.h"></span></h3>
-		<div class="form-row checkbox-row tiltswitch-properties">
+		<!-- Allow lowering when window is tilted -->
+		<div class="form-row checkbox-row" id="security-param-allowloweringwhentilted">
 			<input type="checkbox" id="node-config-input-allowLoweringWhenTilted" class="winswitch-checkbox"><label style="width: 300px" for="node-config-input-allowLoweringWhenTilted"> <span data-i18n="security.allowLoweringWhenTilted"></span></label>
 		</div>
-		<div class="form-row checkbox-row">
+		<!-- Allow lowering when window is opened -->
+		<div class="form-row checkbox-row allowlowering" id="security-param-allowloweringwhenopened">
 			<input type="checkbox" id="node-config-input-allowLoweringWhenOpened" class="winswitch-checkbox"><label style="width: 300px" for="node-config-input-allowLoweringWhenOpened"> <span data-i18n="security.allowLoweringWhenOpened"></span></label>
 		</div>
+		<!-- Ignore window state on msg.commandforce -->
 		<div class="form-row checkbox-row">
 			<input type="checkbox" id="node-config-input-allowForce" class="winswitch-checkbox"><label style="width: 300px" for="node-config-input-allowForce"> <span data-i18n="security.allowForce"></span></label>
 		</div>
