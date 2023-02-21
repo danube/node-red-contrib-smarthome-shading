@@ -650,6 +650,8 @@ module.exports = function(RED) {
 
 			/** Resend event */
 			var resendEvent = msg.topic === "resend"
+			
+			// BUTTON EVENTS
 			/** Button open/close event based on incoming message topic */
 			var buttonEvent = msg.topic === config.inmsgButtonTopicOpen || msg.topic === config.inmsgButtonTopicClose
 			/** Button press event based on incoming message topic, if payload is TRUE */
@@ -660,6 +662,7 @@ module.exports = function(RED) {
 			var buttonPressCloseEvent = msg.topic === config.inmsgButtonTopicClose && msg.payload === true
 			/** Button release event based on incoming message topic, if payload is FALSE */
 			var buttonReleaseEvent = buttonEvent && msg.payload === false
+
 			/** Debug on console request */
 			var printConsoleDebugEvent = msg.debug
 			/** This event happens, when the drive sends the actual position. */
