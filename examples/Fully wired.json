@@ -1,0 +1,931 @@
+[
+    {
+        "id": "b2406a4343f6970e",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "fb8a4528d329dbc2",
+        "type": "group",
+        "z": "b2406a4343f6970e",
+        "name": "Jog outputs",
+        "style": {
+            "fill": "#dbcbe7",
+            "label": true,
+            "color": "#777777"
+        },
+        "nodes": [
+            "5544935ff042f961",
+            "fc0d20e513ce4610",
+            "bce47e4dba548a3a",
+            "f00ea9666ddb019f"
+        ],
+        "x": 874,
+        "y": 139,
+        "w": 192,
+        "h": 202
+    },
+    {
+        "id": "ba20a3663ffe0bd7",
+        "type": "group",
+        "z": "b2406a4343f6970e",
+        "name": "Position output",
+        "style": {
+            "label": true,
+            "fill": "#dbcbe7",
+            "color": "#777777"
+        },
+        "nodes": [
+            "a797d1599b0c30cf",
+            "b9eab314bce3bd0e"
+        ],
+        "x": 874,
+        "y": 359,
+        "w": 212,
+        "h": 122
+    },
+    {
+        "id": "24f8c0a2ddf5db1b",
+        "type": "group",
+        "z": "b2406a4343f6970e",
+        "name": "Position Commands",
+        "style": {
+            "fill": "#ffefbf",
+            "label": true,
+            "color": "#777777"
+        },
+        "nodes": [
+            "e1c582941f88367a",
+            "cbdfc40cc739bcad",
+            "d57319315884b895",
+            "21a77ed3462cddfe",
+            "96ab744ccc622f4b"
+        ],
+        "x": 454,
+        "y": 39,
+        "w": 212,
+        "h": 242
+    },
+    {
+        "id": "3ea4e6fdf4d1930e",
+        "type": "group",
+        "z": "b2406a4343f6970e",
+        "name": "Height Feedback",
+        "style": {
+            "fill": "#e3f3d3",
+            "label": true,
+            "color": "#777777"
+        },
+        "nodes": [
+            "19ef9619bcf90d63",
+            "392add3544d8e670",
+            "dc52a26149a4b5d0",
+            "e34aafca75f2a62d"
+        ],
+        "x": 174,
+        "y": 199,
+        "w": 252,
+        "h": 202
+    },
+    {
+        "id": "2438898a2e88af8b",
+        "type": "group",
+        "z": "b2406a4343f6970e",
+        "name": "Window Switch",
+        "style": {
+            "label": true,
+            "fill": "#ffbfbf",
+            "color": "#777777"
+        },
+        "nodes": [
+            "8eb5686368c3845f",
+            "b316a7bc021ab560",
+            "9294d3bba68920fe",
+            "c520045e4520cb34"
+        ],
+        "x": 514,
+        "y": 659,
+        "w": 172,
+        "h": 202
+    },
+    {
+        "id": "1cdddcbf674521d5",
+        "type": "group",
+        "z": "b2406a4343f6970e",
+        "name": "Status output",
+        "style": {
+            "fill": "#dbcbe7",
+            "label": true,
+            "color": "#777777"
+        },
+        "nodes": [
+            "896bc9befbeb5ca9",
+            "34ec3df9554bdd01"
+        ],
+        "x": 874,
+        "y": 499,
+        "w": 192,
+        "h": 122
+    },
+    {
+        "id": "38a88aa79f2dc96f",
+        "type": "group",
+        "z": "b2406a4343f6970e",
+        "g": "cd89ad04dda1e19b",
+        "name": "Short press (50ms)",
+        "style": {
+            "label": true,
+            "fill": "#bfdbef",
+            "color": "#777777"
+        },
+        "nodes": [
+            "a1037cee8f7961a9",
+            "925947618b7df525",
+            "ebd3a44a22210c02"
+        ],
+        "x": 74,
+        "y": 519,
+        "w": 392,
+        "h": 122
+    },
+    {
+        "id": "5def5281d97d0318",
+        "type": "group",
+        "z": "b2406a4343f6970e",
+        "g": "cd89ad04dda1e19b",
+        "name": "Press (and hold)",
+        "style": {
+            "fill": "#bfdbef",
+            "label": true,
+            "color": "#777777"
+        },
+        "nodes": [
+            "e0a163999c9838ee",
+            "cfc5d6f2f24e78f9",
+            "02a1df8509b28d17",
+            "25ae9faa7feaa0e6"
+        ],
+        "x": 234,
+        "y": 659,
+        "w": 232,
+        "h": 202
+    },
+    {
+        "id": "cd89ad04dda1e19b",
+        "type": "group",
+        "z": "b2406a4343f6970e",
+        "name": "Pushbutton",
+        "style": {
+            "fill": "#7fb7df",
+            "label": true,
+            "color": "#777777"
+        },
+        "nodes": [
+            "0844d4b611a8b9d3",
+            "38a88aa79f2dc96f",
+            "5def5281d97d0318"
+        ],
+        "x": 48,
+        "y": 439,
+        "w": 444,
+        "h": 448
+    },
+    {
+        "id": "021c6d279ea08827",
+        "type": "shading",
+        "z": "b2406a4343f6970e",
+        "name": "Window",
+        "configSet": "d7f48feaeb8ae1bc",
+        "debug": true,
+        "x": 720,
+        "y": 420,
+        "wires": [
+            [
+                "bce47e4dba548a3a"
+            ],
+            [
+                "fc0d20e513ce4610"
+            ],
+            [
+                "5544935ff042f961"
+            ],
+            [
+                "a797d1599b0c30cf"
+            ],
+            [
+                "896bc9befbeb5ca9"
+            ]
+        ]
+    },
+    {
+        "id": "a797d1599b0c30cf",
+        "type": "debug",
+        "z": "b2406a4343f6970e",
+        "g": "ba20a3663ffe0bd7",
+        "name": "COMMAND",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 970,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "5544935ff042f961",
+        "type": "debug",
+        "z": "b2406a4343f6970e",
+        "g": "fb8a4528d329dbc2",
+        "name": "STOP",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 950,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "fc0d20e513ce4610",
+        "type": "debug",
+        "z": "b2406a4343f6970e",
+        "g": "fb8a4528d329dbc2",
+        "name": "CLOSE",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 960,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "bce47e4dba548a3a",
+        "type": "debug",
+        "z": "b2406a4343f6970e",
+        "g": "fb8a4528d329dbc2",
+        "name": "OPEN",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 950,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "0844d4b611a8b9d3",
+        "type": "comment",
+        "z": "b2406a4343f6970e",
+        "g": "cd89ad04dda1e19b",
+        "name": "README",
+        "info": "# Pushbutton\n\nThe relevant command must contain a `msg.payload` of boolean `true` if pressed and boolean `false` if released.\n\nLearn more about that functionality in the [online manual](https://github.com/danube/node-red-contrib-smarthome-shading/wiki/(EN)-3.-Configuration-and-parameters#pushbutton).\n\n## Short press (50ms)\n\nThis simulates a single and 50ms short press, everytime you click on inject.\n\nIn reality, this trigger must not be used, as the pushbuttons usually send `false` as soon as you release it.\n\nThis is practicable for simulation only.\n\n## Press (and hold)\n\nInjecting one of these is more realistic. Everytime you press a bushbutton, one message will be sent and as soon as you release the button, another message will be sent.\n\nWith the injects here you can also simulate long clicks, which have a different behaviour.\n\nLearn more about that functionality in the [online manual](https://github.com/danube/node-red-contrib-smarthome-shading/wiki).",
+        "x": 400,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "f00ea9666ddb019f",
+        "type": "comment",
+        "z": "b2406a4343f6970e",
+        "g": "fb8a4528d329dbc2",
+        "name": "README",
+        "info": "# Jog outputs\n\nWhen you press and hold one of the pushbuttons, the drive will move in the relevant direction. The OPEN or CLOSE output will be sent.\n\nIf you release the pushbutton, the STOP output will be sent.\n\nThe contained `msg.payload` of every message can be defined in the shading configuration. Available types are `boolean`, `number` and `string`.\n\nThe contained `msg.topic` is `open`, `close` or `stop`.\n\nLearn more about that functionality in the [online manual](https://github.com/danube/node-red-contrib-smarthome-shading/wiki).",
+        "x": 960,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "b9eab314bce3bd0e",
+        "type": "comment",
+        "z": "b2406a4343f6970e",
+        "g": "ba20a3663ffe0bd7",
+        "name": "README",
+        "info": "# Position output\n\nIf the drive must move in a specific position in percent (%), this output will be written.\n\nThe contained `msg.payload` is the number in percent (%).\n\nThe contained `msg.topic` is `command`.\n\nLearn more about that functionality in the [online manual](https://github.com/danube/node-red-contrib-smarthome-shading/wiki).",
+        "x": 960,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "e1c582941f88367a",
+        "type": "inject",
+        "z": "b2406a4343f6970e",
+        "g": "24f8c0a2ddf5db1b",
+        "name": "OPEN",
+        "props": [
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "commandopen",
+        "x": 590,
+        "y": 120,
+        "wires": [
+            [
+                "021c6d279ea08827"
+            ]
+        ]
+    },
+    {
+        "id": "cbdfc40cc739bcad",
+        "type": "inject",
+        "z": "b2406a4343f6970e",
+        "g": "24f8c0a2ddf5db1b",
+        "name": "SHADE",
+        "props": [
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "commandshade",
+        "x": 590,
+        "y": 160,
+        "wires": [
+            [
+                "021c6d279ea08827"
+            ]
+        ]
+    },
+    {
+        "id": "d57319315884b895",
+        "type": "inject",
+        "z": "b2406a4343f6970e",
+        "g": "24f8c0a2ddf5db1b",
+        "name": "CLOSE",
+        "props": [
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "commandclose",
+        "x": 590,
+        "y": 200,
+        "wires": [
+            [
+                "021c6d279ea08827"
+            ]
+        ]
+    },
+    {
+        "id": "21a77ed3462cddfe",
+        "type": "inject",
+        "z": "b2406a4343f6970e",
+        "g": "24f8c0a2ddf5db1b",
+        "name": "HEIGHT = 50",
+        "props": [
+            {
+                "p": "topic",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "commandheight",
+        "payload": "50",
+        "payloadType": "num",
+        "x": 570,
+        "y": 240,
+        "wires": [
+            [
+                "021c6d279ea08827"
+            ]
+        ]
+    },
+    {
+        "id": "96ab744ccc622f4b",
+        "type": "comment",
+        "z": "b2406a4343f6970e",
+        "g": "24f8c0a2ddf5db1b",
+        "name": "README",
+        "info": "# Position Commands\n\nOne of these commands send the blind in either one of the predefined positions (open, shade, close) or in the position defined in the message.\n\nIf you want to send the drive in one of the pre-defined positions, use the relevant command (OPEN, SHADE, CLOSE). Such a message must only contain a `msg.topic` but not a `msg.payload`.\n\nIf you want to send the drive in a specific position in percent (%), use the HEIGHT command. The command must contain a `msg.payload` of type `number` with a value between 0 (open) and 100 (close).\n\nThe expected `msg.topic` of each message is defined in the shading configuration at section 'Position Commands'. In this example, the defaults are used.\n\nLearn more about that functionality in the [online manual](https://github.com/danube/node-red-contrib-smarthome-shading/wiki/(EN)-3.-Configuration-and-parameters#position-commands).",
+        "x": 580,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "19ef9619bcf90d63",
+        "type": "inject",
+        "z": "b2406a4343f6970e",
+        "g": "3ea4e6fdf4d1930e",
+        "name": "FEEDBACK = 0",
+        "props": [
+            {
+                "p": "topic",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "heightfeedback",
+        "payload": "0",
+        "payloadType": "num",
+        "x": 320,
+        "y": 280,
+        "wires": [
+            [
+                "021c6d279ea08827"
+            ]
+        ]
+    },
+    {
+        "id": "392add3544d8e670",
+        "type": "inject",
+        "z": "b2406a4343f6970e",
+        "g": "3ea4e6fdf4d1930e",
+        "name": "FEEDBACK = 80",
+        "props": [
+            {
+                "p": "topic",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "heightfeedback",
+        "payload": "80",
+        "payloadType": "num",
+        "x": 320,
+        "y": 320,
+        "wires": [
+            [
+                "021c6d279ea08827"
+            ]
+        ]
+    },
+    {
+        "id": "dc52a26149a4b5d0",
+        "type": "inject",
+        "z": "b2406a4343f6970e",
+        "g": "3ea4e6fdf4d1930e",
+        "name": "FEEDBACK = 100",
+        "props": [
+            {
+                "p": "topic",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "heightfeedback",
+        "payload": "100",
+        "payloadType": "num",
+        "x": 310,
+        "y": 360,
+        "wires": [
+            [
+                "021c6d279ea08827"
+            ]
+        ]
+    },
+    {
+        "id": "e34aafca75f2a62d",
+        "type": "comment",
+        "z": "b2406a4343f6970e",
+        "g": "3ea4e6fdf4d1930e",
+        "name": "README",
+        "info": "# Height Feedback\n\nIf 'Height Feedback' is disabled, these messages are obsolete. If you send a height feedback message even with the option disabled, it will be dropped by the node.\n\nThe node expects such a message right after a position command within the time configured as 'Maximum runtime'.\n\nThe expected `msg.topic` of the message is defined in the shading configuration at section 'Height Feedback', option 'Topic'. In this example, the default is used.\n\nLearn more about that functionality in the [online manual](https://github.com/danube/node-red-contrib-smarthome-shading/wiki/(EN)-3.-Configuration-and-parameters#height-feedback).",
+        "x": 340,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "8eb5686368c3845f",
+        "type": "inject",
+        "z": "b2406a4343f6970e",
+        "g": "2438898a2e88af8b",
+        "name": "OPEN",
+        "props": [
+            {
+                "p": "topic",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "switch",
+        "payload": "1",
+        "payloadType": "num",
+        "x": 610,
+        "y": 740,
+        "wires": [
+            [
+                "021c6d279ea08827"
+            ]
+        ]
+    },
+    {
+        "id": "b316a7bc021ab560",
+        "type": "inject",
+        "z": "b2406a4343f6970e",
+        "g": "2438898a2e88af8b",
+        "name": "CLOSE",
+        "props": [
+            {
+                "p": "topic",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "switch",
+        "payload": "3",
+        "payloadType": "num",
+        "x": 610,
+        "y": 780,
+        "wires": [
+            [
+                "021c6d279ea08827"
+            ]
+        ]
+    },
+    {
+        "id": "9294d3bba68920fe",
+        "type": "inject",
+        "z": "b2406a4343f6970e",
+        "g": "2438898a2e88af8b",
+        "name": "TILT",
+        "props": [
+            {
+                "p": "topic",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "switch",
+        "payload": "2",
+        "payloadType": "num",
+        "x": 610,
+        "y": 820,
+        "wires": [
+            [
+                "021c6d279ea08827"
+            ]
+        ]
+    },
+    {
+        "id": "c520045e4520cb34",
+        "type": "comment",
+        "z": "b2406a4343f6970e",
+        "g": "2438898a2e88af8b",
+        "name": "README",
+        "info": "# Window Switch\n\nIf 'Window Switch' is disabled, these messages are obsolete. If you send a window switch message even with the option disabled, it will be dropped by the node.\n\nEverytime you open, close or tilt a window, one of these messages must arrive the node.\n\n`msg.topic` and `msg.payload` can be defined in the shading configuration.\n\nLearn more about that functionality in the [online manual](https://github.com/danube/node-red-contrib-smarthome-shading/wiki/(EN)-3.-Configuration-and-parameters#window-switch).",
+        "x": 600,
+        "y": 700,
+        "wires": []
+    },
+    {
+        "id": "896bc9befbeb5ca9",
+        "type": "debug",
+        "z": "b2406a4343f6970e",
+        "g": "1cdddcbf674521d5",
+        "name": "STAUS",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 960,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "34ec3df9554bdd01",
+        "type": "comment",
+        "z": "b2406a4343f6970e",
+        "g": "1cdddcbf674521d5",
+        "name": "README",
+        "info": "# Status output\n\nThis output delivers a couple of internal variables, which can be used for various purpose.\n\nLearn more about that functionality in the [online manual](https://github.com/danube/node-red-contrib-smarthome-shading/wiki).",
+        "x": 960,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "a1037cee8f7961a9",
+        "type": "inject",
+        "z": "b2406a4343f6970e",
+        "g": "38a88aa79f2dc96f",
+        "name": "UP",
+        "props": [
+            {
+                "p": "topic",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "buttonup",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 170,
+        "y": 560,
+        "wires": [
+            [
+                "925947618b7df525"
+            ]
+        ]
+    },
+    {
+        "id": "925947618b7df525",
+        "type": "trigger",
+        "z": "b2406a4343f6970e",
+        "g": "38a88aa79f2dc96f",
+        "name": "",
+        "op1": "",
+        "op2": "false",
+        "op1type": "pay",
+        "op2type": "bool",
+        "duration": "50",
+        "extend": false,
+        "overrideDelay": false,
+        "units": "ms",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 370,
+        "y": 560,
+        "wires": [
+            [
+                "021c6d279ea08827"
+            ]
+        ]
+    },
+    {
+        "id": "ebd3a44a22210c02",
+        "type": "inject",
+        "z": "b2406a4343f6970e",
+        "g": "38a88aa79f2dc96f",
+        "name": "DOWN",
+        "props": [
+            {
+                "p": "topic",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "buttondown",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 170,
+        "y": 600,
+        "wires": [
+            [
+                "925947618b7df525"
+            ]
+        ]
+    },
+    {
+        "id": "e0a163999c9838ee",
+        "type": "inject",
+        "z": "b2406a4343f6970e",
+        "g": "5def5281d97d0318",
+        "name": "UP (press)",
+        "props": [
+            {
+                "p": "topic",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "buttonup",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 380,
+        "y": 700,
+        "wires": [
+            [
+                "021c6d279ea08827"
+            ]
+        ]
+    },
+    {
+        "id": "cfc5d6f2f24e78f9",
+        "type": "inject",
+        "z": "b2406a4343f6970e",
+        "g": "5def5281d97d0318",
+        "name": "DOWN (press)",
+        "props": [
+            {
+                "p": "topic",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "buttondown",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 360,
+        "y": 780,
+        "wires": [
+            [
+                "021c6d279ea08827"
+            ]
+        ]
+    },
+    {
+        "id": "02a1df8509b28d17",
+        "type": "inject",
+        "z": "b2406a4343f6970e",
+        "g": "5def5281d97d0318",
+        "name": "UP (release)",
+        "props": [
+            {
+                "p": "topic",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "buttonup",
+        "payload": "false",
+        "payloadType": "bool",
+        "x": 370,
+        "y": 740,
+        "wires": [
+            [
+                "021c6d279ea08827"
+            ]
+        ]
+    },
+    {
+        "id": "25ae9faa7feaa0e6",
+        "type": "inject",
+        "z": "b2406a4343f6970e",
+        "g": "5def5281d97d0318",
+        "name": "DOWN (release)",
+        "props": [
+            {
+                "p": "topic",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "buttondown",
+        "payload": "false",
+        "payloadType": "bool",
+        "x": 360,
+        "y": 820,
+        "wires": [
+            [
+                "021c6d279ea08827"
+            ]
+        ]
+    },
+    {
+        "id": "d7f48feaeb8ae1bc",
+        "type": "shading configuration",
+        "name": "Shading configuration",
+        "shadingSetposShade": "80",
+        "heightFbEnable": true,
+        "heightFbTopic": "",
+        "heightFbRt": "60",
+        "inmsgButtonTopicOpen": "",
+        "inmsgButtonTopicClose": "",
+        "inmsgButtonDblclickTime": "400",
+        "openTopic": "",
+        "shadeTopic": "",
+        "closeTopic": "",
+        "heightTopic": "",
+        "payloadOpenCmd": "true",
+        "payloadOpenCmdType": "bool",
+        "payloadCloseCmd": "true",
+        "payloadCloseCmdType": "bool",
+        "payloadStopCmd": "true",
+        "payloadStopCmdType": "bool",
+        "autoActive": true,
+        "lat": "47.47",
+        "lon": "9.66",
+        "hardlock": "",
+        "hardlockType": "dis",
+        "winswitchEnable": true,
+        "inmsgWinswitchTopic": "",
+        "inmsgWinswitchPayloadOpened": "1",
+        "inmsgWinswitchPayloadOpenedType": "num",
+        "inmsgWinswitchPayloadClosed": "3",
+        "inmsgWinswitchPayloadClosedType": "num",
+        "winswitchTiltedEnable": true,
+        "inmsgWinswitchPayloadTilted": "2",
+        "inmsgWinswitchPayloadTiltedType": "num",
+        "preventClosing": true,
+        "allowLoweringWhenTilted": true,
+        "allowLoweringWhenOpened": false,
+        "allowForce": true,
+        "autoIfMsgTopic": true,
+        "autoIfBothBtns": true,
+        "autoIfSunrise": false,
+        "autoIfSunset": false,
+        "openIfSunrise": true,
+        "openIfSunset": false,
+        "shadeIfSunrise": false,
+        "shadeIfSunset": true,
+        "closeIfSunrise": false,
+        "closeIfSunset": false
+    }
+]
