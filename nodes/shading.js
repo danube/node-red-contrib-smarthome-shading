@@ -1,5 +1,3 @@
-// TODO Sind die Security Einstellungen überhaupt relevant, wenn Automatik gar nicht aktiv ist??
-
 module.exports = function(RED) {
 
 	// Loading external modules
@@ -197,7 +195,7 @@ module.exports = function(RED) {
 							closeIfWinCloses = true
 							if (node.debug) {that.log("Going to shade position")}
 							context.setposHeight = shadingSetpos.shade
-							autoMoveFunc(true, true)
+							moveFunc(true, true)
 						}
 					}, config.heightFbRt * 1000)
 				}
@@ -224,27 +222,26 @@ module.exports = function(RED) {
 		 * @param {Boolean} ignoreAutoLocked If true, the setpoint will be sent even if context.autoLocked is active.
 		 * @param {Boolean} ignoreWindow If true, the window position (and according security settings) will be ignored.
 		 */
-		function autoMoveFunc(sendNow, ignoreAutoLocked, ignoreWindow) {
+		function moveFunc(sendNow, ignoreAutoLocked, ignoreWindow) {
 			fName = "["+arguments.callee.name+"]"
 
-			// PLAUSIBILITY CHECK FAILED: setposHeight is not a number
+			// PLAUSIBILITY CHECK ERROR: setposHeight is not a number
 			if (typeof context.setposHeight != "number") {
 				that.error("E001: invalid setposHeight type ('" + typeof context.setposHeight + "')")
 				return
 			}
-			// PLAUSIBILITY CHECK FAILED: setposHeight is negative
+			// PLAUSIBILITY CHECK ERROR: setposHeight is negative
 			else if (context.setposHeight < 0) {
 				that.error("E002: negative setposHeight ('" + context.setposHeight + "')")
 				return
 			}
-			// PLAUSIBILITY CHECK FAILED: setposHeight is above 100
+			// PLAUSIBILITY CHECK ERROR: setposHeight is above 100
 			else if (context.setposHeight > 100) {
 				that.error("E003: setposHeight above 100 ('" + context.setposHeight + "')")
 				return
 			// Check for new setposHeight and sendNow, otherwise return
 			} else if (context.setposHeightPrev == context.setposHeight && !sendNow) {
-					// TODO some useful lines for debugging
-					// if (node.debug) {that.log("Not re-sending already sent setposHeight '" + context.setposHeight + "'")}
+					if (node.debug) {that.log(fName + " Suppressing identical setposHeight '" + context.setposHeight + "'")}
 					return
 			// proceed
 			} else {
@@ -353,15 +350,15 @@ module.exports = function(RED) {
 				if (node.debug) {that.log("["+callee+"] Checking configuration for daytime")}
 				if (config.openIfSunrise) {
 					context.setposHeight = shadingSetpos.open
-					autoMoveFunc(sendNow)
+					moveFunc(sendNow)
 					return
 				} else if (config.shadeIfSunrise) {
 					context.setposHeight = config.shadingSetposShade
-					autoMoveFunc(sendNow)
+					moveFunc(sendNow)
 					return
 				} else if (config.closeIfSunrise) {
 					context.setposHeight = shadingSetpos.close
-					autoMoveFunc(sendNow)
+					moveFunc(sendNow)
 					return
 				}
 				if (node.debug) {that.log("["+callee+"] Nothing configured to happen on daytime")}
@@ -371,15 +368,15 @@ module.exports = function(RED) {
 				if (node.debug) {that.log("["+callee+"] Checking configuration for nighttime")}
 				if (config.openIfSunset) {
 					context.setposHeight = shadingSetpos.open
-					autoMoveFunc(sendNow)
+					moveFunc(sendNow)
 					return
 				} else if (config.shadeIfSunset) {
 					context.setposHeight = config.shadingSetposShade
-					autoMoveFunc(sendNow)
+					moveFunc(sendNow)
 					return
 				} else if (config.closeIfSunset) {
 					context.setposHeight = shadingSetpos.close
-					autoMoveFunc(sendNow)
+					moveFunc(sendNow)
 					return
 				}
 				if (node.debug) {that.log("["+callee+"] Nothing configured to happen on nighttime")}
@@ -458,7 +455,7 @@ module.exports = function(RED) {
 
 			// Proceed sending if setpoint is valid
 			if (context.setposHeight) {
-				autoMoveFunc()
+				moveFunc()
 			}
 
 			// Backing up context
@@ -741,7 +738,7 @@ module.exports = function(RED) {
 								
 								// SINGLE CLICK ACTIONS ==>
 								if (node.debug) {that.log("Open singleclick detected")}
-									if (context.actposHeight > shadingSetpos.shade) {		// TODO prüfen was hier passiert, wenn es kein actposHeight gibt (Feedback nicht enabled)
+									if (context.actposHeight > shadingSetpos.shade) {
 									sendCommandFunc(null,null,null,shadingSetpos.shade)
 								} else {
 									sendCommandFunc(null,null,null,shadingSetpos.open)
@@ -840,7 +837,7 @@ module.exports = function(RED) {
 
 				// If sending setpoint has been held back, sending will be retried.
 				if (resendHeightSetpos) {
-					autoMoveFunc(true)
+					moveFunc(true)
 				}
 
 				// Preserve shade position
@@ -850,7 +847,7 @@ module.exports = function(RED) {
 					if (!handleRtHeight) {																		// Drive is not moving
 						context.setposHeight = shadingSetpos.shade							// New setpos is shade position
 						closeIfWinCloses = true																	// Set marker to close blind when window closes
-						autoMoveFunc(true, true)																// Send command
+						moveFunc(true, true)																// Send command
 					} else {																									// Drive is moving
 						shadeIfTimeout = true																		// Set marker to shade blind when runtime elapses
 					}
@@ -859,7 +856,7 @@ module.exports = function(RED) {
 				// Close shade if shade position was preserved
 				else if (windowSwitchCloseEvent && closeIfWinCloses) {
 					context.setposHeight = shadingSetpos.close
-					autoMoveFunc(true, true)
+					moveFunc(true, true)
 					closeIfWinCloses = false
 				}	
 
@@ -868,7 +865,7 @@ module.exports = function(RED) {
 			else if (openCommand) {
 				if (node.debug) {that.log("Received command to open")}
 				context.setposHeight = shadingSetpos.open
-				autoMoveFunc(true,true)
+				moveFunc(true,true)
 				context.autoLocked = true
 				closeIfWinCloses = false
 			}
@@ -881,9 +878,9 @@ module.exports = function(RED) {
 					context.setposHeight = shadingSetpos.shade
 					if (config.allowForce && msg.commandforce === true) {
 						if (node.debug) {that.log("msg.commandforce is set, window position will be ignored!")}
-						autoMoveFunc(true,true,true)
+						moveFunc(true,true,true)
 					} else {
-						autoMoveFunc(true,true)
+						moveFunc(true,true)
 					}
 					context.autoLocked = true
 					closeIfWinCloses = false
@@ -901,9 +898,9 @@ module.exports = function(RED) {
 					context.autoLocked = true
 					if (config.allowForce && msg.commandforce === true) {
 						if (node.debug) {that.log("msg.commandforce is set, window position will be ignored!")}
-						autoMoveFunc(true,true,true)
+						moveFunc(true,true,true)
 					} else {
-						autoMoveFunc(true,true)
+						moveFunc(true,true)
 					}
 				}
 			}
@@ -929,7 +926,7 @@ module.exports = function(RED) {
 
 			else if (resendEvent && false) {		// Disabled for now. No idea if and when this may be useful.
 				if (node.debug) {that.log("Saw request to resend values")}
-				autoMoveFunc(true)
+				moveFunc(true)
 			}
 
 			else if (printConsoleDebugEvent) {
@@ -941,17 +938,17 @@ module.exports = function(RED) {
 				if (config.allowForce && msg.commandforce === true) {
 					if (node.debug) {that.log("msg.commandforce is set, window position will be ignored!")}
 					context.setposHeight = shadingSetpos.close
-					autoMoveFunc(true,true,true)
+					moveFunc(true,true,true)
 				} else if (config.winswitchEnable && typeof context.windowState == "undefined") {
 					if (node.debug) {that.log("Unknown window position. Nothing will happen.")}
 				} else if (config.preventClosing && context.windowState != window.closed) {
 					if (node.debug) {that.log("Window is not closed, going to shade position instead.")}
 					context.setposHeight = shadingSetpos.shade
 					closeIfWinCloses = true
-					autoMoveFunc(true,true)
+					moveFunc(true,true)
 				} else {
 					context.setposHeight = shadingSetpos.close
-					autoMoveFunc(true,true)
+					moveFunc(true,true)
 				}
 
 				context.autoLocked = true
