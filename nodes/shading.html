@@ -58,6 +58,11 @@
 		},
 		oneditprepare: function() {
 
+			// Help button
+			$('<button type="button" class="ui-button ui-corner-all ui-widget"><i class="fa fa-book"></i> Manual</button>')
+			.on("click", () => {RED.sidebar.help.show(this.type)})
+			.insertBefore($("#node-config-dialog-cancel"))
+
 			var optionNothing = {value: "dis", label: "Disabled", hasValue: false}
 
 			if (this.payloadOpenCmdType === "initval") {
@@ -322,8 +327,6 @@
 		}
 	</style>
 
-	<div class="form-tips"><b>Tip:</b> Check out <a href="https://github.com/danube/node-red-contrib-smarthome-shading/wiki" target="_blank">this manual</a> to receive detailled infromation.</div>
-	
 	<!-- SECTION: Head -->
 	<div class="form-row">
 		<label for="node-config-input-name"><i class="fa fa-tag"></i> <span data-i18n="common.namecfg"></span></label>
@@ -557,6 +560,12 @@
 		label: function() {
 			return this.name || "Shading"
 		},
+		oneditprepare: function() {
+			// Help button
+			$('<button type="button" class="ui-button ui-corner-all ui-widget"><i class="fa fa-book"></i> Manual</button>')
+			.on("click", () => {RED.sidebar.help.show(this.type)})
+			.insertBefore($("#node-dialog-cancel"))
+		}
 	})
 </script>
 
@@ -570,7 +579,6 @@
 			margin-bottom: 20px;
 		}
 	</style>
-	<div class="form-tips"><b>Tip:</b> Check out <a href="https://github.com/danube/node-red-contrib-smarthome-shading/wiki" target="_blank">this manual</a> to receive detailled infromation.</div>
 	<div class="form-row">
 		<label for="node-input-name"><i class="fa fa-tag"></i> <span data-i18n="common.namenode"></span></label>
 		<input type="text" id="node-input-name" data-i18n="[placeholder]common.namenode_ph">
