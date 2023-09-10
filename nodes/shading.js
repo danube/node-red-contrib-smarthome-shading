@@ -81,18 +81,19 @@ module.exports = function(RED) {
 		let closeIfWinCloses  = false
 		/** If the configured runtime has elapsed, the drive will be sent to shade position. */
 		let shadeIfTimeout  = false
-		/** This flag is true, ff sending height setpoint is held back. */
+		/** This flag is true, if sending height setpoint is held back. */
 		let resendHeightSetpos = false
 
 		/**
 		 * The nodes context object
-		 * @property {Number} windowState 1 = opened, 2 = tilted, 3 = closed
-		 * @property {Bool} autoLocked If set, no automatic actions will be fired
-		 * @property {Bool} stateButtonOpen Button open is pressed
-		 * @property {Bool} stateButtonClose Button close is pressed
-		 * @property {Bool} stateButtonRunning Any button has been pressed and action is running
-		 * @property {Number} buttonCloseTimeoutHandle Handle for the close button single press timer
-		 * @property {Number} buttonOpenTimeoutHandle Handle for the open button single press timer
+		 * @property {Number} windowState Holds the current window state. 1 = opened, 2 = tilted, 3 = closed.
+		 * @property {String} windowStateStr Clear text string holding the current window position.
+		 * @property {Bool} autoLocked If true, automatic mode is disabled and no automatic actions will be fired.
+		 * @property {Bool} stateButtonOpen Button open is pressed and not yet released.
+		 * @property {Bool} stateButtonClose Button close is pressed and not yet released.
+		 * @property {Bool} stateButtonRunning Any button has been pressed and action is running.
+		 * @property {Number} buttonCloseTimeoutHandle Timer handle for the close button single press timer.
+		 * @property {Number} buttonOpenTimeoutHandle Timer handle for the open button single press timer.
 		 */
 		let context = nodeContext.get("context")
 
@@ -159,8 +160,9 @@ module.exports = function(RED) {
 		 * @param {String} b Payload for output 2 (closecommand)
 		 * @param {String} c Payload for output 3 (resetcommand)
 		 * @param {String} d Payload for output 4 (setpointcommand)
+		 * @param {String} reason Unique reason for sending this message
 		 */
-		function sendCommandFunc(a,b,c,d) {
+		function sendCommandFunc(a,b,c,d,reason) {
 
 			resendHeightSetpos = false
 
@@ -207,7 +209,8 @@ module.exports = function(RED) {
 				payload: {
 					config: config,
 					context: context,
-					sunTimes: sunTimes
+					sunTimes: sunTimes,
+					reason: reason
 				}
 			}
 			
@@ -293,12 +296,12 @@ module.exports = function(RED) {
 				
 				// No shading position feedback configured -> always move up or down
 				} else if (!config.heightFbEnable) {
-					sendCommandFunc(null,null,null,context.setposHeight)
+					sendCommandFunc(null,null,null,context.setposHeight,"movingWoFeedback")
 				
 				// Actual height position unknown but setpos is 0 -> moving up is always secure
 				} else if (typeof context.actposHeight == "undefined" && context.setposHeight === 0) {
 					that.warn("W005: Unknown actual position, but rising is allowed.")
-					sendCommandFunc(null,null,null,context.setposHeight)
+					sendCommandFunc(null,null,null,context.setposHeight,"movingUpIsSecure")
 				
 				// Actual height position unknown and lowering is not allowed
 				} else if (typeof context.actposHeight == "undefined" && !allowLowering) {
@@ -307,7 +310,7 @@ module.exports = function(RED) {
 				// Actual height position unknown (setpos must be > 0)
 				} else if (typeof context.actposHeight == "undefined") {
 					that.warn("W007: Unknown actual position")
-					sendCommandFunc(null,null,null,context.setposHeight)
+					sendCommandFunc(null,null,null,context.setposHeight,"goingDownWoKnownPosition")
 				
 				// Lowering may be insecure -> first check conditions
 				} else if (context.setposHeight > context.actposHeight) {
@@ -316,15 +319,15 @@ module.exports = function(RED) {
 					if (!ignoreWindow && config.winswitchEnable && (!context.windowState || context.windowState < 1 || context.windowState > 3)) {
 						that.warn("W008: Unknown or invalid window State. Nothing will happen.")
 					} else if (allowLowering) {
-						sendCommandFunc(null,null,null,context.setposHeight)
+						sendCommandFunc(null,null,null,context.setposHeight,"winPosAllowsLowering")
 					} else {
-						if (node.debug) {that.log(fName + " Actual window position prevents lowering, holding back command.")}
+						if (node.debug) {that.log(fName + " Actual window position (" + context.windowStateStr + ") prevents lowering, holding back command.")}
 						resendHeightSetpos = true
 					}
 
 				// Rising or unchanged
 				} else if (context.setposHeight <= context.actposHeight) {
-					sendCommandFunc(null,null,null,context.setposHeight)
+					sendCommandFunc(null,null,null,context.setposHeight,"risingOrUnchanged")
 				}
 				context.setposHeightPrev = context.setposHeight
 			}
@@ -425,6 +428,7 @@ module.exports = function(RED) {
 			// Sunrise event
 			if (context.sunriseAhead === false && sunriseAheadPrev === true) {
 				if (node.debug) {that.log("Now it's sunrise")}
+				sendCommandFunc(null,null,null,null,"sunrise")		// This is just to inform about sunrise on the status output
 				if (config.autoIfSunrise) {
 					if (node.debug) {that.log("Re-enabeling automatic")}
 					autoReenableFunc()
@@ -437,6 +441,7 @@ module.exports = function(RED) {
 			// Sunset event
 			else if (context.sunsetAhead === false && sunsetAheadPrev === true) {
 				if (node.debug) {that.log("Now it's sunset")}
+				sendCommandFunc(null,null,null,null,"sunset")		// This is just to inform about sunset on the status output
 				if (config.autoIfSunset) {
 					if (node.debug) {that.log("Re-enabeling automatic")}
 					autoReenableFunc()
@@ -625,7 +630,7 @@ module.exports = function(RED) {
 		updateNodeStatus()		// Initially set node status
 
 		setTimeout(() => {			// Seems to be necessary, otherwise the message will be sent before Node-RED "Started flows"
-			sendCommandFunc()		// Providing status on startup
+			sendCommandFunc(null,null,null,null,"startup")		// Providing status on startup
 		}, 10);
 
 		if (node.debug) {printConsoleDebug()}
@@ -715,7 +720,7 @@ module.exports = function(RED) {
 						}
 						clearTimeout(context.buttonOpenTimeoutHandle)
 						context.buttonOpenTimeoutHandle = null
-						sendCommandFunc(null,null,null,shadingSetpos.open)
+						sendCommandFunc(null,null,null,shadingSetpos.open,"openDblclick")
 						// <== DOUBLE CLICK ACTIONS
 						
 					} else {																// no handle present -> must be first click
@@ -730,7 +735,7 @@ module.exports = function(RED) {
 
 								// LONG CLICK ACTIONS ==>
 								if (node.debug) {that.log("Open longclick detected")}
-								sendCommandFunc(config.payloadOpenCmd,null,null,null)
+								sendCommandFunc(config.payloadOpenCmd,null,null,null,"openLongclick")
 								context.stateButtonRunning = true
 								// <== LONG CLICK ACTIONS
 								
@@ -739,9 +744,9 @@ module.exports = function(RED) {
 								// SINGLE CLICK ACTIONS ==>
 								if (node.debug) {that.log("Open singleclick detected")}
 									if (context.actposHeight > shadingSetpos.shade) {
-									sendCommandFunc(null,null,null,shadingSetpos.shade)
+									sendCommandFunc(null,null,null,shadingSetpos.shade,"openSingleclickShade")
 								} else {
-									sendCommandFunc(null,null,null,shadingSetpos.open)
+									sendCommandFunc(null,null,null,shadingSetpos.open,"openSingleclickOpen")
 								}
 								// <== SINGLE CLICK ACTIONS
 							}
@@ -769,7 +774,7 @@ module.exports = function(RED) {
 						}
 						clearTimeout(context.buttonCloseTimeoutHandle)
 						context.buttonCloseTimeoutHandle = null
-						sendCommandFunc(null,null,null,shadingSetpos.close)
+						sendCommandFunc(null,null,null,shadingSetpos.close,"closeDblclick")
 						// <== DOUBLE CLICK ACTIONS
 						
 					} else {
@@ -784,7 +789,7 @@ module.exports = function(RED) {
 								
 								// LONG CLICK ACTIONS ==>
 								if (node.debug) {that.log("Close longclick detected")}
-								sendCommandFunc(null,config.payloadCloseCmd,null,null)
+								sendCommandFunc(null,config.payloadCloseCmd,null,null,"closeLongclick")
 								context.stateButtonRunning = true
 								// <== LONG CLICK ACTIONS
 								
@@ -793,9 +798,9 @@ module.exports = function(RED) {
 								// SINGLE CLICK ACTIONS ==>
 								if (node.debug) {that.log("Close singleclick detected")}
 								if (context.actposHeight < shadingSetpos.shade) {
-									sendCommandFunc(null,null,null,shadingSetpos.shade)
+									sendCommandFunc(null,null,null,shadingSetpos.shade,"closeSingleclickShade")
 								} else {
-									sendCommandFunc(null,null,null,shadingSetpos.close)
+									sendCommandFunc(null,null,null,shadingSetpos.close,"closeSingleclickClose")
 								}
 								// <== SINGLE CLICK ACTIONS
 							}
@@ -807,7 +812,7 @@ module.exports = function(RED) {
 					// BUTTONS RELEASED ACTIONS ==>
 					if (node.debug) {that.log("Button released")}
 					context.stateButtonRunning = false
-					sendCommandFunc(null,null,config.payloadStopCmd,null)
+					sendCommandFunc(null,null,config.payloadStopCmd,null,"buttonRelease")
 					// <== BUTTONS RELEASED ACTIONS
 				}
 			}
@@ -976,7 +981,7 @@ module.exports = function(RED) {
 			updateNodeStatus()
 
 			// Providing status
-			sendCommandFunc()
+			sendCommandFunc(null,null,null,null,"anyMsg")
 
 			// Backing up context
 			contextBackup()
