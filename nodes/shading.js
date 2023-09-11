@@ -244,7 +244,8 @@ module.exports = function(RED) {
 				return
 			// Check for new setposHeight and sendNow, otherwise return
 			} else if (context.setposHeightPrev == context.setposHeight && !sendNow) {
-					if (node.debug) {that.log(fName + " Suppressing identical setposHeight '" + context.setposHeight + "'")}
+					// enabling the following line results in having one line each instance each loop
+					// if (node.debug) {that.log(fName + " Suppressing identical setposHeight '" + context.setposHeight + "'")}
 					return
 			// proceed
 			} else {
@@ -420,11 +421,6 @@ module.exports = function(RED) {
 
 			sunInSkyFunc()
 
-			// -- DEBUG: some useful lines for debugging -->
-			// that.log("DEBUG: actdate = " + actDate)
-			// that.log("DEBUG: sunset = " + sunTimes.sunset)
-			// that.log("DEBUG: sunsetAhead = " + context.sunsetAhead + ", sunsetAheadPrev = " + sunsetAheadPrev)
-
 			// Sunrise event
 			if (context.sunriseAhead === false && sunriseAheadPrev === true) {
 				if (node.debug) {that.log("Now it's sunrise")}
@@ -450,9 +446,6 @@ module.exports = function(RED) {
 				}
 				updateNodeStatus()
 			}
-
-			// -- DEBUG: some useful lines for debugging -->
-			// else {that.log("DEBUG: nothing to do\n\r\n\r")}
 
 			// Backing up
 			sunriseAheadPrev = context.sunriseAhead
@@ -616,7 +609,6 @@ module.exports = function(RED) {
 		if (config.autoActive) {
 			if (node.debug) {that.log("Automatic configured, starting interval.")}
 			suncalcFunc()
-			// sunInSkyFunc()		// Versuchsweise in calcsetposheight verschoben, kann dann weg wenn das passt.
 			calcSetposHeight()
 			mainLoopFunc()												// Trigger once as setInterval will fire first after timeout
 			clearInterval(handle)										// Clear eventual previous loop
