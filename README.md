@@ -16,7 +16,6 @@ Please refer to the [Wiki page](https://github.com/danube/node-red-contrib-smart
 
 Let me know, if something is not clear or you have found a bug, a typo or something else. I'm happy for any opportunity to improve the solutions, as I use them by myself.
 
-- [Talk to me in Discord](https://rebrand.ly/cb4glqq)
 - [Raise an issue on GitHub](https://rebrand.ly/wasfiit)
 
 ## Credits & 3rd party software
