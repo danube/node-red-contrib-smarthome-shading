@@ -4,12 +4,12 @@
 
 With the use of this node you can control your roller shutter and blinds of your smart home.
 
-<kbd><img src="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/files/photo-rollershutter.jpg" width="400"></kbd>
-<kbd><img src="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/files/photo-venetianblind.jpg" width="400"></kbd>
+<kbd><img src="https://raw.githubusercontent.com/wiki/danube/node-red-contrib-smarthome-shading/files/photo-rollershutter.jpg" width="400"></kbd>
+<kbd><img src="https://raw.githubusercontent.com/wiki/danube/node-red-contrib-smarthome-shading/files/photo-venetianblind.jpg" width="400"></kbd>
 
 ## How to use
 
-<kbd><img src="https://github.com/danube/node-red-contrib-smarthome-shading/blob/master/files/screenshot-node-example-1.png"></kbd>
+<kbd><img src="https://raw.githubusercontent.com/wiki/danube/node-red-contrib-smarthome-shading/files/screenshot-node-example-1.png"></kbd>
 Please refer to the [Wiki page](https://github.com/danube/node-red-contrib-smarthome-shading/wiki) to learn more about using and configuring this node.
 
 ## Contact
