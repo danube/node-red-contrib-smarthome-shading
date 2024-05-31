@@ -7,6 +7,10 @@
         "configuration": "Configuration",
         "debugging": "Debugging"
     },
+    "help": {
+        "h": "Hilfe",
+        "usermanual": "Benutzerhandbuch"
+    },
     "blind": {
         "h": "Blind",
         "shadepos": "Shading position"
